@@ -14,7 +14,7 @@ interface PasswordForm {
 }
 
 export default function ProducerSettings() {
-  const { user, setUser } = useAuthStore();
+  const { user, setAuth, accessToken, refreshToken } = useAuthStore();
   const qc = useQueryClient();
 
   // Senha
@@ -64,7 +64,7 @@ export default function ProducerSettings() {
       setOpenMfa(false);
       setMfaCode('');
       // Atualiza o usuário no store
-      if (setUser && user) setUser({ ...user, mfaEnabled: true });
+      if (user && accessToken && refreshToken) setAuth({ ...user, mfaEnabled: true }, accessToken, refreshToken);
       qc.invalidateQueries({ queryKey: ['me'] });
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Código inválido'),
