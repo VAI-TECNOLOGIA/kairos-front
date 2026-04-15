@@ -21,7 +21,7 @@ export default function ProfilePage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: profile } = useQuery({
-    queryKey: ['my-profile'],
+    queryKey: ['my-profile', user?.id],
     queryFn : () => api.get('/auth/me').then(r => r.data),
   });
 
@@ -46,7 +46,7 @@ export default function ProfilePage() {
     },
     onSuccess: async (url) => {
       await api.patch('/auth/profile', { avatarUrl: url });
-      qc.invalidateQueries({ queryKey: ['my-profile'] });
+      qc.invalidateQueries({ queryKey: ['my-profile', user?.id] });
       // Atualiza store
       if (user && accessToken && refreshToken) {
         setAuth({ ...user, avatarUrl: url } as any, accessToken, refreshToken);
@@ -59,8 +59,12 @@ export default function ProfilePage() {
   // Salvar perfil
   const saveProfile = useMutation({
     mutationFn: (d: ProfileForm) => api.patch('/auth/profile', d),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['my-profile'] });
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['my-profile', user?.id] });
+      // Atualiza nome no store para refletir na topbar imediatamente
+      if (user && accessToken && refreshToken) {
+        setAuth({ ...user, name: vars.name } as any, accessToken, refreshToken);
+      }
       toast.success('Perfil atualizado!');
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao salvar'),

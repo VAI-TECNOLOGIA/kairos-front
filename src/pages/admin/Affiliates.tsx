@@ -8,9 +8,9 @@ import { Link2 } from "lucide-react";
 export default function AffiliatesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-affiliates"],
-    queryFn: () => api.get("/affiliates").then(r => r.data),
+    queryFn: () => api.get('/affiliates/pending').then(r => r.data),
   });
-  const affiliates: Affiliate[] = data?.data || [];
+  const affiliates: Affiliate[] = Array.isArray(data) ? data : [];
 
   return (
     <div>

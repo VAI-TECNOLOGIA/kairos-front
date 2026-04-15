@@ -4,7 +4,7 @@ import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, Link2,
-  Handshake, Monitor, DollarSign, Settings, LogOut, Bell, Puzzle, UserCircle
+  Handshake, Monitor, DollarSign, Settings, LogOut, Bell
 } from 'lucide-react';
 
 const nav = [
@@ -27,9 +27,7 @@ const nav = [
     { to: 'checkout',     icon: Monitor, label: 'Checkout' },
   ]},
   { group: 'Conta', items: [
-    { to: 'perfil',        icon: UserCircle, label: 'Meu Perfil' },
-    { to: 'configuracoes', icon: Settings,   label: 'Configurações' },
-    { to: 'integracoes',   icon: Puzzle,     label: 'Integrações' },
+    { to: 'configuracoes', icon: Settings, label: 'Configurações' },
   ]},
 ];
 
@@ -42,7 +40,7 @@ export default function ProducerLayout() {
     <div className="flex h-screen overflow-hidden bg-bg">
       <aside className="w-60 flex-shrink-0 flex flex-col bg-bg2 border-r border-border overflow-y-auto">
         <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
-            <img src="/kairosLogo.png" alt="Kairos Way" className="w-12 h-8 object-contain" />
+          <img src="/kairosLogo.png" alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
           <div>
             <div className="text-sm font-bold text-text">KAIROS WAY</div>
             <div className="text-[10px] text-text3">Painel Produtor</div>
@@ -67,27 +65,6 @@ export default function ProducerLayout() {
           ))}
         </nav>
 
-        <div className="border-t border-border p-3">
-          <div className="flex items-center gap-3 p-2 rounded-[7px] hover:bg-bg3 cursor-pointer group">
-            {(user as any)?.avatarUrl ? (
-              <img src={(user as any).avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0 border border-border" />
-            ) : (
-              <div className="w-8 h-8 bg-green/20 rounded-full flex items-center justify-center text-green text-sm font-bold flex-shrink-0">
-                {user?.name?.slice(0, 2).toUpperCase()}
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-text truncate">{user?.name}</div>
-              <div className="text-xs text-text3">Produtor</div>
-            </div>
-            <button
-              onClick={() => { logout(); navigate('/login'); }}
-              className="p-1 rounded text-text3 hover:text-red opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <LogOut size={14} />
-            </button>
-          </div>
-        </div>
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -102,7 +79,19 @@ export default function ProducerLayout() {
         </div>
 
         <header className="flex items-center justify-between px-6 py-3 bg-bg2 border-b border-border">
-          <div />
+          <div className="flex items-center gap-2.5">
+            {(user as any)?.avatarUrl ? (
+              <img src={(user as any).avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover border border-border" />
+            ) : (
+              <div className="w-8 h-8 bg-green/20 rounded-full flex items-center justify-center text-green text-sm font-bold flex-shrink-0">
+                {user?.name?.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="hidden sm:block">
+              <div className="text-sm font-medium text-text leading-tight">{user?.name}</div>
+              <div className="text-[10px] text-text3">Produtor</div>
+            </div>
+          </div>
           <div className="flex items-center gap-3">
             <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full border',
               session.warning ? 'bg-amber/10 text-amber border-amber/20' : 'bg-bg3 text-text3 border-border'

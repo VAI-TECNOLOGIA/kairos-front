@@ -14,15 +14,22 @@ interface AuthState {
   accessToken : string | null;
   refreshToken: string | null;
   sessionStart: number | null;
-  hydrated: boolean;
+  hydrated    : boolean;
 
-  setAuth       : (user: AuthUser, accessToken: string, refreshToken: string) => void;
-  setTokens     : (accessToken: string, refreshToken: string) => void;
-  logout        : () => void;
+  setAuth        : (user: AuthUser, accessToken: string, refreshToken: string) => void;
+  setTokens      : (accessToken: string, refreshToken: string) => void;
+  logout         : () => void;
+  clearAuth      : () => void;
   isAuthenticated: () => boolean;
-  isAdmin       : () => boolean;
-  isProducer    : () => boolean;
-  setHydrated: (v: boolean) => void;
+  isAdmin        : () => boolean;
+  isProducer     : () => boolean;
+  setHydrated    : (v: boolean) => void;
+}
+
+// QueryClient é injetado externamente para evitar dependência circular
+let _queryClient: { clear: () => void } | null = null;
+export function injectQueryClient(qc: { clear: () => void }) {
+  _queryClient = qc;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -32,23 +39,31 @@ export const useAuthStore = create<AuthState>()(
       accessToken : null,
       refreshToken: null,
       sessionStart: null,
-      hydrated: false,
+      hydrated    : false,
 
-      setAuth: (user, accessToken, refreshToken) =>
-        set({ user, accessToken, refreshToken, sessionStart: Date.now() }),
+      setAuth: (user, accessToken, refreshToken) => {
+        // Limpa todo o cache do React Query ao trocar de usuário
+        _queryClient?.clear();
+        set({ user, accessToken, refreshToken, sessionStart: Date.now() });
+      },
 
       setTokens: (accessToken, refreshToken) =>
         set({ accessToken, refreshToken, sessionStart: Date.now() }),
 
-      logout: () =>
-        set({ user: null, accessToken: null, refreshToken: null, sessionStart: null }),
+      logout: () => {
+        _queryClient?.clear();
+        set({ user: null, accessToken: null, refreshToken: null, sessionStart: null });
+      },
+
+      clearAuth: () => {
+        _queryClient?.clear();
+        set({ user: null, accessToken: null, refreshToken: null, sessionStart: null });
+      },
 
       isAuthenticated: () => !!get().accessToken && !!get().user,
-
-      isAdmin   : () => ['ADMIN', 'STAFF'].includes(get().user?.role || ''),
-      isProducer: () => get().user?.role === 'PRODUCER',
-
-      setHydrated: (v) => set({ hydrated: v }),
+      isAdmin        : () => ['ADMIN', 'STAFF'].includes(get().user?.role || ''),
+      isProducer     : () => get().user?.role === 'PRODUCER',
+      setHydrated    : (v) => set({ hydrated: v }),
     }),
     {
       name   : 'kairos-auth',

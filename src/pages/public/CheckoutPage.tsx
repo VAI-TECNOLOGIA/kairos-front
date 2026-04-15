@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams  } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -161,6 +161,9 @@ function AnimatedCard({ number, holder, expMonth, expYear, flipped }: {
 // ── COMPONENTE PRINCIPAL ──────────────────────────────────────────
 export default function CheckoutPage() {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
+  const affiliateRef   = searchParams.get('ref') || searchParams.get('aff') || undefined;
+
   const [result, setResult] = useState<any>(null);
   const [cvvFocused, setCvvFocused] = useState(false);
 
@@ -211,7 +214,7 @@ export default function CheckoutPage() {
           complement: formData.complement || '',
         };
       }
-      return api.post(`/checkout/${slug}/pay`, payload);
+      return api.post(`/checkout/${slug}/pay${affiliateRef ? `?ref=${affiliateRef}` : ''}`, payload);
     },
     onSuccess: ({ data }) => {
       setResult(data);
