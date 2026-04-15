@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { PageHeader } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth.store';
 import { Camera, Save, User } from 'lucide-react';
+import { maskDocument, maskPhone, validateDocument } from '@/lib/cpf';
 
 interface ProfileForm {
   name     : string;
@@ -25,7 +26,7 @@ export default function ProfilePage() {
     queryFn : () => api.get('/auth/me').then(r => r.data),
   });
 
-  const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileForm>({
+  const { register, handleSubmit, setValue, formState: { errors, isDirty } } = useForm<ProfileForm>({
     values: {
       name     : profile?.name      || '',
       document : profile?.document  || '',
@@ -33,6 +34,10 @@ export default function ProfilePage() {
       birthDate: profile?.birthDate?.slice(0, 10) || '',
     },
   });
+
+  const [docValue,  setDocValue]  = useState('');
+  const [docError,  setDocError]  = useState('');
+  const [phoneValue, setPhoneValue] = useState('');
 
   // Upload avatar
   const uploadAvatar = useMutation({
@@ -134,10 +139,19 @@ export default function ProfilePage() {
               <div className="form-group">
                 <label className="label">CPF / CNPJ</label>
                 <input
-                  {...register('document')}
-                  className="input"
+                  value={docValue || profile?.document || ''}
+                  onChange={e => {
+                    const masked = maskDocument(e.target.value);
+                    setDocValue(masked);
+                    setValue('document', masked, { shouldDirty: true });
+                    setDocError(validateDocument(masked) || '');
+                  }}
+                  className={`input ${docError ? 'border-red' : ''}`}
                   placeholder="000.000.000-00"
+                  maxLength={18}
+                  inputMode="numeric"
                 />
+                {docError && <span className="text-xs text-red mt-1">{docError}</span>}
               </div>
               <div className="form-group">
                 <label className="label">Data de nascimento</label>
@@ -152,15 +166,24 @@ export default function ProfilePage() {
             <div className="form-group">
               <label className="label">WhatsApp / Telefone</label>
               <input
-                {...register('phone')}
+                value={phoneValue || profile?.phone || ''}
+                onChange={e => {
+                  const masked = maskPhone(e.target.value);
+                  setPhoneValue(masked);
+                  setValue('phone', masked, { shouldDirty: true });
+                }}
                 className="input"
                 placeholder="(47) 99999-9999"
+                maxLength={15}
                 inputMode="tel"
               />
             </div>
 
             <button
-              onClick={handleSubmit(d => saveProfile.mutate(d))}
+              onClick={handleSubmit(d => {
+                if (docError) { toast.error(docError); return; }
+                saveProfile.mutate(d);
+              })}
               disabled={saveProfile.isPending}
               className="btn-primary w-full justify-center"
             >

@@ -12,6 +12,12 @@ import CheckoutPage   from '@/pages/public/CheckoutPage';
 import AdminLayout     from '@/components/layout/AdminLayout';
 import ProducerLayout  from '@/components/layout/ProducerLayout';
 import AffiliateLayout from '@/components/layout/AffiliateLayout';
+import CustomerLayout  from '@/components/layout/CustomerLayout';
+
+// Customer pages
+import CustomerAuthPage from '@/pages/customer/CustomerAuthPage';
+import MyPurchases      from '@/pages/customer/MyPurchases';
+import CustomerMarketplace from '@/pages/customer/Marketplace';
 
 // Admin pages
 import AdminDashboard      from '@/pages/admin/Dashboard';
@@ -42,6 +48,9 @@ import CheckoutConfig    from '@/pages/producer/Checkout';
 import MyFinancial       from '@/pages/producer/Financial';
 import ProducerSettings  from '@/pages/producer/Settings';
 import IntegrationsPage  from '@/pages/producer/Integrations';
+import Milestones        from '@/pages/producer/Milestones';
+import ProducerRefunds   from '@/pages/producer/Refunds';
+import TrackingPixels    from '@/pages/producer/TrackingPixels';
 
 // Affiliate pages
 import AffiliateDashboard   from '@/pages/affiliate/Dashboard';
@@ -49,9 +58,11 @@ import AffiliateMarketplace from '@/pages/affiliate/Marketplace';
 import AffiliateLinks       from '@/pages/affiliate/Links';
 import AffiliateFinancial   from '@/pages/affiliate/Financial';
 import AffiliateRanking     from '@/pages/affiliate/Ranking';
+import AffiliateRefunds     from '@/pages/affiliate/Refunds';
 
 // Shared
-import ProfilePage from '@/pages/shared/ProfilePage';
+import ProfilePage          from '@/pages/shared/ProfilePage';
+import DashboardSettings    from '@/pages/shared/DashboardSettings';
 
 // Protected route wrapper
 function ProtectedRoute({ role, children }: { role?: string | string[]; children: React.ReactNode }) {
@@ -73,6 +84,7 @@ function getDefaultPath(role?: string) {
   if (role === 'PRODUCER')   return '/produtor/dashboard';
   if (role === 'COPRODUCER') return '/produtor/dashboard';
   if (role === 'AFFILIATE')  return '/afiliado/dashboard';
+  if (role === 'CUSTOMER')   return '/cliente/compras';
   return '/admin/dashboard';
 }
 
@@ -108,6 +120,7 @@ export default function App() {
         <Route path="configuracoes"      element={<AdminSettings />} />
         <Route path="ambiente-de-teste"  element={<TestEnvironmentPage />} />
         <Route path="perfil"             element={<ProfilePage />} />
+        <Route path="configurar-dashboard" element={<DashboardSettings />} />
       </Route>
 
       {/* ── PRODUTOR ── */}
@@ -121,9 +134,13 @@ export default function App() {
         <Route path="coprodutores"  element={<MyCoproducers />} />
         <Route path="checkout"      element={<CheckoutConfig />} />
         <Route path="financeiro"    element={<MyFinancial />} />
-        <Route path="configuracoes" element={<ProducerSettings />} />
-        <Route path="perfil"        element={<ProfilePage />} />
-        <Route path="integracoes"   element={<IntegrationsPage />} />
+        <Route path="configuracoes"        element={<ProducerSettings />} />
+        <Route path="perfil"               element={<ProfilePage />} />
+        <Route path="integracoes"          element={<IntegrationsPage />} />
+        <Route path="configurar-dashboard" element={<DashboardSettings />} />
+        <Route path="marcos"               element={<Milestones />} />
+        <Route path="reembolsos"           element={<ProducerRefunds />} />
+        <Route path="tracking"             element={<TrackingPixels />} />
       </Route>
 
       {/* ── AFILIADO ── */}
@@ -135,9 +152,19 @@ export default function App() {
         <Route path="links"          element={<AffiliateLinks />} />
         <Route path="financeiro"     element={<AffiliateFinancial />} />
         {/* Rotas exclusivas para afiliado co-produtor */}
-        <Route path="meus-produtos"  element={<MyProducts />} />
-        <Route path="minhas-ofertas" element={<OfferManager />} />
-        <Route path="perfil"         element={<ProfilePage />} />
+        <Route path="meus-produtos"        element={<MyProducts />} />
+        <Route path="minhas-ofertas"       element={<OfferManager />} />
+        <Route path="perfil"               element={<ProfilePage />} />
+        <Route path="configurar-dashboard" element={<DashboardSettings />} />
+        <Route path="reembolsos"           element={<AffiliateRefunds />} />
+      </Route>
+
+      {/* ── CLIENTE ── */}
+      <Route path="/cliente" element={<CustomerLayout />}>
+        <Route index element={<Navigate to="marketplace" replace />} />
+        <Route path="login"       element={<CustomerAuthPage />} />
+        <Route path="marketplace" element={<CustomerMarketplace />} />
+        <Route path="compras"     element={<MyPurchases />} />
       </Route>
 
       {/* ── REDIRECT ROOT ── */}

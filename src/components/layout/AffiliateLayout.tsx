@@ -7,8 +7,9 @@ import { cn } from '@/lib/utils';
 import { formatBRL } from '@/lib/utils';
 import {
   LayoutDashboard, ShoppingBag, Link2, DollarSign,
-  LogOut, Bell, UserCircle, Trophy, X, Sparkles, Package,
+  LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw,
 } from 'lucide-react';
+import NotificationBell from '@/components/NotificationBell';
 
 const nav = [
   { group: 'Início', items: [
@@ -21,9 +22,11 @@ const nav = [
   ]},
   { group: 'Financeiro', items: [
     { to: 'financeiro',  icon: DollarSign,  label: 'Financeiro'  },
+    { to: 'reembolsos',  icon: RotateCcw,   label: 'Reembolsos'  },
   ]},
   { group: 'Conta', items: [
-    { to: 'perfil',      icon: UserCircle,  label: 'Meu Perfil'  },
+    { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Configurar Dashboard' },
+    { to: 'perfil',               icon: UserCircle,        label: 'Meu Perfil' },
   ]},
 ];
 
@@ -211,7 +214,7 @@ export default function AffiliateLayout() {
             )}>
               ⏱ {session.label}
             </span>
-            <button className="btn-ghost btn-sm"><Bell size={16} /></button>
+            <NotificationBell />
             <button onClick={handleLogout} className="btn-ghost btn-sm text-text3 hover:text-red" title="Sair">
               <LogOut size={15} />
             </button>

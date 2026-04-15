@@ -5,30 +5,55 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
-import { Eye, EyeOff, Lock, Mail, User, Phone, CheckCircle, Link2 } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, Phone, CheckCircle, CreditCard } from 'lucide-react';
+import { maskDocument, maskPhone, validateDocument } from '@/lib/cpf';
 
 const schema = z.object({
   name    : z.string().min(2, 'Nome obrigatório'),
   email   : z.string().email('Email inválido'),
   password: z.string().min(6, 'Mínimo 6 caracteres'),
   phone   : z.string().optional(),
+  document: z.string().optional().refine(
+    v => !v || validateDocument(v) === null,
+    v => ({ message: validateDocument(v || '') || 'Documento inválido' })
+  ),
 });
 
 type FormData = z.infer<typeof schema>;
 
-export default function AffiliateRegisterPage() {
-  const [success, setSuccess]   = useState(false);
-  const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading]   = useState(false);
+// Zod converte '' em undefined, mas precisamos passar string vazia para o backend
+function cleanDoc(value: string | undefined) {
+  return value?.replace(/\D/g, '') || undefined;
+}
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+const glassCard: React.CSSProperties = {
+  background          : 'rgba(255, 255, 255, 0.04)',
+  backdropFilter      : 'blur(24px)',
+  WebkitBackdropFilter: 'blur(24px)',
+  boxShadow           : '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+};
+
+const inputFocus = 'focus:!border-white/20 focus:!ring-0';
+
+export default function AffiliateRegisterPage() {
+  const [success,  setSuccess]  = useState(false);
+  const [showPass, setShowPass] = useState(false);
+  const [loading,  setLoading]  = useState(false);
+  const [docValue, setDocValue] = useState('');
+  const [phoneValue, setPhoneValue] = useState('');
+
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      await api.post('/affiliates/register', data);
+      await api.post('/affiliates/register', {
+        ...data,
+        document: cleanDoc(data.document),
+        phone   : data.phone?.replace(/\D/g, '') || undefined,
+      });
       setSuccess(true);
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Erro ao cadastrar');
@@ -39,12 +64,33 @@ export default function AffiliateRegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center p-4">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl" />
-        </div>
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ background: '#080e1a' }}>
+        <style>{`
+          @keyframes orb1 { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.07}50%{transform:translate(-45%,-55%) scale(1.2);opacity:.13} }
+          @keyframes orb2 { 0%,100%{transform:translate(0,0) scale(1);opacity:.05}33%{transform:translate(-40px,30px) scale(1.15);opacity:.10}66%{transform:translate(20px,-20px) scale(.95);opacity:.07} }
+          @keyframes orb3 { 0%,100%{transform:translate(0,0) scale(1);opacity:.04}50%{transform:translate(30px,-40px) scale(1.1);opacity:.09} }
+          @keyframes grid-move { 0%{background-position:0 0}100%{background-position:60px 60px} }
+        `}</style>
+
+        {/* Grid */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundSize: '60px 60px', animation: 'grid-move 12s linear infinite',
+        }} />
+        {/* Orbs */}
+        <div className="absolute pointer-events-none" style={{ top:'30%',left:'-10%',width:900,height:900,borderRadius:'50%',background:'radial-gradient(circle,#124d86 0%,transparent 60%)',opacity:.9,filter:'blur(80px)',animation:'orb1 9s ease-in-out infinite' }} />
+        <div className="absolute pointer-events-none" style={{ top:'-10%',right:'-10%',width:700,height:700,borderRadius:'50%',background:'radial-gradient(circle,#0c6b8a 0%,transparent 60%)',opacity:.85,filter:'blur(70px)',animation:'orb2 11s ease-in-out infinite' }} />
+        <div className="absolute pointer-events-none" style={{ bottom:'-10%',left:'-5%',width:650,height:650,borderRadius:'50%',background:'radial-gradient(circle,#27d36a 0%,transparent 60%)',opacity:.65,filter:'blur(80px)',animation:'orb3 13s ease-in-out infinite' }} />
+        <div className="absolute pointer-events-none" style={{ bottom:'5%',right:'-5%',width:500,height:500,borderRadius:'50%',background:'radial-gradient(circle,#1fe36f 0%,transparent 60%)',opacity:.35,filter:'blur(70px)',animation:'orb1 10s ease-in-out infinite reverse' }} />
+
         <div className="w-full max-w-sm relative z-10 animate-slide-up">
-          <div className="card p-8 text-center">
+          <div className="text-center mb-8">
+            <img src="/kairosLogo.png" alt="Kairos Way" className="w-16 h-16 object-contain mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-text">KAIROS WAY</h1>
+            <p className="text-sm text-text2 mt-1">Gateway de Pagamentos</p>
+          </div>
+
+          <div className="p-8 rounded-2xl border border-white/10 text-center" style={glassCard}>
             <div className="w-14 h-14 bg-green/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <CheckCircle size={28} className="text-green" />
             </div>
@@ -62,28 +108,57 @@ export default function AffiliateRegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-purple/5 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ background: '#080e1a' }}>
+      <style>{`
+        @keyframes orb1 {
+          0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 0.07; }
+          50%       { transform: translate(-45%, -55%) scale(1.2); opacity: 0.13; }
+        }
+        @keyframes orb2 {
+          0%, 100% { transform: translate(0, 0) scale(1);          opacity: 0.05; }
+          33%       { transform: translate(-40px, 30px) scale(1.15); opacity: 0.10; }
+          66%       { transform: translate(20px, -20px) scale(0.95); opacity: 0.07; }
+        }
+        @keyframes orb3 {
+          0%, 100% { transform: translate(0, 0) scale(1);    opacity: 0.04; }
+          50%       { transform: translate(30px, -40px) scale(1.1); opacity: 0.09; }
+        }
+        @keyframes grid-move {
+          0%   { background-position: 0 0; }
+          100% { background-position: 60px 60px; }
+        }
+      `}</style>
+
+      {/* Grid animado */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+        backgroundSize : '60px 60px',
+        animation      : 'grid-move 12s linear infinite',
+      }} />
+
+      {/* Orbs */}
+      <div className="absolute pointer-events-none" style={{ top:'30%',left:'-10%',width:900,height:900,borderRadius:'50%',background:'radial-gradient(circle,#124d86 0%,transparent 60%)',opacity:.9,filter:'blur(80px)',animation:'orb1 9s ease-in-out infinite' }} />
+      <div className="absolute pointer-events-none" style={{ top:'-10%',right:'-10%',width:700,height:700,borderRadius:'50%',background:'radial-gradient(circle,#0c6b8a 0%,transparent 60%)',opacity:.85,filter:'blur(70px)',animation:'orb2 11s ease-in-out infinite' }} />
+      <div className="absolute pointer-events-none" style={{ bottom:'-10%',left:'-5%',width:650,height:650,borderRadius:'50%',background:'radial-gradient(circle,#27d36a 0%,transparent 60%)',opacity:.65,filter:'blur(80px)',animation:'orb3 13s ease-in-out infinite' }} />
+      <div className="absolute pointer-events-none" style={{ bottom:'5%',right:'-5%',width:500,height:500,borderRadius:'50%',background:'radial-gradient(circle,#1fe36f 0%,transparent 60%)',opacity:.35,filter:'blur(70px)',animation:'orb1 10s ease-in-out infinite reverse' }} />
 
       <div className="w-full max-w-sm relative z-10 animate-slide-up">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-accent/20">
-            <Link2 size={24} className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-text">Quero ser afiliado</h1>
-          <p className="text-sm text-text2 mt-1">Promova produtos e ganhe comissões</p>
+          <img src="/kairosLogo.png" alt="Kairos Way" className="w-16 h-16 object-contain mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-text">KAIROS WAY</h1>
+          <p className="text-sm text-text2 mt-1">Quero ser afiliado</p>
         </div>
 
-        <div className="card p-6">
+        {/* Card glass */}
+        <div className="p-6 rounded-2xl border border-white/10" style={glassCard}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
             <div className="form-group">
               <label className="label">Nome completo</label>
               <div className="relative">
                 <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
-                <input {...register('name')} className="input pl-9" placeholder="Seu nome completo" />
+                <input {...register('name')} className={`input pl-9 ${inputFocus}`} placeholder="Seu nome completo" />
               </div>
               {errors.name && <span className="text-xs text-red">{errors.name.message}</span>}
             </div>
@@ -92,7 +167,7 @@ export default function AffiliateRegisterPage() {
               <label className="label">Email</label>
               <div className="relative">
                 <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
-                <input {...register('email')} type="email" className="input pl-9" placeholder="seu@email.com" />
+                <input {...register('email')} type="email" className={`input pl-9 ${inputFocus}`} placeholder="seu@email.com" />
               </div>
               {errors.email && <span className="text-xs text-red">{errors.email.message}</span>}
             </div>
@@ -104,7 +179,7 @@ export default function AffiliateRegisterPage() {
                 <input
                   {...register('password')}
                   type={showPass ? 'text' : 'password'}
-                  className="input pl-9 pr-10"
+                  className={`input pl-9 pr-10 ${inputFocus}`}
                   placeholder="Mínimo 6 caracteres"
                 />
                 <button
@@ -122,8 +197,39 @@ export default function AffiliateRegisterPage() {
               <label className="label">Telefone <span className="text-text3">(opcional)</span></label>
               <div className="relative">
                 <Phone size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
-                <input {...register('phone')} className="input pl-9" placeholder="(11) 99999-9999" />
+                <input
+                  value={phoneValue}
+                  onChange={e => {
+                    const masked = maskPhone(e.target.value);
+                    setPhoneValue(masked);
+                    setValue('phone', masked);
+                  }}
+                  className={`input pl-9 ${inputFocus}`}
+                  placeholder="(11) 99999-9999"
+                  maxLength={15}
+                  inputMode="numeric"
+                />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="label">CPF / CNPJ <span className="text-text3">(opcional)</span></label>
+              <div className="relative">
+                <CreditCard size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
+                <input
+                  value={docValue}
+                  onChange={e => {
+                    const masked = maskDocument(e.target.value);
+                    setDocValue(masked);
+                    setValue('document', masked, { shouldValidate: true });
+                  }}
+                  className={`input pl-9 ${inputFocus}`}
+                  placeholder="000.000.000-00"
+                  maxLength={18}
+                  inputMode="numeric"
+                />
+              </div>
+              {errors.document && <span className="text-xs text-red">{errors.document.message}</span>}
             </div>
 
             <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3 mt-2">

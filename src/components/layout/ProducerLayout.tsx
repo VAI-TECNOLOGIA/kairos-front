@@ -4,8 +4,9 @@ import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, Link2,
-  Handshake, Monitor, DollarSign, Settings, LogOut, Bell
+  Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity
 } from 'lucide-react';
+import NotificationBell from '@/components/NotificationBell';
 
 const nav = [
   { group: 'Início', items: [
@@ -18,16 +19,20 @@ const nav = [
   { group: 'Financeiro', items: [
     { to: 'vendas',       icon: ShoppingCart, label: 'Vendas' },
     { to: 'financeiro',   icon: DollarSign,   label: 'Financeiro' },
+    { to: 'reembolsos',   icon: RotateCcw,    label: 'Reembolsos' },
+    { to: 'marcos',       icon: Trophy,       label: 'Marcos & Conquistas' },
   ]},
   { group: 'Parcerias', items: [
     { to: 'afiliados',    icon: Link2,     label: 'Afiliados' },
     { to: 'coprodutores', icon: Handshake, label: 'Co-Produtores' },
   ]},
   { group: 'Loja', items: [
-    { to: 'checkout',     icon: Monitor, label: 'Checkout' },
+    { to: 'checkout', icon: Monitor,   label: 'Checkout' },
+    { to: 'tracking', icon: Activity,  label: 'Pixels de Rastreamento' },
   ]},
   { group: 'Conta', items: [
-    { to: 'configuracoes', icon: Settings, label: 'Configurações' },
+    { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Configurar Dashboard' },
+    { to: 'configuracoes',        icon: Settings,          label: 'Configurações' },
   ]},
 ];
 
@@ -96,7 +101,7 @@ export default function ProducerLayout() {
             <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full border',
               session.warning ? 'bg-amber/10 text-amber border-amber/20' : 'bg-bg3 text-text3 border-border'
             )}>⏱ {session.label}</span>
-            <button className="btn-ghost btn-sm"><Bell size={16} /></button>
+            <NotificationBell />
             <button onClick={() => { logout(); navigate('/login'); }} className="btn-ghost btn-sm text-text3 hover:text-red">
               <LogOut size={15} />
             </button>

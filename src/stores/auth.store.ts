@@ -5,7 +5,7 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'STAFF' | 'PRODUCER' | 'COPRODUCER' | 'AFFILIATE';
+  role: 'ADMIN' | 'STAFF' | 'PRODUCER' | 'COPRODUCER' | 'AFFILIATE' | 'CUSTOMER';
   mfaEnabled?: boolean;
 }
 

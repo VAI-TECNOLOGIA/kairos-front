@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Users, Package, Tag, ShoppingCart, Link2, Handshake,
   RefreshCw, DollarSign, BarChart3, Shield,
-  Settings, LogOut, Bell, Activity, FlaskConical, UserCircle
+  Settings, LogOut, Bell, Activity, FlaskConical, UserCircle, SlidersHorizontal
 } from 'lucide-react';
 
 const nav = [
@@ -32,9 +32,10 @@ const nav = [
     { to: 'seguranca',    icon: Shield,   label: 'PCI & Segurança' },
   ]},
   { group: 'Sistema', items: [
-    { to: 'perfil',            icon: UserCircle,   label: 'Meu Perfil' },
-    { to: 'configuracoes',     icon: Settings,     label: 'Configurações' },
-    { to: 'ambiente-de-teste', icon: FlaskConical, label: 'Ambiente de Teste', badge: 'beta' },
+    { to: 'perfil',               icon: UserCircle,        label: 'Meu Perfil' },
+    { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Configurar Dashboard' },
+    { to: 'configuracoes',        icon: Settings,          label: 'Configurações' },
+    { to: 'ambiente-de-teste',    icon: FlaskConical,      label: 'Ambiente de Teste', badge: 'beta' },
   ]},
 ];
 
