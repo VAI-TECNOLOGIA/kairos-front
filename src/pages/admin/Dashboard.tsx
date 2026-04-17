@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
@@ -12,6 +12,7 @@ import {
   AlertCircle, ArrowUpRight, ArrowDownRight,
 } from 'lucide-react';
 import { useDashboardConfig } from '@/hooks/useDashboardConfig';
+import DateFilter, { getDefaultRange, type DateRange } from '@/components/DateFilter';
 
 const COLORS = ['#0055FE', '#00C9A7', '#F59E0B', '#FF4D6D', '#7C3AED'];
 
@@ -32,15 +33,18 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function AdminDashboard() {
   const { isEnabled } = useDashboardConfig();
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultRange());
+
+  const qs = `startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-dashboard'],
-    queryFn : () => api.get('/admin/dashboard').then(r => r.data),
+    queryKey: ['admin-dashboard', dateRange.startDate, dateRange.endDate],
+    queryFn : () => api.get(`/admin/dashboard?${qs}`).then(r => r.data),
   });
 
   const { data: salesData } = useQuery({
-    queryKey: ['admin-sales-chart'],
-    queryFn : () => api.get('/reports/sales?limit=200&status=APPROVED').then(r => r.data),
+    queryKey: ['admin-sales-chart', dateRange.startDate, dateRange.endDate],
+    queryFn : () => api.get(`/reports/sales?limit=500&status=APPROVED&${qs}`).then(r => r.data),
     enabled : isEnabled('chart_revenue_14d') || isEnabled('chart_payment_mix') || isEnabled('chart_hourly_orders'),
   });
 
@@ -50,12 +54,15 @@ export default function AdminDashboard() {
     enabled : isEnabled('list_recent_sales'),
   });
 
-  // Receita por dia — últimos 14 dias
+  // Receita por dia — período selecionado
   const revenueChart = useMemo(() => {
     const orders = salesData?.data || [];
     const days: Record<string, { day: string; receita: number; pedidos: number }> = {};
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date();
+    const start = new Date(dateRange.startDate);
+    const end   = new Date(dateRange.endDate);
+    const totalDays = Math.ceil((end.getTime() - start.getTime()) / 86_400_000) + 1;
+    for (let i = totalDays - 1; i >= 0; i--) {
+      const d = new Date(end);
       d.setDate(d.getDate() - i);
       const key = d.toISOString().slice(0, 10);
       days[key] = {
@@ -72,7 +79,7 @@ export default function AdminDashboard() {
       }
     });
     return Object.values(days);
-  }, [salesData]);
+  }, [salesData, dateRange]);
 
   // Mix de pagamentos
   const paymentMix = useMemo(() => {
@@ -137,10 +144,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-5">
-      <PageHeader
-        title={data?.adminName ? `Olá, ${data.adminName.split(' ')[0]}!` : 'Dashboard'}
-        sub="Visão geral da plataforma Kairos Way"
-      />
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <PageHeader
+          title={data?.adminName ? `Olá, ${data.adminName.split(' ')[0]}!` : 'Dashboard'}
+          sub="Visão geral da plataforma Kairos Way"
+        />
+        <DateFilter value={dateRange} onChange={setDateRange} />
+      </div>
 
       {/* KPIs */}
       {hasStats && (

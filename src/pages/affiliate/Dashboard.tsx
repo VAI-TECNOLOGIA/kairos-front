@@ -10,6 +10,7 @@ import { formatBRL } from '@/lib/utils';
 import { DollarSign, Link2, TrendingUp, ShoppingCart, Handshake, X, RotateCcw, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useDashboardConfig } from '@/hooks/useDashboardConfig';
+import DateFilter, { getDefaultRange, type DateRange } from '@/components/DateFilter';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -39,10 +40,13 @@ export default function AffiliateDashboard() {
 
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter]       = useState<FilterKey>('all');
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultRange());
+
+  const dqs = `startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
 
   const { data: stats } = useQuery({
-    queryKey: ['affiliate-stats', filter],
-    queryFn : () => api.get(`/affiliates/my-stats?filter=${filter}`).then(r => r.data),
+    queryKey: ['affiliate-stats', filter, dateRange.startDate, dateRange.endDate],
+    queryFn : () => api.get(`/affiliates/my-stats?filter=${filter}&${dqs}`).then(r => r.data),
   });
 
   const { data: enrollments } = useQuery({
@@ -52,8 +56,8 @@ export default function AffiliateDashboard() {
   });
 
   const { data: chartData } = useQuery({
-    queryKey: ['affiliate-chart', filter],
-    queryFn : () => api.get(`/affiliates/my-chart?filter=${filter}`).then(r => r.data),
+    queryKey: ['affiliate-chart', filter, dateRange.startDate, dateRange.endDate],
+    queryFn : () => api.get(`/affiliates/my-chart?filter=${filter}&${dqs}`).then(r => r.data),
     enabled : isEnabled('chart_revenue_14d_aff'),
   });
 
@@ -88,7 +92,10 @@ export default function AffiliateDashboard() {
 
   return (
     <div>
-      <PageHeader title="Meu Painel" sub="Visão geral das suas comissões e conversões" />
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <PageHeader title="Meu Painel" sub="Visão geral das suas comissões e conversões" />
+        <DateFilter value={dateRange} onChange={setDateRange} />
+      </div>
 
       {/* Filtros de faturamento — só aparece para co-produtores */}
       {canCreate && (

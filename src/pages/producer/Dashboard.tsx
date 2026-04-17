@@ -1,18 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '@/lib/api';
 import { PageHeader, StatCard } from '@/components/ui';
 import { formatBRL, formatDate } from '@/lib/utils';
 import { Package, ShoppingCart, DollarSign, TrendingUp, RotateCcw, AlertTriangle, Clock } from 'lucide-react';
 import { useDashboardConfig } from '@/hooks/useDashboardConfig';
+import DateFilter, { getDefaultRange, type DateRange } from '@/components/DateFilter';
 
 export default function ProducerDashboard() {
   const { isEnabled } = useDashboardConfig();
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultRange());
+
+  const qs = `startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
 
   const { data } = useQuery({
-    queryKey: ['producer-dashboard'],
-    queryFn : () => api.get('/producers/dashboard').then(r => r.data),
+    queryKey: ['producer-dashboard', dateRange.startDate, dateRange.endDate],
+    queryFn : () => api.get(`/producers/dashboard?${qs}`).then(r => r.data),
   });
 
   const { data: balance } = useQuery({
@@ -22,21 +26,26 @@ export default function ProducerDashboard() {
   });
 
   const { data: salesData } = useQuery({
-    queryKey: ['my-sales-chart'],
-    queryFn : () => api.get('/reports/sales?limit=100&status=APPROVED').then(r => r.data),
+    queryKey: ['my-sales-chart', dateRange.startDate, dateRange.endDate],
+    queryFn : () => api.get(`/reports/sales?limit=500&status=APPROVED&${qs}`).then(r => r.data),
     enabled : isEnabled('chart_revenue_7d') || isEnabled('stat_total_sales'),
   });
 
-  // Agrupar vendas por dia — últimos 7 dias
+  // Agrupar vendas por dia — período selecionado
   const chartData = useMemo(() => {
     const orders = salesData?.data || [];
     const days: Record<string, { day: string; receita: number }> = {};
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
+    const start = new Date(dateRange.startDate);
+    const end   = new Date(dateRange.endDate);
+    const totalDays = Math.ceil((end.getTime() - start.getTime()) / 86_400_000) + 1;
+    for (let i = totalDays - 1; i >= 0; i--) {
+      const d = new Date(end);
       d.setDate(d.getDate() - i);
       const key = d.toISOString().slice(0, 10);
       days[key] = {
-        day    : ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()],
+        day    : totalDays <= 7
+          ? ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()]
+          : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
         receita: 0,
       };
     }
@@ -45,7 +54,7 @@ export default function ProducerDashboard() {
       if (key && days[key]) days[key].receita += o.amountCents || 0;
     });
     return Object.values(days);
-  }, [salesData]);
+  }, [salesData, dateRange]);
 
   const temVendas = chartData.some(d => d.receita > 0);
 
@@ -63,7 +72,10 @@ export default function ProducerDashboard() {
 
   return (
     <div>
-      <PageHeader title="Meu Painel" sub="Visão geral dos seus produtos e vendas" />
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <PageHeader title="Meu Painel" sub="Visão geral dos seus produtos e vendas" />
+        <DateFilter value={dateRange} onChange={setDateRange} />
+      </div>
 
       {/* Reembolsos & Chargebacks */}
       {isEnabled('stat_refunds_prod') && <RefundSection refunds={data?.refunds} />}
