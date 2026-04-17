@@ -136,7 +136,7 @@ export default function AffiliateDashboard() {
       {/* Gráfico de receita */}
       {isEnabled('chart_revenue_14d_aff') && (
         <div className="card mb-6">
-          <div className="section-title mb-1">Faturamento — últimos 14 dias</div>
+          <div className="section-title mb-1">Faturamento — {dateRange.label}</div>
           <div className="text-xs text-text3 mb-4">
             {filter === 'own' ? 'Vendas dos seus produtos' : filter === 'affiliate' ? 'Vendas pelos seus links' : 'Todas as vendas'}
           </div>

@@ -103,11 +103,11 @@ export default function ProducerDashboard() {
         <div className={`grid gap-4 ${isEnabled('chart_revenue_7d') && isEnabled('prod_recent_sales') ? 'grid-cols-3' : 'grid-cols-1'}`}>
           {isEnabled('chart_revenue_7d') && (
             <div className={`card ${isEnabled('prod_recent_sales') ? 'col-span-2' : ''}`}>
-              <div className="section-title mb-1">Receita — últimos 7 dias</div>
+              <div className="section-title mb-1">Receita — {dateRange.label}</div>
               <div className="text-xs text-text3 mb-4">Vendas aprovadas</div>
               {!temVendas ? (
                 <div className="flex items-center justify-center h-[200px] text-text3 text-sm">
-                  Nenhuma venda aprovada nos últimos 7 dias
+                  Nenhuma venda aprovada no período
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={200}>

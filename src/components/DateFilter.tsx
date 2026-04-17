@@ -41,7 +41,8 @@ export default function DateFilter({ value, onChange }: Props) {
   const [customStart, setCustomStart] = useState(value.startDate);
   const [customEnd, setCustomEnd]     = useState(value.endDate);
 
-  const activeLabel = value.label;
+  const isPreset = PRESETS.some(p => p.label === value.label);
+  const isCustom = !isPreset;
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
@@ -55,7 +56,7 @@ export default function DateFilter({ value, onChange }: Props) {
             setShowCustom(false);
           }}
           className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
-            activeLabel === p.label
+            value.label === p.label
               ? 'bg-accent text-white'
               : 'bg-bg3 text-text3 hover:text-text2 hover:bg-bg3/80'
           }`}
@@ -68,12 +69,12 @@ export default function DateFilter({ value, onChange }: Props) {
       <button
         onClick={() => setShowCustom(!showCustom)}
         className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
-          activeLabel === 'Personalizado'
+          isCustom
             ? 'bg-accent text-white'
             : 'bg-bg3 text-text3 hover:text-text2 hover:bg-bg3/80'
         }`}
       >
-        Personalizado
+        {isCustom ? value.label : 'Personalizado'}
       </button>
 
       {/* Custom date inputs */}
@@ -95,7 +96,9 @@ export default function DateFilter({ value, onChange }: Props) {
           <button
             onClick={() => {
               if (customStart && customEnd) {
-                onChange({ startDate: customStart, endDate: customEnd, label: 'Personalizado' });
+                const fmtStart = new Date(customStart + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                const fmtEnd   = new Date(customEnd   + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                onChange({ startDate: customStart, endDate: customEnd, label: `${fmtStart} a ${fmtEnd}` });
               }
             }}
             className="btn-primary py-1 px-2.5 text-[11px]"

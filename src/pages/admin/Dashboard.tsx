@@ -206,7 +206,7 @@ export default function AdminDashboard() {
             <div className={`card ${isEnabled('list_recent_sales') ? 'col-span-2' : ''}`}>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <div className="section-title">Receita — últimos 14 dias</div>
+                  <div className="section-title">Receita — {dateRange.label}</div>
                   <div className="text-xs text-text3">Vendas aprovadas</div>
                 </div>
                 <div className="text-right">
