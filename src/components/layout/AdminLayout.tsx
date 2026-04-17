@@ -4,7 +4,7 @@ import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Users, Package, Tag, ShoppingCart, Link2, Handshake,
-  RefreshCw, DollarSign, BarChart3, Shield,
+  RefreshCw, DollarSign, BarChart3, Shield, Truck,
   Settings, LogOut, Bell, Activity, FlaskConical, UserCircle, SlidersHorizontal
 } from 'lucide-react';
 
@@ -21,6 +21,7 @@ const nav = [
     { to: 'vendas',       icon: ShoppingCart, label: 'Vendas' },
     { to: 'assinaturas',  icon: RefreshCw,    label: 'Assinaturas' },
     { to: 'financeiro',   icon: DollarSign,   label: 'Financeiro' },
+    { to: 'logistica',    icon: Truck,        label: 'Logística & Jadlog' },
     { to: 'relatorios',   icon: BarChart3,    label: 'Relatórios' },
   ]},
   { group: 'Parcerias', items: [

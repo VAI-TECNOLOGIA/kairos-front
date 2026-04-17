@@ -4,7 +4,7 @@ import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, Link2,
-  Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity
+  Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity, Truck
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -27,8 +27,9 @@ const nav = [
     { to: 'coprodutores', icon: Handshake, label: 'Co-Produtores' },
   ]},
   { group: 'Loja', items: [
-    { to: 'checkout', icon: Monitor,   label: 'Checkout' },
-    { to: 'tracking', icon: Activity,  label: 'Pixels de Rastreamento' },
+    { to: 'checkout',   icon: Monitor,   label: 'Checkout' },
+    { to: 'tracking',   icon: Activity,  label: 'Pixels de Rastreamento' },
+    { to: 'logistica',  icon: Truck,     label: 'Logística & Envios' },
   ]},
   { group: 'Conta', items: [
     { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Configurar Dashboard' },

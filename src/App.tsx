@@ -51,6 +51,7 @@ import IntegrationsPage  from '@/pages/producer/Integrations';
 import Milestones        from '@/pages/producer/Milestones';
 import ProducerRefunds   from '@/pages/producer/Refunds';
 import TrackingPixels    from '@/pages/producer/TrackingPixels';
+import ProducerLogistics from '@/pages/producer/Logistics';
 
 // Affiliate pages
 import AffiliateDashboard   from '@/pages/affiliate/Dashboard';
@@ -141,6 +142,7 @@ export default function App() {
         <Route path="marcos"               element={<Milestones />} />
         <Route path="reembolsos"           element={<ProducerRefunds />} />
         <Route path="tracking"             element={<TrackingPixels />} />
+        <Route path="logistica"            element={<ProducerLogistics />} />
       </Route>
 
       {/* ── AFILIADO ── */}
