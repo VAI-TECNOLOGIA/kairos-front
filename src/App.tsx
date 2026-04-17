@@ -113,6 +113,7 @@ export default function App() {
         <Route path="coprodutores"       element={<CoproducersPage />} />
         <Route path="assinaturas"        element={<SubscriptionsPage />} />
         <Route path="logistica"          element={<LogisticsPage />} />
+        <Route path="tracking"           element={<TrackingPixels />} />
         <Route path="financeiro"         element={<FinancialPage />} />
         <Route path="webhooks"           element={<WebhooksPage />} />
         <Route path="relatorios"         element={<ReportsPage />} />
@@ -159,6 +160,7 @@ export default function App() {
         <Route path="perfil"               element={<ProfilePage />} />
         <Route path="configurar-dashboard" element={<DashboardSettings />} />
         <Route path="reembolsos"           element={<AffiliateRefunds />} />
+        <Route path="tracking"             element={<TrackingPixels />} />
       </Route>
 
       {/* ── CLIENTE ── */}

@@ -28,6 +28,9 @@ const nav = [
     { to: 'afiliados',    icon: Link2,      label: 'Afiliados' },
     { to: 'coprodutores', icon: Handshake,  label: 'Co-Produtores' },
   ]},
+  { group: 'Marketing', items: [
+    { to: 'tracking',    icon: Activity, label: 'Pixels de Rastreamento' },
+  ]},
   { group: 'Segurança', items: [
     { to: 'audit-log',    icon: Activity, label: 'Audit Log' },
     { to: 'seguranca',    icon: Shield,   label: 'PCI & Segurança' },

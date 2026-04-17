@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { formatBRL } from '@/lib/utils';
 import {
   LayoutDashboard, ShoppingBag, Link2, DollarSign,
-  LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw,
+  LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw, Activity,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -23,6 +23,9 @@ const nav = [
   { group: 'Financeiro', items: [
     { to: 'financeiro',  icon: DollarSign,  label: 'Financeiro'  },
     { to: 'reembolsos',  icon: RotateCcw,   label: 'Reembolsos'  },
+  ]},
+  { group: 'Marketing', items: [
+    { to: 'tracking',  icon: Activity,  label: 'Pixels de Rastreamento' },
   ]},
   { group: 'Conta', items: [
     { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Configurar Dashboard' },
