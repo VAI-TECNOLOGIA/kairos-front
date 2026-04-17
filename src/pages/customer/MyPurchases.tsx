@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import {
   ShoppingBag, Package, Zap, CreditCard, FileText,
   ExternalLink, RotateCcw, ChevronDown, ChevronUp, AlertTriangle,
+  Truck, MapPin, CheckCircle, Clock, PackageSearch,
 } from 'lucide-react';
 
 const METHOD_ICON: Record<string, React.ReactNode> = {
@@ -41,6 +42,10 @@ export default function MyPurchases() {
   const [refundReason, setRefundReason] = useState('');
   const [refundCustom, setRefundCustom] = useState('');
 
+  // Controla qual pedido tem tracking expandido
+  const [trackingOpen, setTrackingOpen] = useState<string | null>(null);
+  const [trackingData, setTrackingData] = useState<Record<string, any>>({});
+
   const { data, isLoading } = useQuery({
     queryKey: ['customer-orders'],
     queryFn : () => api.get('/customer/orders').then(r => r.data),
@@ -61,6 +66,22 @@ export default function MyPurchases() {
       toast.error(err?.response?.data?.message || 'Erro ao enviar solicitação');
     },
   });
+
+  async function toggleTracking(orderId: string) {
+    if (trackingOpen === orderId) {
+      setTrackingOpen(null);
+      return;
+    }
+    setTrackingOpen(orderId);
+    if (!trackingData[orderId]) {
+      try {
+        const { data: d } = await api.get(`/logistics/tracking/${orderId}`);
+        setTrackingData(prev => ({ ...prev, [orderId]: d }));
+      } catch {
+        setTrackingData(prev => ({ ...prev, [orderId]: { status: 'WAITING' } }));
+      }
+    }
+  }
 
   function handleRefundSubmit(orderId: string) {
     const finalReason = refundReason === 'Outro motivo'
@@ -204,6 +225,18 @@ export default function MyPurchases() {
                         </a>
                       )}
 
+                      {/* Produto físico — rastreamento */}
+                      {order.offer?.product?.type === 'PHYSICAL' && !isRefunded && (
+                        <button
+                          onClick={() => toggleTracking(order.id)}
+                          className="flex items-center gap-1 text-[11px] text-accent hover:underline"
+                        >
+                          <Truck size={11} />
+                          Rastrear envio
+                          {trackingOpen === order.id ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                        </button>
+                      )}
+
                       {/* Reembolso concluído */}
                       {isRefunded && (
                         <span className="flex items-center gap-1 text-[11px] text-green font-medium">
@@ -241,6 +274,11 @@ export default function MyPurchases() {
                     </div>
                   </div>
                 </div>
+
+                {/* Tracking panel — produtos físicos */}
+                {trackingOpen === order.id && (
+                  <TrackingPanel data={trackingData[order.id]} />
+                )}
 
                 {/* Form de devolução — inline collapse */}
                 {isRefundOpen && (
@@ -308,6 +346,109 @@ export default function MyPurchases() {
             );
           })}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ── Componente de Rastreamento ──────────────────────────────────────
+
+const SHIP_STATUS_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  WAITING    : { label: 'Aguardando envio',   icon: <Clock size={14} />,         color: 'text-text3' },
+  DISPATCHED : { label: 'Despachado',         icon: <Package size={14} />,       color: 'text-accent' },
+  IN_TRANSIT : { label: 'Em trânsito',        icon: <Truck size={14} />,         color: 'text-amber' },
+  DELIVERED  : { label: 'Entregue',           icon: <CheckCircle size={14} />,   color: 'text-green' },
+  RETURNED   : { label: 'Devolvido',          icon: <RotateCcw size={14} />,     color: 'text-red' },
+};
+
+const SHIP_STEPS = ['WAITING', 'DISPATCHED', 'IN_TRANSIT', 'DELIVERED'] as const;
+
+function TrackingPanel({ data }: { data: any }) {
+  if (!data) {
+    return (
+      <div className="border-t border-border bg-bg3/50 px-4 py-6 text-center">
+        <span className="w-4 h-4 border-2 border-accent/30 border-t-accent rounded-full animate-spin inline-block" />
+        <p className="text-xs text-text3 mt-2">Carregando rastreamento...</p>
+      </div>
+    );
+  }
+
+  const status   = data.status || 'WAITING';
+  const config   = SHIP_STATUS_CONFIG[status] || SHIP_STATUS_CONFIG.WAITING;
+  const eventos  = data.jadlogTracking?.eventos || [];
+  const previsao = data.previsaoEntrega || data.estimatedAt;
+  const stepIdx  = SHIP_STEPS.indexOf(status as any);
+
+  return (
+    <div className="border-t border-border bg-bg3/50 px-4 py-4 space-y-4">
+      {/* Status header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className={`${config.color}`}>{config.icon}</div>
+          <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
+        </div>
+        {data.trackingCode && (
+          <span className="text-[11px] font-mono text-text3">
+            {data.carrier || 'JADLOG'} {data.trackingCode}
+          </span>
+        )}
+      </div>
+
+      {/* Progress bar */}
+      <div className="flex items-center gap-1">
+        {SHIP_STEPS.map((step, i) => {
+          const active = i <= stepIdx;
+          return (
+            <div key={step} className="flex-1 flex items-center gap-1">
+              <div className={`w-full h-1.5 rounded-full transition-colors ${active ? 'bg-accent' : 'bg-border'}`} />
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex justify-between text-[10px] text-text3 -mt-2">
+        <span>Preparando</span>
+        <span>Despachado</span>
+        <span>Em trânsito</span>
+        <span>Entregue</span>
+      </div>
+
+      {/* Previsão */}
+      {previsao && status !== 'DELIVERED' && (
+        <div className="flex items-center gap-2 text-xs text-text2">
+          <MapPin size={12} className="text-text3" />
+          Previsão de entrega: <strong>{new Date(previsao).toLocaleDateString('pt-BR')}</strong>
+        </div>
+      )}
+
+      {/* Eventos do Jadlog */}
+      {eventos.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-text2 flex items-center gap-1">
+            <PackageSearch size={12} />
+            Histórico de rastreamento
+          </p>
+          <div className="space-y-1.5 ml-1">
+            {eventos.slice().reverse().map((ev: any, i: number) => (
+              <div key={i} className="flex items-start gap-2">
+                <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${i === 0 ? 'bg-accent' : 'bg-border'}`} />
+                <div>
+                  <p className="text-xs text-text">{ev.status}</p>
+                  <p className="text-[10px] text-text3">
+                    {ev.unidade && `${ev.unidade} — `}
+                    {ev.data ? new Date(ev.data.replace(' ', 'T')).toLocaleString('pt-BR') : ''}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sem eventos ainda */}
+      {eventos.length === 0 && status === 'WAITING' && (
+        <p className="text-xs text-text3 text-center py-2">
+          Seu pedido está sendo preparado para envio. Assim que for despachado, o rastreamento aparecerá aqui.
+        </p>
       )}
     </div>
   );
