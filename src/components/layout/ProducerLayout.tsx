@@ -4,7 +4,7 @@ import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, Link2,
-  Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity, Truck
+  Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity, Truck, Tv2,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -69,6 +69,18 @@ export default function ProducerLayout() {
               ))}
             </div>
           ))}
+
+          {/* Botão TV — abre nova aba */}
+          <div className="mt-1">
+            <div className="sidebar-group">Exibição</div>
+            <button
+              onClick={() => window.open('/tv', '_blank')}
+              className="sidebar-item w-full text-left"
+            >
+              <Tv2 size={16} />
+              <span>Dashboard TV</span>
+            </button>
+          </div>
         </nav>
 
       </aside>

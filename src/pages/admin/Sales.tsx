@@ -1,21 +1,46 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { PageHeader, Loading, EmptyState, StatCard } from '@/components/ui';
 import { formatBRL, formatDateTime, orderStatusVariant } from '@/lib/utils';
 import type { Order } from '@/types';
-import { ShoppingCart, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, TrendingUp, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const LIMIT = 20;
 
 export default function SalesPage() {
-  const [page, setPage] = useState(1);
+  const [page, setPage]     = useState(1);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-sales', page],
     queryFn : () => api.get(`/reports/sales?page=${page}&limit=${LIMIT}`).then(r => r.data),
-    placeholderData: (prev) => prev, // mantém dados anteriores durante troca de página
+    placeholderData: (prev) => prev,
   });
+
+  const syncMutation = useMutation({
+    mutationFn: (orderId: string) => api.post(`/gateway/sync/${orderId}`).then(r => r.data),
+    onSuccess: (result, orderId) => {
+      setSyncingId(null);
+      if (result.updated) {
+        toast.success(`Pedido atualizado: ${result.localStatus}`);
+        queryClient.invalidateQueries({ queryKey: ['admin-sales'] });
+      } else {
+        toast(result.reason || 'Nenhuma atualização necessária', { icon: 'ℹ️' });
+      }
+    },
+    onError: (err: any) => {
+      setSyncingId(null);
+      toast.error(err?.response?.data?.message || 'Erro ao sincronizar pedido');
+    },
+  });
+
+  const handleSync = (orderId: string) => {
+    setSyncingId(orderId);
+    syncMutation.mutate(orderId);
+  };
 
   const orders: Order[]  = data?.data  || [];
   const total: number    = data?.total || 0;
@@ -40,7 +65,7 @@ export default function SalesPage() {
               <thead>
                 <tr>
                   <th>Pedido</th><th>Cliente</th><th>Produto</th>
-                  <th>Valor</th><th>Status</th><th>Adquirente</th><th>Data</th>
+                  <th>Valor</th><th>Status</th><th>Adquirente</th><th>Data</th><th></th>
                 </tr>
               </thead>
               <tbody>
@@ -53,6 +78,18 @@ export default function SalesPage() {
                     <td><span className={orderStatusVariant(o.status)}>{o.status}</span></td>
                     <td><span className="badge-gray">{o.acquirer || '—'}</span></td>
                     <td className="text-text3">{formatDateTime(o.createdAt)}</td>
+                    <td>
+                      {(o.status === 'PROCESSING' || o.status === 'PENDING') && o.acquirerTxId && (
+                        <button
+                          onClick={() => handleSync(o.id)}
+                          disabled={syncingId === o.id}
+                          className="btn-ghost btn-sm text-text3 hover:text-accent"
+                          title="Sincronizar status com o adquirente"
+                        >
+                          <RefreshCw size={13} className={syncingId === o.id ? 'animate-spin' : ''} />
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

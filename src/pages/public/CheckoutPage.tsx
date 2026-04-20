@@ -13,7 +13,10 @@ import {
   Shield, Lock, CheckCircle, QrCode, FileText,
   CreditCard, Zap, Clock, Copy, ExternalLink,
   ShieldCheck, BadgeCheck, Wifi, Eye, EyeOff,
+  ShoppingBag, Star, Sparkles, ArrowRight,
 } from 'lucide-react';
+import { sanitizeHtml } from '@/components/RichTextEditor';
+import { ICON_MAP, DEFAULT_SUCCESS_ICON, DEFAULT_SUCCESS_COLOR } from '@/lib/successConfig';
 
 // ── HELPERS ───────────────────────────────────────────────────────
 async function tokenizeCard(params: {
@@ -298,28 +301,130 @@ export default function CheckoutPage() {
 
   // ── TELAS DE RESULTADO ────────────────────────────────────────
   // (verificar antes do formulário principal)
-  if (result?.status === 'APPROVED') return (
+  if (result?.status === 'APPROVED') {
+    const iconName  = offer?.successIcon      || DEFAULT_SUCCESS_ICON;
+    const iconColor = offer?.successIconColor || DEFAULT_SUCCESS_COLOR;
+    const SuccessIcon = ICON_MAP[iconName] || CheckCircle;
+    const hexAlpha = (a: string) => `${iconColor}${a}`;
+
+    return (
     <div className="min-h-screen bg-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-4">
-        <div className="bg-bg2 border border-border rounded-2xl p-10 text-center">
-          <div className="w-16 h-16 rounded-full bg-green/10 border border-green/20 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle size={32} className="text-green" strokeWidth={1.5} />
-          </div>
-          <h2 className="text-xl font-semibold text-text mb-2">Pagamento confirmado</h2>
-          <p className="text-sm text-text2 mb-6">Sua compra foi processada com sucesso. Você receberá um e-mail de confirmação em breve.</p>
-          <div className="bg-bg3 rounded-lg px-4 py-3 inline-block">
-            <span className="text-xs text-text3">Pedido </span>
-            <span className="text-xs font-mono font-semibold text-text">{result.orderId?.slice(-8).toUpperCase()}</span>
+      <div className="w-full max-w-md">
+
+        {/* Ícone animado */}
+        <div className="flex justify-center mb-8">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full animate-ping" style={{ background: hexAlpha('1a'), animationDuration: '2s' }} />
+            <div className="absolute -inset-2 rounded-full border" style={{ background: hexAlpha('12'), borderColor: hexAlpha('33') }} />
+            <div className="w-20 h-20 rounded-full flex items-center justify-center relative" style={{ background: hexAlpha('22'), border: `1px solid ${hexAlpha('44')}` }}>
+              <SuccessIcon size={38} strokeWidth={1.5} style={{ color: iconColor }} />
+            </div>
           </div>
         </div>
-        <div className="text-center">
-          <button onClick={() => navigate('/cliente/compras')} className="btn-secondary">
-            Ver minhas compras
-          </button>
+
+        {/* Card principal */}
+        <div className="bg-bg2 border border-border rounded-3xl overflow-hidden shadow-2xl">
+
+          {/* Header com gradiente */}
+          <div className="relative px-8 pt-8 pb-6 text-center" style={{ background: `linear-gradient(160deg, ${hexAlpha('14')} 0%, rgba(0,85,254,0.05) 100%)` }}>
+            <div className="flex items-center justify-center gap-1.5 mb-2">
+              <Sparkles size={14} style={{ color: iconColor }} />
+              <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: iconColor }}>Compra aprovada</span>
+              <Sparkles size={14} style={{ color: iconColor }} />
+            </div>
+            <h1 className="text-3xl font-bold text-text mb-1">Parabéns!</h1>
+            <p className="text-sm text-text3">Seu pagamento foi confirmado com sucesso</p>
+          </div>
+
+          {/* Produto */}
+          {offer && (
+            <div className="mx-6 mb-5">
+              <div className="flex items-center gap-3 bg-bg3 rounded-2xl p-3.5 border border-border">
+                {offer.imageUrl ? (
+                  <img src={offer.imageUrl} alt={offer.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+                    <ShoppingBag size={20} className="text-accent" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs text-text3 mb-0.5">Produto adquirido</p>
+                  <p className="text-sm font-semibold text-text leading-snug truncate">{offer.name}</p>
+                  <p className="text-sm font-bold text-green mt-0.5">{formatBRL(offer.priceCents)}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Detalhes da compra */}
+          <div className="px-6 pb-6 space-y-2.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text3">Número do pedido</span>
+              <span className="font-mono font-semibold text-text text-xs bg-bg3 px-2.5 py-1 rounded-lg">
+                #{result.orderId?.slice(-8).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text3">Status</span>
+              <span className="flex items-center gap-1.5 text-green font-semibold text-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-green inline-block" />
+                Aprovado
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text3">Confirmação</span>
+              <span className="text-text2 text-xs">Enviada ao seu e-mail</span>
+            </div>
+          </div>
+
+          {/* Mensagem personalizada do produtor / plataforma */}
+          {offer?.successMessage && (
+            <div className="mx-6 mb-5">
+              <div
+                className="rich-content bg-bg3 border border-border rounded-2xl px-4 py-4 text-sm leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(offer.successMessage) }}
+              />
+            </div>
+          )}
+
+          {/* Divider */}
+          <div className="border-t border-border mx-6" />
+
+          {/* Botão CTA */}
+          <div className="px-6 py-6">
+            <button
+              onClick={() => navigate('/cliente/compras')}
+              className="w-full flex items-center justify-center gap-2.5 bg-green hover:bg-green/90 text-bg font-bold py-4 rounded-2xl transition-all duration-200 text-sm shadow-lg hover:shadow-green/25 hover:scale-[1.01] active:scale-[0.99]"
+            >
+              <ShoppingBag size={18} />
+              Ir para minhas compras
+              <ArrowRight size={16} />
+            </button>
+          </div>
         </div>
+
+        {/* Selos de segurança */}
+        <div className="flex items-center justify-center gap-4 mt-5">
+          <div className="flex items-center gap-1.5 text-text3">
+            <ShieldCheck size={13} />
+            <span className="text-xs">Compra segura</span>
+          </div>
+          <span className="text-border">·</span>
+          <div className="flex items-center gap-1.5 text-text3">
+            <Star size={13} />
+            <span className="text-xs">Kairos Way</span>
+          </div>
+          <span className="text-border">·</span>
+          <div className="flex items-center gap-1.5 text-text3">
+            <Lock size={13} />
+            <span className="text-xs">Dados protegidos</span>
+          </div>
+        </div>
+
       </div>
     </div>
-  );
+    );
+  }
 
   // ── TELA PIX ──────────────────────────────────────────────────
   if (result?.pixCode || result?.method === 'PIX') return (

@@ -9,7 +9,9 @@ import { PageHeader, Modal, Loading, EmptyState } from '@/components/ui';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { formatBRL, formatDate, productStatusVariant, PRODUCT_TYPE_LABEL } from '@/lib/utils';
 import type { Product } from '@/types';
-import { Package, Plus, ExternalLink, Image as ImageIcon, Tag, Pencil } from 'lucide-react';
+import { Package, Plus, ExternalLink, Image as ImageIcon, Tag, Pencil, MessageSquareHeart, Eye, EyeOff } from 'lucide-react';
+import { RichTextEditor, sanitizeHtml } from '@/components/RichTextEditor';
+import { ICON_MAP, ICON_OPTIONS, COLOR_OPTIONS, DEFAULT_SUCCESS_ICON, DEFAULT_SUCCESS_COLOR } from '@/lib/successConfig';
 
 const PLATFORM_FEE = 0.05;
 
@@ -25,11 +27,16 @@ type FormData = z.infer<typeof schema>;
 
 export default function MyProducts() {
   const qc = useQueryClient();
-  const [openCreate, setOpenCreate] = useState(false);
-  const [selected, setSelected]     = useState<any>(null);
-  const [editProduct, setEdit]      = useState<any>(null);
-  const [imageUrl, setImageUrl]     = useState('');
-  const [editImageUrl, setEditImageUrl] = useState('');
+  const [openCreate, setOpenCreate]       = useState(false);
+  const [selected, setSelected]           = useState<any>(null);
+  const [editProduct, setEdit]            = useState<any>(null);
+  const [imageUrl, setImageUrl]           = useState('');
+  const [editImageUrl, setEditImageUrl]   = useState('');
+  const [editSuccessMsg,   setEditSuccessMsg]   = useState('');
+  const [editSuccessIcon,  setEditSuccessIcon]  = useState(DEFAULT_SUCCESS_ICON);
+  const [editSuccessColor, setEditSuccessColor] = useState(DEFAULT_SUCCESS_COLOR);
+  const [editTab,          setEditTab]          = useState<'info' | 'posVenda'>('info');
+  const [previewMsg,       setPreviewMsg]       = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['my-products'],
@@ -60,13 +67,17 @@ export default function MyProducts() {
   const update = useMutation({
     mutationFn: (d: FormData) => api.patch(`/products/${editProduct?.id}`, {
       ...d,
-      imageUrl  : editImageUrl || undefined,
-      digitalUrl: d.digitalUrl || undefined,
+      imageUrl         : editImageUrl || undefined,
+      digitalUrl       : d.digitalUrl || undefined,
+      successMessage   : editSuccessMsg   || null,
+      successIcon      : editSuccessIcon  || null,
+      successIconColor : editSuccessColor || null,
     }),
     onSuccess: () => {
       toast.success('Produto atualizado!');
       qc.invalidateQueries({ queryKey: ['my-products'] });
-      setEdit(null); rr(); setEditImageUrl('');
+      setEdit(null); rr(); setEditImageUrl(''); setEditSuccessMsg(''); setEditTab('info');
+      setEditSuccessIcon(DEFAULT_SUCCESS_ICON); setEditSuccessColor(DEFAULT_SUCCESS_COLOR);
       setSelected(null);
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao atualizar'),
@@ -76,6 +87,11 @@ export default function MyProducts() {
     e.stopPropagation();
     setEdit(p);
     setEditImageUrl(p.imageUrl || '');
+    setEditSuccessMsg(p.successMessage || '');
+    setEditSuccessIcon(p.successIcon || DEFAULT_SUCCESS_ICON);
+    setEditSuccessColor(p.successIconColor || DEFAULT_SUCCESS_COLOR);
+    setEditTab('info');
+    setPreviewMsg(false);
     sv('name',        p.name);
     sv('type',        p.type);
     sv('description', p.description || '');
@@ -312,61 +328,206 @@ export default function MyProducts() {
       {/* Modal Editar */}
       <Modal
         open={!!editProduct}
-        onClose={() => { setEdit(null); rr(); setEditImageUrl(''); }}
+        onClose={() => { setEdit(null); rr(); setEditImageUrl(''); setEditSuccessMsg(''); setEditTab('info'); }}
         title="Editar Produto"
         size="lg"
         footer={
           <div className="flex gap-2">
-            <button className="btn-ghost" onClick={() => { setEdit(null); rr(); setEditImageUrl(''); }}>Cancelar</button>
+            <button className="btn-ghost" onClick={() => { setEdit(null); rr(); setEditImageUrl(''); setEditSuccessMsg(''); setEditTab('info'); }}>Cancelar</button>
             <button className="btn-primary" onClick={he(d => update.mutate(d))} disabled={update.isPending}>
               {update.isPending ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
         }
       >
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="form-group">
-              <label className="label">Nome *</label>
-              <input {...re('name')} className="input" />
-              {ee.name && <span className="text-xs text-red">{ee.name.message}</span>}
-            </div>
-            <div className="form-group">
-              <label className="label">Tipo</label>
-              <select {...re('type')} className="input">
-                <option value="DIGITAL">Digital</option>
-                <option value="PHYSICAL">Físico</option>
-                <option value="SUBSCRIPTION">Assinatura</option>
-                <option value="BUNDLE">Bundle</option>
-              </select>
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="label">Descrição</label>
-            <textarea {...re('description')} className="input" rows={2} />
-          </div>
-          <div className="form-group">
-            <label className="label">Categoria</label>
-            <input {...re('category')} className="input" />
-          </div>
-          {editProductType === 'DIGITAL' && (
-            <div className="form-group">
-              <label className="label">Link do produto digital</label>
-              <div className="relative">
-                <input {...re('digitalUrl')} className="input pr-10" placeholder="https://..." />
-                {we('digitalUrl') && (
-                  <a href={we('digitalUrl')} target="_blank" rel="noopener noreferrer"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text3 hover:text-accent">
-                    <ExternalLink size={14} />
-                  </a>
-                )}
-              </div>
-              {ee.digitalUrl && <span className="text-xs text-red">{ee.digitalUrl.message}</span>}
-              <p className="text-xs text-text3 mt-1">Link enviado automaticamente ao cliente após compra confirmada</p>
-            </div>
-          )}
-          <ImageUpload value={editImageUrl} onChange={setEditImageUrl} folder="products" label="Imagem de capa" />
+        {/* Abas */}
+        <div className="flex gap-1 p-1 bg-bg3 rounded-xl mb-5">
+          {([
+            { key: 'info',     label: 'Informações' },
+            { key: 'posVenda', label: 'Pós-Venda',  icon: <MessageSquareHeart size={13} /> },
+          ] as const).map(tab => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setEditTab(tab.key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                editTab === tab.key ? 'bg-bg2 text-text shadow-sm' : 'text-text3 hover:text-text2'
+              }`}
+            >
+              {'icon' in tab && tab.icon}
+              {tab.label}
+            </button>
+          ))}
         </div>
+
+        {/* Aba: Informações */}
+        {editTab === 'info' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="form-group">
+                <label className="label">Nome *</label>
+                <input {...re('name')} className="input" />
+                {ee.name && <span className="text-xs text-red">{ee.name.message}</span>}
+              </div>
+              <div className="form-group">
+                <label className="label">Tipo</label>
+                <select {...re('type')} className="input">
+                  <option value="DIGITAL">Digital</option>
+                  <option value="PHYSICAL">Físico</option>
+                  <option value="SUBSCRIPTION">Assinatura</option>
+                  <option value="BUNDLE">Bundle</option>
+                </select>
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="label">Descrição</label>
+              <textarea {...re('description')} className="input" rows={2} />
+            </div>
+            <div className="form-group">
+              <label className="label">Categoria</label>
+              <input {...re('category')} className="input" />
+            </div>
+            {editProductType === 'DIGITAL' && (
+              <div className="form-group">
+                <label className="label">Link do produto digital</label>
+                <div className="relative">
+                  <input {...re('digitalUrl')} className="input pr-10" placeholder="https://..." />
+                  {we('digitalUrl') && (
+                    <a href={we('digitalUrl')} target="_blank" rel="noopener noreferrer"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text3 hover:text-accent">
+                      <ExternalLink size={14} />
+                    </a>
+                  )}
+                </div>
+                {ee.digitalUrl && <span className="text-xs text-red">{ee.digitalUrl.message}</span>}
+                <p className="text-xs text-text3 mt-1">Link enviado automaticamente ao cliente após compra confirmada</p>
+              </div>
+            )}
+            <ImageUpload value={editImageUrl} onChange={setEditImageUrl} folder="products" label="Imagem de capa" />
+          </div>
+        )}
+
+        {/* Aba: Pós-Venda */}
+        {editTab === 'posVenda' && (
+          <div className="space-y-5">
+            <div className="bg-bg3 border border-border rounded-xl p-3 text-xs text-text3 leading-relaxed">
+              <strong className="text-text2">Personalização da tela de parabéns</strong> — escolha o ícone, a cor e a mensagem exibida após a compra deste produto. Se deixado em branco, será usado o padrão da plataforma.
+            </div>
+
+            {/* ── Ícone ────────────────────────────────────────────── */}
+            <div>
+              <label className="label mb-2">Ícone</label>
+              {ICON_OPTIONS.map(group => (
+                <div key={group.group} className="mb-3">
+                  <p className="text-[11px] font-semibold text-text3 uppercase tracking-wider mb-1.5">{group.group}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {group.items.map(opt => {
+                      const Ic = ICON_MAP[opt.id];
+                      const active = editSuccessIcon === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          title={opt.label}
+                          onClick={() => setEditSuccessIcon(opt.id)}
+                          className={`flex flex-col items-center gap-1 px-2.5 py-2 rounded-xl border transition-all ${
+                            active
+                              ? 'border-accent/60 bg-accent/10 text-text'
+                              : 'border-border bg-bg3 text-text3 hover:text-text2 hover:border-border/80'
+                          }`}
+                        >
+                          <Ic size={18} style={active ? { color: editSuccessColor } : undefined} strokeWidth={1.5} />
+                          <span className="text-[10px] leading-none">{opt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Cor ──────────────────────────────────────────────── */}
+            <div>
+              <label className="label mb-2">Cor do ícone</label>
+              <div className="flex flex-wrap gap-2">
+                {COLOR_OPTIONS.map(c => (
+                  <button
+                    key={c.hex}
+                    type="button"
+                    title={c.label}
+                    onClick={() => setEditSuccessColor(c.hex)}
+                    className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
+                      editSuccessColor === c.hex ? 'border-white scale-110 shadow-md' : 'border-transparent'
+                    }`}
+                    style={{ background: c.hex }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* ── Preview do ícone ─────────────────────────────────── */}
+            {(() => {
+              const Ic = ICON_MAP[editSuccessIcon] ?? ICON_MAP[DEFAULT_SUCCESS_ICON];
+              return (
+                <div className="flex items-center gap-3 bg-bg3 rounded-xl p-3 border border-border">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center border flex-shrink-0"
+                    style={{ background: `${editSuccessColor}20`, borderColor: `${editSuccessColor}40` }}>
+                    <Ic size={22} strokeWidth={1.5} style={{ color: editSuccessColor }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-text">Pré-visualização</p>
+                    <p className="text-xs text-text3">
+                      {ICON_OPTIONS.flatMap(g => g.items).find(i => i.id === editSuccessIcon)?.label ?? editSuccessIcon}
+                      {' · '}{COLOR_OPTIONS.find(c => c.hex === editSuccessColor)?.label ?? editSuccessColor}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── Mensagem ─────────────────────────────────────────── */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="label mb-0">Mensagem de Pós-Venda</label>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMsg(p => !p)}
+                  className="flex items-center gap-1.5 text-xs text-text2 hover:text-text transition-colors"
+                >
+                  {previewMsg ? <EyeOff size={12} /> : <Eye size={12} />}
+                  {previewMsg ? 'Editar' : 'Pré-visualizar'}
+                </button>
+              </div>
+
+              {previewMsg ? (
+                <div
+                  className="rich-content border border-border rounded-xl px-4 py-3 bg-bg text-sm leading-relaxed"
+                  style={{ minHeight: 160 }}
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeHtml(editSuccessMsg) || '<p style="color:var(--text3);font-style:italic">Nenhuma mensagem — será usada a mensagem padrão da plataforma.</p>',
+                  }}
+                />
+              ) : (
+                <RichTextEditor
+                  value={editSuccessMsg}
+                  onChange={setEditSuccessMsg}
+                  placeholder="Ex: Parabéns pela sua escolha! Você fez parte de algo incrível..."
+                  minHeight={160}
+                />
+              )}
+
+              {editSuccessMsg && (
+                <button
+                  type="button"
+                  onClick={() => { setEditSuccessMsg(''); setPreviewMsg(false); }}
+                  className="mt-1 text-xs text-text3 hover:text-red transition-colors"
+                >
+                  Remover mensagem personalizada
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

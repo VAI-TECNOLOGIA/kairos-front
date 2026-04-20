@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Users, Package, Tag, ShoppingCart, Link2, Handshake,
   RefreshCw, DollarSign, BarChart3, Shield, Truck,
-  Settings, LogOut, Bell, Activity, FlaskConical, UserCircle, SlidersHorizontal
+  Settings, LogOut, Bell, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
 } from 'lucide-react';
 
 const nav = [
@@ -89,6 +89,14 @@ export default function AdminLayout() {
               ))}
             </div>
           ))}
+
+          <div className="mt-1">
+            <div className="sidebar-group">Exibição</div>
+            <button onClick={() => window.open('/tv', '_blank')} className="sidebar-item w-full text-left">
+              <Tv2 size={16} />
+              <span>Dashboard TV</span>
+            </button>
+          </div>
         </nav>
 
         {/* User */}

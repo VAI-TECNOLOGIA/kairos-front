@@ -7,6 +7,7 @@ import { formatBRL, formatDate } from '@/lib/utils';
 import { Package, ShoppingCart, DollarSign, TrendingUp, RotateCcw, AlertTriangle, Clock } from 'lucide-react';
 import { useDashboardConfig } from '@/hooks/useDashboardConfig';
 import DateFilter, { getDefaultRange, type DateRange } from '@/components/DateFilter';
+import ExportButton from '@/components/ExportButton';
 
 export default function ProducerDashboard() {
   const { isEnabled } = useDashboardConfig();
@@ -74,7 +75,10 @@ export default function ProducerDashboard() {
     <div>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <PageHeader title="Meu Painel" sub="Visão geral dos seus produtos e vendas" />
-        <DateFilter value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-2">
+          <DateFilter value={dateRange} onChange={setDateRange} />
+          <ExportButton dateRange={dateRange} role="PRODUCER" />
+        </div>
       </div>
 
       {/* Reembolsos & Chargebacks */}

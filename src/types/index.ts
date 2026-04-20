@@ -76,6 +76,7 @@ export interface Order {
   status: 'PENDING' | 'PROCESSING' | 'APPROVED' | 'REJECTED' | 'REFUNDED' | 'CHARGEBACK';
   paymentMethod?: string;
   acquirer?: string;
+  acquirerTxId?: string;
   createdAt: string;
   approvedAt?: string;
   offer?: { product?: { name: string } };

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { formatBRL } from '@/lib/utils';
 import {
   LayoutDashboard, ShoppingBag, Link2, DollarSign,
-  LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw, Activity,
+  LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw, Activity, Tv2,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -139,6 +139,14 @@ export default function AffiliateLayout() {
               ))}
             </div>
           ))}
+          <div className="mt-1">
+            <div className="sidebar-group">Exibição</div>
+            <button onClick={() => window.open('/tv', '_blank')} className="sidebar-item w-full text-left">
+              <Tv2 size={16} />
+              <span className="flex-1">Dashboard TV</span>
+            </button>
+          </div>
+
           {canCreate && (
             <div>
               <div className="sidebar-group">Co-produtor</div>

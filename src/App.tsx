@@ -52,6 +52,7 @@ import Milestones        from '@/pages/producer/Milestones';
 import ProducerRefunds   from '@/pages/producer/Refunds';
 import TrackingPixels    from '@/pages/producer/TrackingPixels';
 import ProducerLogistics from '@/pages/producer/Logistics';
+import TVDashboard       from '@/pages/producer/TVDashboard';
 
 // Affiliate pages
 import AffiliateDashboard   from '@/pages/affiliate/Dashboard';
@@ -124,6 +125,9 @@ export default function App() {
         <Route path="perfil"             element={<ProfilePage />} />
         <Route path="configurar-dashboard" element={<DashboardSettings />} />
       </Route>
+
+      {/* ── TV Dashboard (standalone — sem layout) ── */}
+      <Route path="/tv" element={<ProtectedRoute role={['PRODUCER','ADMIN','STAFF','AFFILIATE']}><TVDashboard /></ProtectedRoute>} />
 
       {/* ── PRODUTOR ── */}
       <Route path="/produtor" element={<ProtectedRoute role={['PRODUCER','COPRODUCER']}><ProducerLayout /></ProtectedRoute>}>

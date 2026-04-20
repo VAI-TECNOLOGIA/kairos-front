@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useDashboardConfig } from '@/hooks/useDashboardConfig';
 import DateFilter, { getDefaultRange, type DateRange } from '@/components/DateFilter';
+import ExportButton from '@/components/ExportButton';
 
 const COLORS = ['#0055FE', '#00C9A7', '#F59E0B', '#FF4D6D', '#7C3AED'];
 
@@ -149,7 +150,10 @@ export default function AdminDashboard() {
           title={data?.adminName ? `Olá, ${data.adminName.split(' ')[0]}!` : 'Dashboard'}
           sub="Visão geral da plataforma Kairos Way"
         />
-        <DateFilter value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-2">
+          <DateFilter value={dateRange} onChange={setDateRange} />
+          <ExportButton dateRange={dateRange} role="ADMIN" />
+        </div>
       </div>
 
       {/* KPIs */}

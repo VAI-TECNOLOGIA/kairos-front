@@ -11,6 +11,7 @@ import { DollarSign, Link2, TrendingUp, ShoppingCart, Handshake, X, RotateCcw, A
 import toast from 'react-hot-toast';
 import { useDashboardConfig } from '@/hooks/useDashboardConfig';
 import DateFilter, { getDefaultRange, type DateRange } from '@/components/DateFilter';
+import ExportButton from '@/components/ExportButton';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -94,7 +95,10 @@ export default function AffiliateDashboard() {
     <div>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <PageHeader title="Meu Painel" sub="Visão geral das suas comissões e conversões" />
-        <DateFilter value={dateRange} onChange={setDateRange} />
+        <div className="flex items-center gap-2">
+          <DateFilter value={dateRange} onChange={setDateRange} />
+          <ExportButton dateRange={dateRange} role="AFFILIATE" />
+        </div>
       </div>
 
       {/* Filtros de faturamento — só aparece para co-produtores */}
