@@ -35,7 +35,8 @@ import ReportsPage         from '@/pages/admin/Reports';
 import AuditLogPage        from '@/pages/admin/AuditLog';
 import SecurityPage        from '@/pages/admin/Security';
 import TestEnvironmentPage from '@/pages/admin/TestEnvironment';
-import AdminSettings       from '@/pages/admin/Settings';
+import AdminFees           from '@/pages/admin/Fees';
+import AdminMessages       from '@/pages/admin/Messages';
 
 // Producer pages
 import ProducerDashboard from '@/pages/producer/Dashboard';
@@ -120,10 +121,13 @@ export default function App() {
         <Route path="relatorios"         element={<ReportsPage />} />
         <Route path="audit-log"          element={<AuditLogPage />} />
         <Route path="seguranca"          element={<SecurityPage />} />
-        <Route path="configuracoes"      element={<AdminSettings />} />
+        <Route path="taxas"              element={<AdminFees />} />
+        <Route path="mensagens"          element={<AdminMessages />} />
         <Route path="ambiente-de-teste"  element={<TestEnvironmentPage />} />
         <Route path="perfil"             element={<ProfilePage />} />
         <Route path="configurar-dashboard" element={<DashboardSettings />} />
+        {/* Redirect legado */}
+        <Route path="configuracoes"      element={<Navigate to="/admin/mensagens" replace />} />
       </Route>
 
       {/* ── TV Dashboard (standalone — sem layout) ── */}

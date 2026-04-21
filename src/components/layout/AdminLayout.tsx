@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Users, Package, Tag, ShoppingCart, Link2, Handshake,
   RefreshCw, DollarSign, BarChart3, Shield, Truck,
   Settings, LogOut, Bell, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
-  ChevronDown, Eye, Megaphone, Briefcase, Lock,
+  ChevronDown, Megaphone, Briefcase, Lock, Percent, MessageSquareHeart,
 } from 'lucide-react';
 
 type NavItem = {
@@ -15,6 +15,8 @@ type NavItem = {
   icon  : any;
   label : string;
   badge?: string;
+  /** Link externo (ex: abre em nova aba) */
+  external?: boolean;
 };
 
 type NavSection = {
@@ -26,8 +28,9 @@ type NavSection = {
 };
 
 const nav: NavSection[] = [
-  { group: 'Visão Geral', icon: LayoutDashboard, alwaysOpen: true, items: [
-    { to: 'dashboard',    icon: LayoutDashboard, label: 'Dashboard' },
+  { group: 'Visão Geral', icon: LayoutDashboard, items: [
+    { to: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/tv',       icon: Tv2,             label: 'Painel TV', external: true },
   ]},
   { group: 'Produtores', icon: Briefcase, items: [
     { to: 'produtores',   icon: Users,     label: 'Produtores' },
@@ -53,12 +56,12 @@ const nav: NavSection[] = [
     { to: 'seguranca',    icon: Shield,   label: 'PCI & Segurança' },
   ]},
   { group: 'Sistema', icon: Settings, items: [
-    { to: 'perfil',               icon: UserCircle,        label: 'Meu Perfil' },
-    { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Configurar Dashboard' },
-    { to: 'configuracoes',        icon: Settings,          label: 'Configurações' },
+    { to: 'perfil',               icon: UserCircle,        label: 'Perfil' },
+    { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Dashboard' },
+    { to: 'taxas',                icon: Percent,           label: 'Taxas' },
+    { to: 'mensagens',            icon: MessageSquareHeart, label: 'Mensagens' },
     { to: 'ambiente-de-teste',    icon: FlaskConical,      label: 'Ambiente de Teste', badge: 'beta' },
   ]},
-  { group: 'Exibição', icon: Eye, items: [],},
 ];
 
 const STORAGE_KEY = 'admin.sidebar.expanded';
@@ -76,11 +79,14 @@ export default function AdminLayout() {
       if (saved) return JSON.parse(saved);
     } catch { /* ignore */ }
 
-    // Fallback: abre só o grupo da rota atual
+    // Fallback: abre "Visão Geral" + grupo da rota atual
     const next: Record<string, boolean> = {};
     for (const section of nav) {
-      if (section.alwaysOpen) { next[section.group] = true; continue; }
-      next[section.group] = section.items.some(it => location.pathname.includes(`/admin/${it.to}`));
+      if (section.alwaysOpen || section.group === 'Visão Geral') {
+        next[section.group] = true;
+        continue;
+      }
+      next[section.group] = section.items.some(it => !it.external && location.pathname.includes(`/admin/${it.to}`));
     }
     return next;
   };
@@ -93,7 +99,7 @@ export default function AdminLayout() {
       const next = { ...prev };
       for (const section of nav) {
         if (section.alwaysOpen) next[section.group] = true;
-        else if (section.items.some(it => location.pathname.includes(`/admin/${it.to}`))) {
+        else if (section.items.some(it => !it.external && location.pathname.includes(`/admin/${it.to}`))) {
           next[section.group] = true;
         }
       }
@@ -132,14 +138,29 @@ export default function AdminLayout() {
         {/* Nav */}
         <nav className="flex-1 px-3 py-3 space-y-0.5">
           {nav.map((section) => {
-            const isOpen     = section.alwaysOpen || !!expanded[section.group];
-            const hasActive  = section.items.some(it => location.pathname.includes(`/admin/${it.to}`));
-            const isExibicao = section.group === 'Exibição';
-            const GroupIcon  = section.icon;
+            const isOpen    = section.alwaysOpen || !!expanded[section.group];
+            const hasActive = section.items.some(it => !it.external && location.pathname.includes(`/admin/${it.to}`));
+            const GroupIcon = section.icon;
 
-            // Caso especial: Visão Geral (1 item, sem header)
-            if (section.alwaysOpen && section.items.length === 1) {
-              const item = section.items[0];
+            const renderItem = (item: NavItem) => {
+              if (item.external) {
+                return (
+                  <button
+                    key={item.to}
+                    type="button"
+                    onClick={() => window.open(item.to, '_blank')}
+                    className="sidebar-item w-full text-left"
+                  >
+                    <item.icon size={16} />
+                    <span className="flex-1">{item.label}</span>
+                    {item.badge && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber/15 text-amber border border-amber/30 uppercase tracking-wide">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              }
               return (
                 <NavLink
                   key={item.to}
@@ -148,9 +169,14 @@ export default function AdminLayout() {
                 >
                   <item.icon size={16} />
                   <span className="flex-1">{item.label}</span>
+                  {item.badge && (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber/15 text-amber border border-amber/30 uppercase tracking-wide">
+                      {item.badge}
+                    </span>
+                  )}
                 </NavLink>
               );
-            }
+            };
 
             return (
               <div key={section.group} className="mb-1">
@@ -175,32 +201,7 @@ export default function AdminLayout() {
 
                 {isOpen && (
                   <div className="mt-0.5 space-y-0.5 animate-fade-in">
-                    {/* Caso Exibição — botão externo */}
-                    {isExibicao && (
-                      <button
-                        onClick={() => window.open('/tv', '_blank')}
-                        className="sidebar-item w-full text-left"
-                      >
-                        <Tv2 size={16} />
-                        <span>Dashboard TV</span>
-                      </button>
-                    )}
-
-                    {section.items.map((item) => (
-                      <NavLink
-                        key={item.to}
-                        to={`/admin/${item.to}`}
-                        className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
-                      >
-                        <item.icon size={16} />
-                        <span className="flex-1">{item.label}</span>
-                        {item.badge && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber/15 text-amber border border-amber/30 uppercase tracking-wide">
-                            {item.badge}
-                          </span>
-                        )}
-                      </NavLink>
-                    ))}
+                    {section.items.map(renderItem)}
                   </div>
                 )}
               </div>
