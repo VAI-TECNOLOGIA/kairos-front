@@ -174,7 +174,8 @@ function FeesSection() {
                   const profitCents  = platformGain - acqCents;
                   const isLoss       = profitCents < 0;
                   return (
-<td>
+                    <tr key={acq}>
+                      <td>
                         <div className="flex items-center gap-2.5">
                           <span
                             className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border"
