@@ -18,7 +18,7 @@ type Acquirer = typeof ACQUIRERS[number];
 
 // Cores/logos dos adquirentes
 const ACQUIRER_BRAND: Record<Acquirer, { name: string; color: string; logo: string }> = {
-  PAGARME: { name: 'Pagar.me', color: '#65A300', logo: pagarmeLogo },
+  PAGARME: { name: 'Pagar.me', color: '#08ac54', logo: pagarmeLogo },
 };
 
 interface FeesData {
@@ -174,14 +174,18 @@ function FeesSection() {
                   const profitCents  = platformGain - acqCents;
                   const isLoss       = profitCents < 0;
                   return (
-                    <tr key={acq}>
-                      <td>
+<td>
                         <div className="flex items-center gap-2.5">
-                          <div
-                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                            style={{ background: brand.color, boxShadow: `0 0 0 3px ${brand.color}22` }}
-                          />
-                          <span className="text-text font-medium">{brand.name}</span>
+                          <span
+                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border"
+                            style={{
+                              background  : `${brand.color}1f`,
+                              color       : brand.color,
+                              borderColor : `${brand.color}40`,
+                            }}
+                          >
+                            {brand.name}
+                          </span>
                           <img src={brand.logo} alt={brand.name} className="h-5 object-contain opacity-90" />
                         </div>
                       </td>

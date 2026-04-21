@@ -1,52 +1,114 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, Package, Tag, ShoppingCart, Link2, Handshake,
   RefreshCw, DollarSign, BarChart3, Shield, Truck,
   Settings, LogOut, Bell, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
+  ChevronDown, Eye, Megaphone, Briefcase, Lock,
 } from 'lucide-react';
 
-const nav = [
-  { group: 'Visão Geral', items: [
+type NavItem = {
+  to    : string;
+  icon  : any;
+  label : string;
+  badge?: string;
+};
+
+type NavSection = {
+  group     : string;
+  icon      : any;
+  items     : NavItem[];
+  /** Se true, sempre aberto (para grupos com 1 item como "Visão Geral") */
+  alwaysOpen?: boolean;
+};
+
+const nav: NavSection[] = [
+  { group: 'Visão Geral', icon: LayoutDashboard, alwaysOpen: true, items: [
     { to: 'dashboard',    icon: LayoutDashboard, label: 'Dashboard' },
   ]},
-  { group: 'Produtores', items: [
+  { group: 'Produtores', icon: Briefcase, items: [
     { to: 'produtores',   icon: Users,     label: 'Produtores' },
     { to: 'produtos',     icon: Package,   label: 'Produtos' },
     { to: 'ofertas',      icon: Tag,       label: 'Ofertas & Split' },
   ]},
-  { group: 'Financeiro', items: [
+  { group: 'Financeiro', icon: DollarSign, items: [
     { to: 'vendas',       icon: ShoppingCart, label: 'Vendas' },
     { to: 'assinaturas',  icon: RefreshCw,    label: 'Assinaturas' },
     { to: 'financeiro',   icon: DollarSign,   label: 'Financeiro' },
     { to: 'logistica',    icon: Truck,        label: 'Logística & Jadlog' },
     { to: 'relatorios',   icon: BarChart3,    label: 'Relatórios' },
   ]},
-  { group: 'Parcerias', items: [
+  { group: 'Parcerias', icon: Handshake, items: [
     { to: 'afiliados',    icon: Link2,      label: 'Afiliados' },
     { to: 'coprodutores', icon: Handshake,  label: 'Co-Produtores' },
   ]},
-  { group: 'Marketing', items: [
+  { group: 'Marketing', icon: Megaphone, items: [
     { to: 'tracking',    icon: Activity, label: 'Pixels de Rastreamento' },
   ]},
-  { group: 'Segurança', items: [
+  { group: 'Segurança', icon: Lock, items: [
     { to: 'audit-log',    icon: Activity, label: 'Audit Log' },
     { to: 'seguranca',    icon: Shield,   label: 'PCI & Segurança' },
   ]},
-  { group: 'Sistema', items: [
+  { group: 'Sistema', icon: Settings, items: [
     { to: 'perfil',               icon: UserCircle,        label: 'Meu Perfil' },
     { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Configurar Dashboard' },
     { to: 'configuracoes',        icon: Settings,          label: 'Configurações' },
     { to: 'ambiente-de-teste',    icon: FlaskConical,      label: 'Ambiente de Teste', badge: 'beta' },
   ]},
+  { group: 'Exibição', icon: Eye, items: [],},
 ];
+
+const STORAGE_KEY = 'admin.sidebar.expanded';
 
 export default function AdminLayout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
-  const session = useSessionTimeout();
+  const location = useLocation();
+  const session  = useSessionTimeout();
+
+  // Expandido por padrão: apenas o grupo cujo item está ativo na rota atual
+  const getInitialExpanded = (): Record<string, boolean> => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+
+    // Fallback: abre só o grupo da rota atual
+    const next: Record<string, boolean> = {};
+    for (const section of nav) {
+      if (section.alwaysOpen) { next[section.group] = true; continue; }
+      next[section.group] = section.items.some(it => location.pathname.includes(`/admin/${it.to}`));
+    }
+    return next;
+  };
+
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(getInitialExpanded);
+
+  // Sempre que a rota mudar, garante que o grupo da rota atual esteja aberto
+  useEffect(() => {
+    setExpanded(prev => {
+      const next = { ...prev };
+      for (const section of nav) {
+        if (section.alwaysOpen) next[section.group] = true;
+        else if (section.items.some(it => location.pathname.includes(`/admin/${it.to}`))) {
+          next[section.group] = true;
+        }
+      }
+      return next;
+    });
+  }, [location.pathname]);
+
+  // Persiste no localStorage
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(expanded)); } catch { /* ignore */ }
+  }, [expanded]);
+
+  const toggleGroup = (group: string) => {
+    setExpanded(prev => ({ ...prev, [group]: !prev[group] }));
+  };
 
   const handleLogout = async () => {
     logout();
@@ -68,11 +130,17 @@ export default function AdminLayout() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4">
-          {nav.map((section) => (
-            <div key={section.group}>
-              <div className="sidebar-group">{section.group}</div>
-              {section.items.map((item) => (
+        <nav className="flex-1 px-3 py-3 space-y-0.5">
+          {nav.map((section) => {
+            const isOpen     = section.alwaysOpen || !!expanded[section.group];
+            const hasActive  = section.items.some(it => location.pathname.includes(`/admin/${it.to}`));
+            const isExibicao = section.group === 'Exibição';
+            const GroupIcon  = section.icon;
+
+            // Caso especial: Visão Geral (1 item, sem header)
+            if (section.alwaysOpen && section.items.length === 1) {
+              const item = section.items[0];
+              return (
                 <NavLink
                   key={item.to}
                   to={`/admin/${item.to}`}
@@ -80,23 +148,64 @@ export default function AdminLayout() {
                 >
                   <item.icon size={16} />
                   <span className="flex-1">{item.label}</span>
-                  {item.badge && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber/15 text-amber border border-amber/30 uppercase tracking-wide">
-                      {item.badge}
-                    </span>
-                  )}
                 </NavLink>
-              ))}
-            </div>
-          ))}
+              );
+            }
 
-          <div className="mt-1">
-            <div className="sidebar-group">Exibição</div>
-            <button onClick={() => window.open('/tv', '_blank')} className="sidebar-item w-full text-left">
-              <Tv2 size={16} />
-              <span>Dashboard TV</span>
-            </button>
-          </div>
+            return (
+              <div key={section.group} className="mb-1">
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(section.group)}
+                  className={cn(
+                    'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[7px] text-[11px] font-semibold uppercase tracking-wider transition-colors',
+                    hasActive ? 'text-text2' : 'text-text3 hover:text-text2',
+                  )}
+                >
+                  <GroupIcon size={13} className="opacity-70" />
+                  <span className="flex-1 text-left">{section.group}</span>
+                  <ChevronDown
+                    size={13}
+                    className={cn(
+                      'transition-transform opacity-60',
+                      isOpen ? 'rotate-0' : '-rotate-90',
+                    )}
+                  />
+                </button>
+
+                {isOpen && (
+                  <div className="mt-0.5 space-y-0.5 animate-fade-in">
+                    {/* Caso Exibição — botão externo */}
+                    {isExibicao && (
+                      <button
+                        onClick={() => window.open('/tv', '_blank')}
+                        className="sidebar-item w-full text-left"
+                      >
+                        <Tv2 size={16} />
+                        <span>Dashboard TV</span>
+                      </button>
+                    )}
+
+                    {section.items.map((item) => (
+                      <NavLink
+                        key={item.to}
+                        to={`/admin/${item.to}`}
+                        className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
+                      >
+                        <item.icon size={16} />
+                        <span className="flex-1">{item.label}</span>
+                        {item.badge && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber/15 text-amber border border-amber/30 uppercase tracking-wide">
+                            {item.badge}
+                          </span>
+                        )}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         {/* User */}
