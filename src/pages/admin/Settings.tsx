@@ -9,16 +9,22 @@ import {
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { MessageSquareHeart, Eye, EyeOff, Save, Percent, TrendingUp, Users, Search, X } from 'lucide-react';
+import pagarmeLogo from '@/assets/pagarme.png';
 
 // ── TAXAS E COMISSÕES ────────────────────────────────────────────
 
-const ACQUIRERS = ['PAGARME', 'STONE', 'ASAAS', 'CIELO'] as const;
+const ACQUIRERS = ['PAGARME'] as const;
 type Acquirer = typeof ACQUIRERS[number];
+
+// Cores/logos dos adquirentes
+const ACQUIRER_BRAND: Record<Acquirer, { name: string; color: string; logo: string }> = {
+  PAGARME: { name: 'Pagar.me', color: '#65A300', logo: pagarmeLogo },
+};
 
 interface FeesData {
   platformBps: number;
   platformPct: number;
-  acquirers: Record<Acquirer, { bps: number; profitBps: number }>;
+  acquirers: Record<Acquirer, { cents: number }>;
 }
 
 interface CustomFeeRow {
@@ -39,6 +45,16 @@ function pctToBps(pct: string): number {
   return Math.round(n * 100);
 }
 
+function centsToReais(cents: number): string {
+  return (cents / 100).toFixed(2);
+}
+
+function reaisToCents(reais: string): number {
+  const n = parseFloat(reais.replace(',', '.'));
+  if (isNaN(n) || n < 0) return 0;
+  return Math.round(n * 100);
+}
+
 function FeesSection() {
   const qc = useQueryClient();
 
@@ -49,18 +65,15 @@ function FeesSection() {
 
   // Estado local editável
   const [platformPct, setPlatformPct] = useState('');
-  const [acquirerPcts, setAcquirerPcts] = useState<Record<Acquirer, string>>({
-    PAGARME: '', STONE: '', ASAAS: '', CIELO: '',
+  const [acquirerReais, setAcquirerReais] = useState<Record<Acquirer, string>>({
+    PAGARME: '',
   });
 
   useEffect(() => {
     if (!fees) return;
     setPlatformPct(bpsToPct(fees.platformBps));
-    setAcquirerPcts({
-      PAGARME: bpsToPct(fees.acquirers.PAGARME?.bps ?? 0),
-      STONE  : bpsToPct(fees.acquirers.STONE?.bps   ?? 0),
-      ASAAS  : bpsToPct(fees.acquirers.ASAAS?.bps   ?? 0),
-      CIELO  : bpsToPct(fees.acquirers.CIELO?.bps   ?? 0),
+    setAcquirerReais({
+      PAGARME: centsToReais(fees.acquirers.PAGARME?.cents ?? 0),
     });
   }, [fees]);
 
@@ -68,10 +81,7 @@ function FeesSection() {
     mutationFn: () => api.post('/admin/fees', {
       platformBps: pctToBps(platformPct),
       acquirers: {
-        PAGARME: pctToBps(acquirerPcts.PAGARME),
-        STONE  : pctToBps(acquirerPcts.STONE),
-        ASAAS  : pctToBps(acquirerPcts.ASAAS),
-        CIELO  : pctToBps(acquirerPcts.CIELO),
+        PAGARME: reaisToCents(acquirerReais.PAGARME),
       },
     }),
     onSuccess: () => { toast.success('Taxas atualizadas!'); qc.invalidateQueries({ queryKey: ['admin-fees'] }); },
@@ -140,7 +150,7 @@ function FeesSection() {
           <TrendingUp size={16} className="text-accent flex-shrink-0" />
           <div>
             <h3 className="font-semibold text-text">Taxas dos Adquirentes</h3>
-            <p className="text-xs text-text3 mt-0.5">Taxa cobrada por cada gateway. Lucro = Taxa plataforma − Taxa adquirente.</p>
+            <p className="text-xs text-text3 mt-0.5">Valor fixo em R$ cobrado por transação. Lucro por venda = (taxa plataforma × valor) − taxa adquirente.</p>
           </div>
         </div>
 
@@ -150,37 +160,51 @@ function FeesSection() {
               <thead>
                 <tr>
                   <th>Adquirente</th>
-                  <th>Taxa cobrada (%)</th>
-                  <th>Lucro da plataforma</th>
+                  <th>Taxa cobrada (R$ por transação)</th>
+                  <th>Lucro da plataforma (por venda de R$ 100)</th>
                 </tr>
               </thead>
               <tbody>
                 {ACQUIRERS.map(acq => {
-                  const acqBps    = pctToBps(acquirerPcts[acq]);
-                  const profitBps = platformBpsNow - acqBps;
-                  const profitPct = profitBps / 100;
-                  const isLoss    = profitBps < 0;
+                  const brand = ACQUIRER_BRAND[acq];
+                  const acqCents = reaisToCents(acquirerReais[acq]);
+                  // Lucro por exemplo com venda de R$ 100 (10000 cents)
+                  const EXAMPLE_SALE = 10000;
+                  const platformGain = Math.round(EXAMPLE_SALE * platformBpsNow / 10000);
+                  const profitCents  = platformGain - acqCents;
+                  const isLoss       = profitCents < 0;
                   return (
                     <tr key={acq}>
-                      <td><span className="badge-gray">{acq}</span></td>
-                      <td className="w-48">
+                      <td>
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            style={{ background: brand.color, boxShadow: `0 0 0 3px ${brand.color}22` }}
+                          />
+                          <span className="text-text font-medium">{brand.name}</span>
+                          <img src={brand.logo} alt={brand.name} className="h-5 object-contain opacity-90" />
+                        </div>
+                      </td>
+                      <td className="w-56">
                         <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text3 text-xs">R$</span>
                           <input
                             type="text"
                             inputMode="decimal"
-                            value={acquirerPcts[acq]}
-                            onChange={(e) => setAcquirerPcts(prev => ({ ...prev, [acq]: e.target.value }))}
-                            className="input pr-8 h-9"
-                            placeholder="0.00"
+                            value={acquirerReais[acq]}
+                            onChange={(e) => setAcquirerReais(prev => ({ ...prev, [acq]: e.target.value }))}
+                            className="input pl-9 h-9"
+                            placeholder="0,01"
                           />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text3 text-xs">%</span>
                         </div>
                       </td>
                       <td>
                         <span className={`font-semibold ${isLoss ? 'text-red-400' : 'text-green-400'}`}>
-                          {profitPct >= 0 ? '+' : ''}{profitPct.toFixed(2)}%
+                          {profitCents >= 0 ? '+' : ''}R$ {(profitCents / 100).toFixed(2)}
                         </span>
-                        <span className="text-text3 text-xs ml-1">({profitBps} bps)</span>
+                        <span className="text-text3 text-xs ml-2">
+                          ({(platformBpsNow / 100).toFixed(2)}% − R$ {(acqCents / 100).toFixed(2)})
+                        </span>
                       </td>
                     </tr>
                   );

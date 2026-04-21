@@ -52,12 +52,15 @@ export default function OfferManager() {
   const createOffer = useMutation({
     mutationFn: async (d: OfferForm) => {
       const offer = await api.post("/offers", d);
-      // Afiliado co-produtor: configura split automaticamente (5% plataforma + 95% produtor)
+      // Afiliado co-produtor: configura split automaticamente usando a taxa configurada
       if (isAffiliate) {
+        const { data: fee } = await api.get('/admin/platform-fee');
+        const platformBps = fee.platformBps || 0;
+        const producerBps = 10000 - platformBps;
         await api.post(`/offers/${offer.data.id}/splits`, {
           splits: [
-            { recipientType: "PLATFORM", recipientId: "platform", basisPoints: 500,  description: "Taxa plataforma 5%" },
-            { recipientType: "PRODUCER", basisPoints: 9500, description: "Co-produtor 95%" },
+            { recipientType: "PLATFORM", recipientId: "platform", basisPoints: platformBps, description: `Taxa plataforma ${(platformBps / 100).toFixed(2)}%` },
+            { recipientType: "PRODUCER", basisPoints: producerBps, description: `Co-produtor ${(producerBps / 100).toFixed(2)}%` },
           ],
         });
       }

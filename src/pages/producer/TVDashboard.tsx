@@ -9,8 +9,8 @@ import { formatBRL } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth.store';
 import DateFilter, { getDefaultRange, type DateRange } from '@/components/DateFilter';
 import { Eye, EyeOff, Wifi, TrendingUp, DollarSign, Package, ShoppingCart, Users, RefreshCw, MousePointerClick } from 'lucide-react';
+import { usePlatformFee, feeMultiplier } from '@/hooks/usePlatformFee';
 
-const PLATFORM_FEE = 0.05;
 const REFETCH_MS   = 10_000;
 const COLORS       = ['#00C9A7', '#0055FE', '#7C3AED', '#F59E0B', '#FF4D6D'];
 
@@ -79,6 +79,10 @@ function buildRevenueChart(orders: any[], dateRange: DateRange) {
 export default function TVDashboard() {
   const { user }  = useAuthStore();
   const role      = (user as any)?.role as string | undefined;
+
+  const { data: feeData } = usePlatformFee();
+  const PLATFORM_FEE = feeMultiplier(feeData);
+  const platformPctLabel = `${(PLATFORM_FEE * 100).toFixed(2).replace(/\.?0+$/, '')}%`;
 
   const [dateRange,     setDateRange]     = useState<DateRange>(getDefaultRange());
   const [filterVisible, setFilterVisible] = useState(true);
@@ -155,7 +159,7 @@ export default function TVDashboard() {
       const d = adminDash as any;
       return [
         { label: 'Receita Total',       value: formatBRL(d?.totalRevenueCents ?? 0),          sub: dateRange.label,                   icon: <TrendingUp size={14} /> },
-        { label: 'Taxa da Plataforma',  value: formatBRL(Math.round((d?.totalRevenueCents ?? 0) * PLATFORM_FEE)), sub: '5% sobre todas as vendas', icon: <DollarSign size={14} /> },
+        { label: 'Taxa da Plataforma',  value: formatBRL(Math.round((d?.totalRevenueCents ?? 0) * PLATFORM_FEE)), sub: `${platformPctLabel} sobre todas as vendas`, icon: <DollarSign size={14} /> },
         { label: 'Vendas Aprovadas',    value: String(d?.totalOrders ?? 0),                   sub: 'no período',                      icon: <ShoppingCart size={14} /> },
         { label: 'Produtores Ativos',   value: String(d?.totalProducers ?? 0),                sub: `${d?.pendingKyc ?? 0} aguardando KYC`, icon: <Users size={14} /> },
         { label: 'Assinaturas Ativas',  value: String(d?.activeSubscriptions ?? 0),           sub: 'recorrentes',                    icon: <RefreshCw size={14} /> },
@@ -177,7 +181,7 @@ export default function TVDashboard() {
     const bruto = d?.totalRevenueCents ?? (salesData as any)?.totalRevenueCents ?? 0;
     return [
       { label: 'Faturamento Bruto',   value: formatBRL(bruto),                              sub: dateRange.label,                   icon: <TrendingUp size={14} /> },
-      { label: 'Comissão Líquida',    value: formatBRL(Math.round(bruto * (1 - PLATFORM_FEE))), sub: 'após taxa da plataforma (5%)', icon: <DollarSign size={14} /> },
+      { label: 'Comissão Líquida',    value: formatBRL(Math.round(bruto * (1 - PLATFORM_FEE))), sub: `após taxa da plataforma (${platformPctLabel})`, icon: <DollarSign size={14} /> },
       { label: 'Vendas Aprovadas',    value: String((salesData as any)?.total ?? 0),        sub: 'no período',                      icon: <ShoppingCart size={14} /> },
       { label: 'Produtos Ativos',     value: String(d?.products ?? 0),                      sub: 'aprovados na plataforma',         icon: <Package size={14} /> },
     ];

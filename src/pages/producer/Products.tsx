@@ -12,8 +12,7 @@ import type { Product } from '@/types';
 import { Package, Plus, ExternalLink, Image as ImageIcon, Tag, Pencil, MessageSquareHeart, Eye, EyeOff } from 'lucide-react';
 import { RichTextEditor, sanitizeHtml } from '@/components/RichTextEditor';
 import { ICON_MAP, ICON_OPTIONS, COLOR_OPTIONS, DEFAULT_SUCCESS_ICON, DEFAULT_SUCCESS_COLOR } from '@/lib/successConfig';
-
-const PLATFORM_FEE = 0.05;
+import { usePlatformFee, feeMultiplier } from '@/hooks/usePlatformFee';
 
 const schema = z.object({
   name       : z.string().min(3, 'Mínimo 3 caracteres'),
@@ -99,6 +98,8 @@ export default function MyProducts() {
     sv('digitalUrl',  p.digitalUrl  || '');
   };
 
+  const { data: feeData } = usePlatformFee();
+  const PLATFORM_FEE = feeMultiplier(feeData);
   const recebeAte = (priceCents: number) => Math.round(priceCents * (1 - PLATFORM_FEE));
 
   const bestOffer = (p: any) => {
