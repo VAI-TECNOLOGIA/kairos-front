@@ -11,20 +11,26 @@ export default function MySales() {
 
   function renderNfeCell(o: any) {
     const nfe = o.metadata?.nfe;
+    // Só considera "aguardando" por até 10 minutos após aprovação.
+    // Depois disso assume que não vai mais emitir (ou falhou em algum lugar).
+    const MAX_WAIT_MS = 10 * 60 * 1000;
     if (!nfe) {
-      // Só mostra "aguardando" se o pedido estiver APPROVED
       if (o.status !== 'APPROVED') return <span className="text-text3 text-xs">—</span>;
-      return (
-        <span className="text-text3 text-xs flex items-center gap-1">
-          <Loader2 size={11} className="animate-spin" /> emitindo...
-        </span>
-      );
+      const approvedAt = o.approvedAt ? new Date(o.approvedAt).getTime() : 0;
+      if (approvedAt && Date.now() - approvedAt < MAX_WAIT_MS) {
+        return (
+          <span className="text-text3 text-xs flex items-center gap-1">
+            <Loader2 size={11} className="animate-spin" /> aguardando
+          </span>
+        );
+      }
+      return <span className="text-text3 text-xs">—</span>;
     }
     if (nfe.status === 'issued' && nfe.pdfUrl) {
       return (
         <a href={nfe.pdfUrl} target="_blank" rel="noopener noreferrer"
            className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline font-medium">
-          <FileText size={12} /> NF #{nfe.number || nfe.id.slice(-6).toUpperCase()}
+          <FileText size={12} /> NF #{nfe.number || nfe.id?.slice(-6).toUpperCase() || ''}
         </a>
       );
     }

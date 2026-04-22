@@ -165,6 +165,13 @@ export default function AffiliateLayout() {
                 <ShoppingBag size={16} />
                 <span className="flex-1">Minhas Ofertas</span>
               </NavLink>
+              <NavLink
+                to="/afiliado/minhas-vendas"
+                className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
+              >
+                <ShoppingBag size={16} />
+                <span className="flex-1">Vendas & NF</span>
+              </NavLink>
             </div>
           )}
         </nav>

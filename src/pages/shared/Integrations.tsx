@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Truck, FileText, Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug, Zap } from 'lucide-react';
+import { Truck, FileText, Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug } from 'lucide-react';
 
 // ══════════════════════════════════════════════════════════════════
 // PROVIDERS
 // ══════════════════════════════════════════════════════════════════
 
-type Provider = 'MELHOR_ENVIO' | 'NFE_IO' | 'PLUGA';
+type Provider = 'MELHOR_ENVIO' | 'NFE_IO';
 
 interface IntegrationRow {
   provider  : Provider;
@@ -52,17 +52,6 @@ const PROVIDER_META: Record<Provider, {
       { key: 'cityServiceCode', label: 'Código de serviço municipal', type: 'text', placeholder: '01.07', hint: 'Código fiscal da sua prefeitura. Padrão: 01.07 (desenvolvimento/software).' },
     ],
   },
-  PLUGA: {
-    name       : 'Pluga',
-    description: 'Automação de ponte entre Pagar.me e NFe.io (opcional — emissão sem código).',
-    icon       : Zap,
-    color      : '#FF5722',
-    site       : 'https://pluga.co',
-    fields     : [
-      { key: 'webhookUrl', label: 'Webhook URL', type: 'text', placeholder: 'https://pluga.co/webhooks/...', hint: 'URL do webhook Pluga para receber eventos de pagamento aprovado.' },
-      { key: 'apiKey',     label: 'API Key',     type: 'password', placeholder: 'Sua API key Pluga (opcional)' },
-    ],
-  },
 };
 
 // ══════════════════════════════════════════════════════════════════
@@ -86,11 +75,10 @@ export default function IntegrationsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="h-64 bg-bg3 rounded-2xl animate-pulse" />
           <div className="h-64 bg-bg3 rounded-2xl animate-pulse" />
-          <div className="h-64 bg-bg3 rounded-2xl animate-pulse" />
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {(['NFE_IO', 'PLUGA', 'MELHOR_ENVIO'] as Provider[]).map(p => {
+          {(['NFE_IO', 'MELHOR_ENVIO'] as Provider[]).map(p => {
             const row = data?.data.find(d => d.provider === p);
             return (
               <IntegrationCard
