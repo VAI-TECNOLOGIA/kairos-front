@@ -234,7 +234,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* ── MAIN ────────────────────────────────── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Session bar */}
         <div className="session-bar-container">
           <div
