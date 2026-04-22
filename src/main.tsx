@@ -26,6 +26,10 @@ injectQueryClient(queryClient);
 window.addEventListener('storage', (e) => {
   if (e.key !== 'kairos-auth') return;
 
+  // O Painel TV é uma segunda tela passiva — ignorar cascade de sessão
+  // para não deslogar a aba principal do sistema.
+  if (window.location.pathname === '/tv') return;
+
   const prev = e.oldValue ? JSON.parse(e.oldValue) : null;
   const next = e.newValue ? JSON.parse(e.newValue) : null;
 

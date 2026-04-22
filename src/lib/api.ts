@@ -39,9 +39,14 @@ api.interceptors.response.use(
       original._retry = true;
       isRefreshing = true;
 
+      // A aba /tv é read-only (segunda tela) e não deve cascatear logout
+      // para a aba principal via localStorage. Se o refresh falhar aqui,
+      // apenas avisa o usuário sem limpar o auth compartilhado.
+      const isTvTab = typeof window !== 'undefined' && window.location.pathname === '/tv';
+
       const refreshToken = useAuthStore.getState().refreshToken;
       if (!refreshToken) {
-        useAuthStore.getState().logout();
+        if (!isTvTab) useAuthStore.getState().logout();
         return Promise.reject(error);
       }
 
@@ -56,7 +61,11 @@ api.interceptors.response.use(
         original.headers.Authorization = `Bearer ${data.accessToken}`;
         return api(original);
       } catch {
-        useAuthStore.getState().logout();
+        if (isTvTab) {
+          toast.error('Sessão do Painel TV expirou. Refaça login na aba principal e reabra o painel.');
+        } else {
+          useAuthStore.getState().logout();
+        }
         return Promise.reject(error);
       } finally {
         isRefreshing = false;
