@@ -3,7 +3,7 @@ import api from "@/lib/api";
 import { PageHeader, Loading, StatCard } from "@/components/ui";
 import { formatBRL, formatDateTime, orderStatusVariant } from "@/lib/utils";
 import type { Order } from "@/types";
-import { ShoppingCart, FileText, Loader2 } from "lucide-react";
+import { ShoppingCart, FileText, Loader2, ExternalLink } from "lucide-react";
 
 export default function MySales() {
   const { data, isLoading } = useQuery({ queryKey:["my-sales"], queryFn:()=>api.get("/reports/sales?limit=50").then(r=>r.data) });
@@ -50,6 +50,28 @@ export default function MySales() {
   return (
     <div>
       <PageHeader title="Minhas Vendas" />
+
+      {/* Acesso às notas fiscais no painel NFe.io */}
+      <div className="card mb-6 p-4 flex items-start gap-3 border-l-4 border-accent">
+        <FileText size={18} className="text-accent flex-shrink-0 mt-0.5" />
+        <div className="flex-1 text-sm">
+          <div className="font-semibold text-text mb-1">Ver todas as notas fiscais emitidas</div>
+          <div className="text-text3 mb-2">
+            Acesse o painel da NFe.io e siga: <strong>Empresas</strong> → selecione sua empresa →
+            aba <strong>NFS-e</strong> → botão <strong>Listar NFS-e</strong>. Todas as notas
+            emitidas para os pedidos aprovados ficam listadas lá, com PDF e XML para download.
+          </div>
+          <a
+            href="https://app.nfe.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary py-1.5 px-3 text-xs inline-flex items-center gap-1.5"
+          >
+            Abrir painel NFe.io <ExternalLink size={12} />
+          </a>
+        </div>
+      </div>
+
       <div className="grid grid-cols-3 gap-4 mb-6">
         <StatCard label="Total de vendas" value={data?.total||0} icon={<ShoppingCart size={16}/>}/>
         <StatCard label="Receita total" value={formatBRL(data?.totalRevenueCents||0)}/>
