@@ -225,6 +225,19 @@ export default function MyPurchases() {
                         </a>
                       )}
 
+                      {/* Nota fiscal emitida */}
+                      {(order.metadata as any)?.nfe?.pdfUrl && (order.metadata as any).nfe.status === 'issued' && (
+                        <a
+                          href={(order.metadata as any).nfe.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-[11px] text-accent hover:underline"
+                        >
+                          <FileText size={11} />
+                          Nota fiscal
+                        </a>
+                      )}
+
                       {/* Produto físico — rastreamento */}
                       {order.offer?.product?.type === 'PHYSICAL' && !isRefunded && (
                         <button

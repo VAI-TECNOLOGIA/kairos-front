@@ -3,10 +3,44 @@ import api from "@/lib/api";
 import { PageHeader, Loading, StatCard } from "@/components/ui";
 import { formatBRL, formatDateTime, orderStatusVariant } from "@/lib/utils";
 import type { Order } from "@/types";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, FileText, Loader2 } from "lucide-react";
+
 export default function MySales() {
   const { data, isLoading } = useQuery({ queryKey:["my-sales"], queryFn:()=>api.get("/reports/sales?limit=50").then(r=>r.data) });
-  const orders: Order[] = data?.data || [];
+  const orders: (Order & { metadata?: any })[] = data?.data || [];
+
+  function renderNfeCell(o: any) {
+    const nfe = o.metadata?.nfe;
+    if (!nfe) {
+      // Só mostra "aguardando" se o pedido estiver APPROVED
+      if (o.status !== 'APPROVED') return <span className="text-text3 text-xs">—</span>;
+      return (
+        <span className="text-text3 text-xs flex items-center gap-1">
+          <Loader2 size={11} className="animate-spin" /> emitindo...
+        </span>
+      );
+    }
+    if (nfe.status === 'issued' && nfe.pdfUrl) {
+      return (
+        <a href={nfe.pdfUrl} target="_blank" rel="noopener noreferrer"
+           className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline font-medium">
+          <FileText size={12} /> NF #{nfe.number || nfe.id.slice(-6).toUpperCase()}
+        </a>
+      );
+    }
+    if (nfe.status === 'processing') {
+      return (
+        <span className="text-text3 text-xs flex items-center gap-1">
+          <Loader2 size={11} className="animate-spin" /> processando
+        </span>
+      );
+    }
+    if (nfe.status === 'failed') {
+      return <span className="text-red-400 text-xs">erro na emissão</span>;
+    }
+    return <span className="text-text3 text-xs">—</span>;
+  }
+
   return (
     <div>
       <PageHeader title="Minhas Vendas" />
@@ -18,7 +52,7 @@ export default function MySales() {
       {isLoading ? <Loading/> : (
         <div className="table-wrapper">
           <table className="table">
-            <thead><tr><th>Cliente</th><th>Produto</th><th>Valor</th><th>Método</th><th>Status</th><th>Data</th></tr></thead>
+            <thead><tr><th>Cliente</th><th>Produto</th><th>Valor</th><th>Método</th><th>Status</th><th>Nota Fiscal</th><th>Data</th></tr></thead>
             <tbody>
               {orders.map(o=>(
                 <tr key={o.id}>
@@ -27,6 +61,7 @@ export default function MySales() {
                   <td className="font-semibold text-text">{formatBRL(o.amountCents)}</td>
                   <td><span className="badge-gray">{o.paymentMethod||"—"}</span></td>
                   <td><span className={orderStatusVariant(o.status)}>{o.status}</span></td>
+                  <td>{renderNfeCell(o)}</td>
                   <td className="text-text3">{formatDateTime(o.createdAt)}</td>
                 </tr>
               ))}

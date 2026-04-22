@@ -65,11 +65,13 @@ export default function SalesPage() {
               <thead>
                 <tr>
                   <th>Pedido</th><th>Cliente</th><th>Produto</th>
-                  <th>Valor</th><th>Status</th><th>Adquirente</th><th>Data</th><th></th>
+                  <th>Valor</th><th>Status</th><th>Adquirente</th><th>NF</th><th>Data</th><th></th>
                 </tr>
               </thead>
               <tbody>
-                {orders.map(o => (
+                {orders.map(o => {
+                  const nfe = (o as any).metadata?.nfe;
+                  return (
                   <tr key={o.id}>
                     <td><code className="text-xs bg-bg3 px-1.5 py-0.5 rounded text-text2">{o.id.slice(-8).toUpperCase()}</code></td>
                     <td className="text-text">{o.customerName || '—'}</td>
@@ -77,6 +79,20 @@ export default function SalesPage() {
                     <td className="font-semibold text-text">{formatBRL(o.amountCents)}</td>
                     <td><span className={orderStatusVariant(o.status)}>{o.status}</span></td>
                     <td><span className="badge-gray">{o.acquirer || '—'}</span></td>
+                    <td>
+                      {nfe?.status === 'issued' && nfe.pdfUrl ? (
+                        <a href={nfe.pdfUrl} target="_blank" rel="noopener noreferrer"
+                           className="text-xs text-accent hover:underline font-medium" title="Abrir NF em PDF">
+                          #{nfe.number || nfe.id?.slice(-6).toUpperCase()}
+                        </a>
+                      ) : nfe?.status === 'processing' ? (
+                        <span className="text-text3 text-xs">processando</span>
+                      ) : nfe?.status === 'failed' ? (
+                        <span className="text-red-400 text-xs">erro</span>
+                      ) : (
+                        <span className="text-text3 text-xs">—</span>
+                      )}
+                    </td>
                     <td className="text-text3">{formatDateTime(o.createdAt)}</td>
                     <td>
                       {(o.status === 'PROCESSING' || o.status === 'PENDING') && o.acquirerTxId && (
@@ -91,7 +107,8 @@ export default function SalesPage() {
                       )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
