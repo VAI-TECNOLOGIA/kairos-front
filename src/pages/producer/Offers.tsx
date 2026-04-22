@@ -52,17 +52,21 @@ export default function OfferManager() {
   const createOffer = useMutation({
     mutationFn: async (d: OfferForm) => {
       const offer = await api.post("/offers", d);
-      // Afiliado co-produtor: configura split automaticamente usando a taxa configurada
-      if (isAffiliate) {
+      // Split padrão automático (produtor OU afiliado co-produtor):
+      // Plataforma (% configurada pelo admin) + Produtor/CoProdutor (resto)
+      // Sem isso, o checkout reclama "split não configurado".
+      try {
         const { data: fee } = await api.get('/admin/platform-fee');
-        const platformBps = fee.platformBps || 0;
+        const platformBps = fee.platformBps || 500; // fallback 5%
         const producerBps = 10000 - platformBps;
         await api.post(`/offers/${offer.data.id}/splits`, {
           splits: [
             { recipientType: "PLATFORM", recipientId: "platform", basisPoints: platformBps, description: `Taxa plataforma ${(platformBps / 100).toFixed(2)}%` },
-            { recipientType: "PRODUCER", basisPoints: producerBps, description: `Co-produtor ${(producerBps / 100).toFixed(2)}%` },
+            { recipientType: "PRODUCER", basisPoints: producerBps, description: `Produtor ${(producerBps / 100).toFixed(2)}%` },
           ],
         });
+      } catch (err: any) {
+        console.warn('[offers] split padrão não configurado:', err?.message);
       }
       return offer;
     },

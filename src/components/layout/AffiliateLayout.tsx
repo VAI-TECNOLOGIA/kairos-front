@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { formatBRL } from '@/lib/utils';
 import {
   LayoutDashboard, ShoppingBag, Link2, DollarSign,
-  LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw, Activity, Tv2, Plug,
+  LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw, Activity, Tv2, Plug, Truck,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -171,6 +171,13 @@ export default function AffiliateLayout() {
               >
                 <ShoppingBag size={16} />
                 <span className="flex-1">Vendas & NF</span>
+              </NavLink>
+              <NavLink
+                to="/afiliado/logistica"
+                className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
+              >
+                <Truck size={16} />
+                <span className="flex-1">Envios (físicos)</span>
               </NavLink>
             </div>
           )}

@@ -169,6 +169,7 @@ export default function App() {
         <Route path="meus-produtos"        element={<MyProducts />} />
         <Route path="minhas-ofertas"       element={<OfferManager />} />
         <Route path="minhas-vendas"        element={<MySales />} />
+        <Route path="logistica"            element={<ProducerLogistics />} />
         <Route path="perfil"               element={<ProfilePage />} />
         <Route path="integracoes"          element={<IntegrationsPage />} />
         <Route path="configurar-dashboard" element={<DashboardSettings />} />
