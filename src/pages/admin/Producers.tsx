@@ -36,25 +36,29 @@ export default function ProducersPage() {
 
   const approveMutation = useMutation({
     mutationFn: (id: string) => api.post(`/producers/${id}/approve`),
+    onMutate : () => { toast.loading('Aprovando produtor...', { id: 'producer-approve' }); },
     onSuccess: () => {
-      toast.success('Produtor aprovado!');
+      toast.success('Produtor aprovado!', { id: 'producer-approve' });
       qc.invalidateQueries({ queryKey: ['admin-producers'] });
+      qc.invalidateQueries({ queryKey: ['admin-producers-pending-count'] });
       setSelected(null);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao aprovar'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao aprovar', { id: 'producer-approve' }),
   });
 
   const rejectMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       api.post(`/producers/${id}/reject`, { reason }),
+    onMutate : () => { toast.loading('Rejeitando...', { id: 'producer-reject' }); },
     onSuccess: () => {
-      toast.success('Produtor rejeitado.');
+      toast.success('Produtor rejeitado.', { id: 'producer-reject' });
       qc.invalidateQueries({ queryKey: ['admin-producers'] });
+      qc.invalidateQueries({ queryKey: ['admin-producers-pending-count'] });
       setSelected(null);
       setShowReject(false);
       setRejectReason('');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Informe um motivo com mínimo 10 caracteres'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Informe um motivo com mínimo 10 caracteres', { id: 'producer-reject' }),
   });
 
   const producers: Producer[] = data?.data || [];
