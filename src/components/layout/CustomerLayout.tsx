@@ -2,6 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
 import { ShoppingBag, Store, LogOut, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import NotificationBell from '@/components/NotificationBell';
 
 export default function CustomerLayout() {
   const { user, logout, isAuthenticated } = useAuthStore();
@@ -56,6 +57,7 @@ export default function CustomerLayout() {
           <div className="flex items-center gap-2 flex-shrink-0">
             {isAuthenticated() ? (
               <>
+                <NotificationBell />
                 <div className="hidden sm:flex items-center gap-2 text-sm text-text2">
                   <div className="w-7 h-7 bg-accent/20 rounded-full flex items-center justify-center text-accent text-xs font-bold">
                     {user?.name?.slice(0, 2).toUpperCase()}

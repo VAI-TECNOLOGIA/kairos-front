@@ -6,9 +6,10 @@ import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, Package, Tag, ShoppingCart, Link2, Handshake,
   RefreshCw, DollarSign, BarChart3, Shield, Truck,
-  Settings, LogOut, Bell, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
+  Settings, LogOut, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
   ChevronDown, Megaphone, Briefcase, Lock, Percent, MessageSquareHeart, Plug, Clock,
 } from 'lucide-react';
+import NotificationBell from '@/components/NotificationBell';
 
 type NavItem = {
   to    : string;
@@ -267,10 +268,7 @@ export default function AdminLayout() {
             >
               ⏱ {session.label}
             </span>
-            <button className="btn-ghost btn-sm relative">
-              <Bell size={16} />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red rounded-full" />
-            </button>
+            <NotificationBell />
             <button
               onClick={handleLogout}
               className="btn-ghost btn-sm text-text3 hover:text-red"
