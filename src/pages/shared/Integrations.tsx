@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Truck, FileText, Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug } from 'lucide-react';
+import { Truck, FileText, Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug, Zap } from 'lucide-react';
 
 // ══════════════════════════════════════════════════════════════════
 // PROVIDERS
 // ══════════════════════════════════════════════════════════════════
 
-type Provider = 'MELHOR_ENVIO' | 'NFE_IO';
+type Provider = 'MELHOR_ENVIO' | 'NFE_IO' | 'PLUGA';
 
 interface IntegrationRow {
   provider  : Provider;
@@ -42,7 +42,7 @@ const PROVIDER_META: Record<Provider, {
   },
   NFE_IO: {
     name       : 'NFe.io',
-    description: 'Emissão automática de notas fiscais de serviço (NFS-e).',
+    description: 'Emissão automática de nota fiscal após pagamento aprovado. Cadastre sua conta pessoal.',
     icon       : FileText,
     color      : '#0055FE',
     site       : 'https://nfe.io',
@@ -50,6 +50,17 @@ const PROVIDER_META: Record<Provider, {
       { key: 'apiKey',          label: 'API Key',             type: 'password', placeholder: 'Sua API key', required: true },
       { key: 'companyId',       label: 'Company ID',          type: 'text',     placeholder: 'ID da empresa cadastrada', required: true },
       { key: 'cityServiceCode', label: 'Código de serviço municipal', type: 'text', placeholder: '01.07', hint: 'Código fiscal da sua prefeitura. Padrão: 01.07 (desenvolvimento/software).' },
+    ],
+  },
+  PLUGA: {
+    name       : 'Pluga',
+    description: 'Automação de ponte entre Pagar.me e NFe.io (opcional — emissão sem código).',
+    icon       : Zap,
+    color      : '#FF5722',
+    site       : 'https://pluga.co',
+    fields     : [
+      { key: 'webhookUrl', label: 'Webhook URL', type: 'text', placeholder: 'https://pluga.co/webhooks/...', hint: 'URL do webhook Pluga para receber eventos de pagamento aprovado.' },
+      { key: 'apiKey',     label: 'API Key',     type: 'password', placeholder: 'Sua API key Pluga (opcional)' },
     ],
   },
 };
@@ -75,10 +86,11 @@ export default function IntegrationsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="h-64 bg-bg3 rounded-2xl animate-pulse" />
           <div className="h-64 bg-bg3 rounded-2xl animate-pulse" />
+          <div className="h-64 bg-bg3 rounded-2xl animate-pulse" />
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {(['MELHOR_ENVIO', 'NFE_IO'] as Provider[]).map(p => {
+          {(['NFE_IO', 'PLUGA', 'MELHOR_ENVIO'] as Provider[]).map(p => {
             const row = data?.data.find(d => d.provider === p);
             return (
               <IntegrationCard
@@ -90,6 +102,17 @@ export default function IntegrationsPage() {
           })}
         </div>
       )}
+
+      <div className="card bg-accent/5 border-accent/20">
+        <div className="flex items-start gap-2.5">
+          <CheckCircle2 size={14} className="text-accent mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-text2 leading-relaxed">
+            <strong className="text-text">Pagar.me já está configurado na plataforma.</strong>
+            {' '}Os pagamentos são recebidos na conta da Kairos Way e repassados automaticamente para você.
+            Você não precisa configurar Pagar.me.
+          </div>
+        </div>
+      </div>
 
       <div className="card bg-bg3/50 border-dashed">
         <div className="flex items-center gap-2.5">
