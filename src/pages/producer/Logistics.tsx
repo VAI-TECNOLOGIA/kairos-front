@@ -33,7 +33,15 @@ export default function ProducerLogistics() {
       toast.success('Envio criado no Melhor Envio!');
       qc.invalidateQueries({ queryKey: ['producer-logistics'] });
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Erro ao criar envio'),
+    onError: (err: any) => {
+      const resp = err?.response?.data;
+      const msg  = resp?.message || 'Erro ao criar envio';
+      // Mostra toast com mensagem + log completo no console para debug
+      if (resp?.meResponse) {
+        console.error('[logistics] Melhor Envio response:', resp.meResponse);
+      }
+      toast.error(msg, { duration: 8000 });
+    },
   });
 
   async function toggleTracking(orderId: string) {
