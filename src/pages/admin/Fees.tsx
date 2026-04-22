@@ -3,67 +3,69 @@ import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/ui';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Save, Users, Search, X, Zap, FileText, CreditCard, ArrowUpRight, Percent as PercentIcon, TrendingUp, Building2, Info } from 'lucide-react';
+import { Save, Users, Search, X, Zap, FileText, CreditCard, ArrowUpRight, Percent as PercentIcon, TrendingUp, Building2, Info, ShieldCheck } from 'lucide-react';
 import pagarmeLogo from '@/assets/pagarme.png';
 
 // ══════════════════════════════════════════════════════════════════
 // TIPOS
 // ══════════════════════════════════════════════════════════════════
 
-const FEE_METHODS = ['PIX', 'BOLETO', 'CARD', 'WITHDRAWAL'] as const;
-type FeeMethod = typeof FEE_METHODS[number];
+const PLATFORM_METHODS = ['PIX', 'BOLETO', 'CARD', 'WITHDRAWAL'] as const;
+type PlatformMethod = typeof PLATFORM_METHODS[number];
+
+const CARD_INSTALLMENTS = Array.from({ length: 12 }, (_, i) => `CARD_${i + 1}X` as const);
+type CardInstallment = typeof CARD_INSTALLMENTS[number];
+
+const ACQUIRER_METHODS = [
+  'PIX', 'BOLETO',
+  ...CARD_INSTALLMENTS,
+  'CARD_GATEWAY', 'CARD_ANTIFRAUDE',
+  'WITHDRAWAL',
+] as const;
+type AcquirerMethod = typeof ACQUIRER_METHODS[number];
+
+type FeeMode = 'PERCENT' | 'FIXED';
 
 interface FeePart {
-  bps?  : number;
-  cents?: number;
+  mode : FeeMode;
+  value: number;
 }
 
-interface FeeConfig {
-  platform: FeePart;
-  acquirer: FeePart;
+interface FeesData {
+  platform: Record<PlatformMethod, FeePart>;
+  acquirer: Record<AcquirerMethod, FeePart>;
 }
 
-type FeesMap = Record<FeeMethod, FeeConfig>;
+const EMPTY_PART: FeePart = { mode: 'PERCENT', value: 0 };
 
-const METHOD_META: Record<FeeMethod, { label: string; icon: any; color: string }> = {
-  PIX       : { label: 'Pix',        icon: Zap,          color: '#00C9A7' },
-  BOLETO    : { label: 'Boleto',     icon: FileText,     color: '#F59E0B' },
-  CARD      : { label: 'Cartão',     icon: CreditCard,   color: '#0055FE' },
-  WITHDRAWAL: { label: 'Saque',      icon: ArrowUpRight, color: '#7C3AED' },
+const PLATFORM_META: Record<PlatformMethod, { label: string; icon: any; color: string }> = {
+  PIX       : { label: 'Pix',    icon: Zap,          color: '#00C9A7' },
+  BOLETO    : { label: 'Boleto', icon: FileText,     color: '#F59E0B' },
+  CARD      : { label: 'Cartão', icon: CreditCard,   color: '#0055FE' },
+  WITHDRAWAL: { label: 'Saque',  icon: ArrowUpRight, color: '#7C3AED' },
 };
 
-const EMPTY_CONFIG: FeeConfig = { platform: {}, acquirer: {} };
+const CARD_INSTALLMENT_LABEL: Record<CardInstallment, string> = {
+  CARD_1X: 'Crédito à vista',
+  CARD_2X: 'Parcelado 2x',   CARD_3X: 'Parcelado 3x',   CARD_4X: 'Parcelado 4x',
+  CARD_5X: 'Parcelado 5x',   CARD_6X: 'Parcelado 6x',   CARD_7X: 'Parcelado 7x',
+  CARD_8X: 'Parcelado 8x',   CARD_9X: 'Parcelado 9x',   CARD_10X: 'Parcelado 10x',
+  CARD_11X: 'Parcelado 11x', CARD_12X: 'Parcelado 12x',
+};
 
 // ══════════════════════════════════════════════════════════════════
-// HELPERS DE FORMATAÇÃO
+// HELPERS
 // ══════════════════════════════════════════════════════════════════
-
-function bpsToPct(bps?: number): string  { return bps ? (bps / 100).toFixed(2) : ''; }
-function centsToBRL(cents?: number): string { return cents ? (cents / 100).toFixed(2) : ''; }
-
-function pctToBps(pct: string): number | undefined {
-  if (!pct.trim()) return undefined;
-  const n = parseFloat(pct.replace(',', '.'));
-  if (isNaN(n) || n <= 0) return undefined;
-  return Math.round(n * 100);
-}
-function brlToCents(reais: string): number | undefined {
-  if (!reais.trim()) return undefined;
-  const n = parseFloat(reais.replace(',', '.'));
-  if (isNaN(n) || n <= 0) return undefined;
-  return Math.round(n * 100);
-}
 
 function partToCents(p: FeePart, saleCents: number): number {
-  const pct = p.bps ? Math.round(saleCents * p.bps / 10000) : 0;
-  return pct + (p.cents ?? 0);
+  if (p.mode === 'PERCENT') return Math.round(saleCents * p.value / 10000);
+  return p.value;
 }
 
 function formatPart(p: FeePart): string {
-  const parts: string[] = [];
-  if (p.bps)   parts.push(`${(p.bps / 100).toFixed(2).replace(/\.?0+$/, '')}%`);
-  if (p.cents) parts.push(`R$ ${(p.cents / 100).toFixed(2).replace('.', ',')}`);
-  return parts.join(' + ') || '—';
+  if (!p.value) return '—';
+  if (p.mode === 'PERCENT') return `${(p.value / 100).toFixed(2).replace(/\.?0+$/, '')}%`;
+  return `R$ ${(p.value / 100).toFixed(2).replace('.', ',')}`;
 }
 
 function formatBRL(cents: number): string {
@@ -72,56 +74,76 @@ function formatBRL(cents: number): string {
   return `${sign}R$ ${(abs / 100).toFixed(2).replace('.', ',')}`;
 }
 
+function valueToDisplay(p: FeePart): string {
+  if (!p.value) return '';
+  return p.mode === 'PERCENT' ? (p.value / 100).toFixed(2) : (p.value / 100).toFixed(2);
+}
+
+function displayToValue(raw: string, mode: FeeMode): number {
+  const n = parseFloat(raw.replace(',', '.'));
+  if (isNaN(n) || n < 0) return 0;
+  return Math.round(n * 100);
+}
+
 // ══════════════════════════════════════════════════════════════════
-// INPUT COMBINADO: bps + cents (ambos opcionais)
+// INPUT COM TOGGLE % / R$ (exclusivo)
 // ══════════════════════════════════════════════════════════════════
 
-function FeePartInputs({ part, onChange, compact }: {
-  part    : FeePart;
-  onChange: (p: FeePart) => void;
-  compact?: boolean;
+function FeeInput({ part, onChange, lockMode, compact }: {
+  part      : FeePart;
+  onChange  : (p: FeePart) => void;
+  lockMode? : FeeMode;   // força modo (usado em gateway/antifraude que são sempre R$)
+  compact?  : boolean;
 }) {
-  const [pct,  setPct]  = useState(bpsToPct(part.bps));
-  const [reais, setReais] = useState(centsToBRL(part.cents));
+  const [raw, setRaw] = useState(valueToDisplay(part));
 
-  useEffect(() => { setPct(bpsToPct(part.bps)); }, [part.bps]);
-  useEffect(() => { setReais(centsToBRL(part.cents)); }, [part.cents]);
+  useEffect(() => { setRaw(valueToDisplay(part)); }, [part.mode, part.value]);
 
-  const commitPct = (v: string) => {
-    setPct(v);
-    onChange({ ...part, bps: pctToBps(v) });
-  };
-  const commitBrl = (v: string) => {
-    setReais(v);
-    onChange({ ...part, cents: brlToCents(v) });
+  const setMode = (mode: FeeMode) => onChange({ mode, value: 0 });
+  const commit  = (v: string) => {
+    setRaw(v);
+    onChange({ ...part, value: displayToValue(v, part.mode) });
   };
 
   const h = compact ? 'h-8' : 'h-9';
+  const currentMode = lockMode ?? part.mode;
 
   return (
-    <div className={`flex items-center gap-2 ${compact ? 'text-xs' : 'text-sm'}`}>
-      <div className="relative flex-1 min-w-0">
-        <input
-          type="text"
-          inputMode="decimal"
-          value={pct}
-          onChange={(e) => commitPct(e.target.value)}
-          placeholder="0,00"
-          className={`input ${h} pr-7 w-full`}
-        />
-        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text3 text-[10px]">%</span>
+    <div className="flex items-center gap-2">
+      <div className="inline-flex rounded-[7px] border border-border bg-bg overflow-hidden text-[11px]">
+        <button
+          type="button"
+          onClick={() => !lockMode && setMode('PERCENT')}
+          disabled={!!lockMode}
+          className={`px-2 py-1 font-semibold transition-colors ${
+            currentMode === 'PERCENT' ? 'bg-accent text-white' : 'text-text3'
+          } ${lockMode ? 'cursor-not-allowed opacity-60' : 'hover:text-text2'}`}
+        >%</button>
+        <button
+          type="button"
+          onClick={() => !lockMode && setMode('FIXED')}
+          disabled={!!lockMode}
+          className={`px-2 py-1 font-semibold transition-colors border-l border-border ${
+            currentMode === 'FIXED' ? 'bg-accent text-white' : 'text-text3'
+          } ${lockMode ? 'cursor-not-allowed opacity-60' : 'hover:text-text2'}`}
+        >R$</button>
       </div>
-      <span className="text-text3 text-xs">+</span>
-      <div className="relative flex-1 min-w-0">
-        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text3 text-[10px]">R$</span>
+
+      <div className="relative flex-1 min-w-[90px]">
+        {currentMode === 'FIXED' && (
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text3 text-[10px]">R$</span>
+        )}
         <input
           type="text"
           inputMode="decimal"
-          value={reais}
-          onChange={(e) => commitBrl(e.target.value)}
+          value={raw}
+          onChange={(e) => commit(e.target.value)}
           placeholder="0,00"
-          className={`input ${h} pl-7 w-full`}
+          className={`input ${h} w-full ${currentMode === 'FIXED' ? 'pl-8' : 'pr-7'}`}
         />
+        {currentMode === 'PERCENT' && (
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text3 text-[10px]">%</span>
+        )}
       </div>
     </div>
   );
@@ -134,54 +156,55 @@ function FeePartInputs({ part, onChange, compact }: {
 export default function AdminFees() {
   const qc = useQueryClient();
 
-  const { data: feesData, isLoading } = useQuery<{ fees: FeesMap }>({
+  const { data, isLoading } = useQuery<FeesData>({
     queryKey: ['admin-fees'],
     queryFn : () => api.get('/admin/fees').then(r => r.data),
   });
 
-  const [fees, setFees] = useState<FeesMap | null>(null);
+  const [platform, setPlatform] = useState<Record<PlatformMethod, FeePart> | null>(null);
+  const [acquirer, setAcquirer] = useState<Record<AcquirerMethod, FeePart> | null>(null);
 
   useEffect(() => {
-    if (feesData?.fees) setFees(feesData.fees);
-  }, [feesData]);
+    if (data) {
+      setPlatform(data.platform);
+      setAcquirer(data.acquirer);
+    }
+  }, [data]);
 
-  const saveAll = useMutation({
+  const save = useMutation({
     mutationFn: () => {
-      if (!fees) return Promise.reject(new Error('Sem dados'));
-      return api.post('/admin/fees', { fees });
+      if (!platform || !acquirer) return Promise.reject(new Error('Sem dados'));
+      return api.post('/admin/fees', { platform, acquirer });
     },
     onSuccess: () => { toast.success('Taxas salvas!'); qc.invalidateQueries({ queryKey: ['admin-fees'] }); },
     onError  : () => toast.error('Erro ao salvar'),
   });
 
-  const setMethodConfig = (m: FeeMethod, section: 'platform' | 'acquirer', part: FeePart) => {
-    setFees(prev => prev
-      ? { ...prev, [m]: { ...prev[m], [section]: part } }
-      : prev
-    );
-  };
+  const setPlatformMethod = (m: PlatformMethod, p: FeePart) =>
+    setPlatform(prev => prev ? { ...prev, [m]: p } : prev);
 
-  // Simulação de margem (exemplo R$100)
-  const SAMPLE_SALE = 10000;
+  const setAcquirerMethod = (m: AcquirerMethod, p: FeePart) =>
+    setAcquirer(prev => prev ? { ...prev, [m]: p } : prev);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Taxas e Comissões"
-        sub="Configure a taxa da plataforma e a taxa do adquirente. O que o usuário paga é a taxa da plataforma; o lucro é a diferença."
+        sub="Configure o que a plataforma cobra do produtor e o que o adquirente (Pagar.me) cobra da plataforma."
       />
 
       <div className="card bg-accent/5 border-accent/20">
         <div className="flex items-start gap-2.5">
           <Info size={14} className="text-accent mt-0.5 flex-shrink-0" />
           <div className="text-xs text-text2 leading-relaxed">
-            <strong className="text-text">Cada taxa aceita % e R$ fixo juntos.</strong> Ex: Boleto 3,80% + R$ 3,00. Campos vazios são ignorados.
-            A taxa aplicada a cada venda é <strong className="text-text">fotografada no momento da transação</strong> — alterações futuras só valem para novas vendas.
+            <strong className="text-text">Cada taxa é % ou R$ fixo (exclusivo).</strong> Use o toggle para escolher.
+            A taxa aplicada é <strong className="text-text">fotografada no momento da transação</strong>
+            — alterações futuras só valem para novas vendas.
           </div>
         </div>
       </div>
 
-      {/* Bloco 1 — Taxa geral da plataforma */}
+      {/* BLOCO 1 — TAXA GERAL DA PLATAFORMA */}
       <div className="card space-y-4">
         <div className="flex items-center gap-2.5">
           <PercentIcon size={16} className="text-accent flex-shrink-0" />
@@ -191,18 +214,18 @@ export default function AdminFees() {
           </div>
         </div>
 
-        {isLoading || !fees ? <div className="h-48 bg-bg3 rounded-xl animate-pulse" /> : (
+        {isLoading || !platform ? <div className="h-40 bg-bg3 rounded-xl animate-pulse" /> : (
           <div className="overflow-x-auto">
             <table className="table">
               <thead>
                 <tr>
-                  <th className="w-28">Método</th>
-                  <th>Taxa plataforma (% + R$)</th>
+                  <th className="w-40">Método</th>
+                  <th>Taxa</th>
                 </tr>
               </thead>
               <tbody>
-                {FEE_METHODS.map(m => {
-                  const meta = METHOD_META[m];
+                {PLATFORM_METHODS.map(m => {
+                  const meta = PLATFORM_META[m];
                   const Icon = meta.icon;
                   return (
                     <tr key={m}>
@@ -212,10 +235,10 @@ export default function AdminFees() {
                           <span className="font-medium text-text">{meta.label}</span>
                         </div>
                       </td>
-                      <td className="w-80">
-                        <FeePartInputs
-                          part={fees[m]?.platform ?? {}}
-                          onChange={(p) => setMethodConfig(m, 'platform', p)}
+                      <td className="w-64">
+                        <FeeInput
+                          part={platform[m] ?? EMPTY_PART}
+                          onChange={(p) => setPlatformMethod(m, p)}
                         />
                       </td>
                     </tr>
@@ -227,13 +250,13 @@ export default function AdminFees() {
         )}
       </div>
 
-      {/* Bloco 2 — Taxa do adquirente */}
+      {/* BLOCO 2 — TAXA DO ADQUIRENTE (Pagar.me) */}
       <div className="card space-y-4">
         <div className="flex items-center gap-2.5 flex-wrap">
           <Building2 size={16} className="text-accent flex-shrink-0" />
           <div className="flex-1">
             <h3 className="font-semibold text-text">Taxa do Adquirente</h3>
-            <p className="text-xs text-text3 mt-0.5">Custo interno da plataforma. Não é exibida ao produtor. Usada apenas para cálculo de margem.</p>
+            <p className="text-xs text-text3 mt-0.5">Custo cobrado pelo gateway. Não é exibido ao produtor.</p>
           </div>
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border"
@@ -244,108 +267,235 @@ export default function AdminFees() {
           </div>
         </div>
 
-        {isLoading || !fees ? <div className="h-48 bg-bg3 rounded-xl animate-pulse" /> : (
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th className="w-28">Método</th>
-                  <th>Custo do adquirente (% + R$)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {FEE_METHODS.map(m => {
-                  const meta = METHOD_META[m];
-                  const Icon = meta.icon;
-                  return (
-                    <tr key={m}>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <Icon size={14} style={{ color: meta.color }} />
-                          <span className="font-medium text-text">{meta.label}</span>
-                        </div>
-                      </td>
-                      <td className="w-80">
-                        <FeePartInputs
-                          part={fees[m]?.acquirer ?? {}}
-                          onChange={(p) => setMethodConfig(m, 'acquirer', p)}
+        {isLoading || !acquirer ? <div className="h-80 bg-bg3 rounded-xl animate-pulse" /> : (
+          <>
+            {/* PIX / BOLETO / SAQUE */}
+            <div className="overflow-x-auto">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th className="w-40">Método</th>
+                    <th>Taxa do adquirente</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(['PIX', 'BOLETO', 'WITHDRAWAL'] as const).map(m => {
+                    const meta = PLATFORM_META[m];
+                    const Icon = meta.icon;
+                    return (
+                      <tr key={m}>
+                        <td>
+                          <div className="flex items-center gap-2">
+                            <Icon size={14} style={{ color: meta.color }} />
+                            <span className="font-medium text-text">{meta.label}</span>
+                          </div>
+                        </td>
+                        <td className="w-64">
+                          <FeeInput
+                            part={acquirer[m] ?? EMPTY_PART}
+                            onChange={(p) => setAcquirerMethod(m, p)}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* MDRs do cartão */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <CreditCard size={14} style={{ color: PLATFORM_META.CARD.color }} />
+                <h4 className="font-semibold text-text text-sm">MDR do Cartão (por parcelamento)</h4>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th className="w-40">Parcelamento</th>
+                      <th>Taxa MDR</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {CARD_INSTALLMENTS.map(m => (
+                      <tr key={m}>
+                        <td className="font-medium text-text">{CARD_INSTALLMENT_LABEL[m]}</td>
+                        <td className="w-64">
+                          <FeeInput
+                            part={acquirer[m] ?? EMPTY_PART}
+                            onChange={(p) => setAcquirerMethod(m, p)}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Custos fixos do cartão — Gateway e Antifraude */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldCheck size={14} className="text-accent" />
+                <h4 className="font-semibold text-text text-sm">Custos Fixos do Cartão</h4>
+                <span className="text-[11px] text-text3">(somados a toda transação de cartão)</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th className="w-40">Item</th>
+                      <th>Valor fixo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="font-medium text-text">Gateway</td>
+                      <td className="w-64">
+                        <FeeInput
+                          part={acquirer.CARD_GATEWAY ?? EMPTY_PART}
+                          onChange={(p) => setAcquirerMethod('CARD_GATEWAY', p)}
+                          lockMode="FIXED"
                         />
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    <tr>
+                      <td className="font-medium text-text">Antifraude</td>
+                      <td className="w-64">
+                        <FeeInput
+                          part={acquirer.CARD_ANTIFRAUDE ?? EMPTY_PART}
+                          onChange={(p) => setAcquirerMethod('CARD_ANTIFRAUDE', p)}
+                          lockMode="FIXED"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
 
         <div className="flex justify-end pt-2 border-t border-border">
           <button
-            onClick={() => saveAll.mutate()}
-            disabled={saveAll.isPending || isLoading}
+            onClick={() => save.mutate()}
+            disabled={save.isPending || isLoading}
             className="btn-primary btn-sm flex items-center gap-1.5"
           >
             <Save size={13} />
-            {saveAll.isPending ? 'Salvando...' : 'Salvar todas as taxas'}
+            {save.isPending ? 'Salvando...' : 'Salvar todas as taxas'}
           </button>
         </div>
       </div>
 
-      {/* Bloco 3 — Simulação de margem */}
-      <div className="card space-y-3">
-        <div className="flex items-center gap-2.5">
-          <TrendingUp size={16} className="text-accent flex-shrink-0" />
-          <div>
-            <h3 className="font-semibold text-text">Simulação de Margem</h3>
-            <p className="text-xs text-text3 mt-0.5">Lucro da plataforma em uma venda de <strong className="text-text">R$ 100,00</strong>.</p>
-          </div>
-        </div>
+      {/* BLOCO 3 — SIMULAÇÃO DE MARGEM */}
+      {platform && acquirer && (
+        <MarginSimulation platform={platform} acquirer={acquirer} />
+      )}
 
-        {isLoading || !fees ? <div className="h-40 bg-bg3 rounded-xl animate-pulse" /> : (
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Método</th>
-                  <th>Taxa plataforma</th>
-                  <th>Taxa adquirente</th>
-                  <th>Margem da plataforma</th>
-                </tr>
-              </thead>
-              <tbody>
-                {FEE_METHODS.map(m => {
-                  const cfg  = fees[m] ?? EMPTY_CONFIG;
-                  const pc   = partToCents(cfg.platform, SAMPLE_SALE);
-                  const ac   = partToCents(cfg.acquirer, SAMPLE_SALE);
-                  const diff = pc - ac;
-                  const meta = METHOD_META[m];
-                  const Icon = meta.icon;
-                  return (
-                    <tr key={m}>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <Icon size={14} style={{ color: meta.color }} />
-                          <span className="font-medium text-text">{meta.label}</span>
-                        </div>
-                      </td>
-                      <td className="text-text2 text-sm">{formatPart(cfg.platform)}</td>
-                      <td className="text-text3 text-sm">{formatPart(cfg.acquirer)}</td>
-                      <td>
-                        <span className={`font-semibold ${diff < 0 ? 'text-red-400' : 'text-green-400'}`}>
-                          {diff >= 0 ? '+' : ''}{formatBRL(diff)}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+      {/* BLOCO 4 — TAXAS PERSONALIZADAS POR USUÁRIO */}
+      <CustomFeesSection platform={platform} />
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SIMULAÇÃO DE MARGEM
+// ══════════════════════════════════════════════════════════════════
+
+function MarginSimulation({ platform, acquirer }: {
+  platform: Record<PlatformMethod, FeePart>;
+  acquirer: Record<AcquirerMethod, FeePart>;
+}) {
+  const SAMPLE = 10000; // R$ 100
+
+  const rows = useMemo(() => {
+    const r: Array<{ key: string; label: string; platform: string; acquirer: string; margin: number }> = [];
+
+    // PIX
+    r.push({
+      key     : 'PIX',
+      label   : 'Pix',
+      platform: formatPart(platform.PIX),
+      acquirer: formatPart(acquirer.PIX),
+      margin  : partToCents(platform.PIX, SAMPLE) - partToCents(acquirer.PIX, SAMPLE),
+    });
+
+    // Boleto
+    r.push({
+      key     : 'BOLETO',
+      label   : 'Boleto',
+      platform: formatPart(platform.BOLETO),
+      acquirer: formatPart(acquirer.BOLETO),
+      margin  : partToCents(platform.BOLETO, SAMPLE) - partToCents(acquirer.BOLETO, SAMPLE),
+    });
+
+    // Cartão (cada parcelamento)
+    const gw = acquirer.CARD_GATEWAY;
+    const af = acquirer.CARD_ANTIFRAUDE;
+    const gwAf = partToCents(gw, SAMPLE) + partToCents(af, SAMPLE);
+    for (const m of CARD_INSTALLMENTS) {
+      const mdr = acquirer[m];
+      const acqTotal = partToCents(mdr, SAMPLE) + gwAf;
+      const extras = gwAf > 0 ? ` + R$ ${(gwAf / 100).toFixed(2).replace('.', ',')}` : '';
+      r.push({
+        key     : m,
+        label   : CARD_INSTALLMENT_LABEL[m],
+        platform: formatPart(platform.CARD),
+        acquirer: `${formatPart(mdr)}${extras}`,
+        margin  : partToCents(platform.CARD, SAMPLE) - acqTotal,
+      });
+    }
+
+    // Saque
+    r.push({
+      key     : 'WITHDRAWAL',
+      label   : 'Saque',
+      platform: formatPart(platform.WITHDRAWAL),
+      acquirer: formatPart(acquirer.WITHDRAWAL),
+      margin  : partToCents(platform.WITHDRAWAL, SAMPLE) - partToCents(acquirer.WITHDRAWAL, SAMPLE),
+    });
+
+    return r;
+  }, [platform, acquirer]);
+
+  return (
+    <div className="card space-y-3">
+      <div className="flex items-center gap-2.5">
+        <TrendingUp size={16} className="text-accent flex-shrink-0" />
+        <div>
+          <h3 className="font-semibold text-text">Simulação de Margem</h3>
+          <p className="text-xs text-text3 mt-0.5">Lucro da plataforma em uma venda de <strong className="text-text">R$ 100,00</strong>.</p>
+        </div>
       </div>
 
-      {/* Bloco 4 — Taxas personalizadas por usuário */}
-      <CustomFeesSection />
+      <div className="overflow-x-auto">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Método</th>
+              <th>Taxa plataforma</th>
+              <th>Taxa adquirente</th>
+              <th>Margem</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.key}>
+                <td className="text-text font-medium">{r.label}</td>
+                <td className="text-text2 text-sm">{r.platform}</td>
+                <td className="text-text3 text-xs">{r.acquirer}</td>
+                <td>
+                  <span className={`font-semibold ${r.margin < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                    {r.margin >= 0 ? '+' : ''}{formatBRL(r.margin)}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -359,20 +509,15 @@ interface CustomFeeRowData {
   name      : string;
   email     : string;
   role      : 'PRODUCER' | 'AFFILIATE';
-  customFees: Partial<Record<FeeMethod, FeePart>> | null;
+  customFees: Partial<Record<PlatformMethod, FeePart>> | null;
 }
 
-function CustomFeesSection() {
+function CustomFeesSection({ platform }: { platform: Record<PlatformMethod, FeePart> | null }) {
   const qc = useQueryClient();
   const [query, setQuery]           = useState('');
   const [onlyCustom, setOnlyCustom] = useState(true);
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'PRODUCER' | 'AFFILIATE'>('ALL');
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
-
-  const { data: feesData } = useQuery<{ fees: FeesMap }>({
-    queryKey: ['admin-fees'],
-    queryFn : () => api.get('/admin/fees').then(r => r.data),
-  });
 
   const { data: usersData } = useQuery<{ data: CustomFeeRowData[] }>({
     queryKey: ['admin-fees-users', query, onlyCustom, roleFilter],
@@ -386,7 +531,7 @@ function CustomFeesSection() {
   });
 
   const saveUserFee = useMutation({
-    mutationFn: (vars: { userId: string; customFees: Record<FeeMethod, FeePart> | null }) =>
+    mutationFn: (vars: { userId: string; customFees: Record<PlatformMethod, FeePart> | null }) =>
       api.put(`/admin/fees/users/${vars.userId}`, { customFees: vars.customFees }),
     onSuccess: () => {
       toast.success('Taxa personalizada salva');
@@ -401,7 +546,7 @@ function CustomFeesSection() {
         <Users size={16} className="text-accent flex-shrink-0" />
         <div>
           <h3 className="font-semibold text-text">Taxas Personalizadas por Usuário</h3>
-          <p className="text-xs text-text3 mt-0.5">Por método. Campos vazios herdam a taxa geral.</p>
+          <p className="text-xs text-text3 mt-0.5">Por método. Campo vazio herda a taxa geral.</p>
         </div>
       </div>
 
@@ -472,7 +617,7 @@ function CustomFeesSection() {
                 <CustomFeeUserRow
                   key={`${u.role}:${u.userId}`}
                   row={u}
-                  generalFees={feesData?.fees ?? null}
+                  generalPlatform={platform}
                   expanded={expandedUserId === u.userId}
                   onToggle={() => setExpandedUserId(prev => prev === u.userId ? null : u.userId)}
                   onSave={(cf) => saveUserFee.mutate({ userId: u.userId, customFees: cf })}
@@ -486,37 +631,37 @@ function CustomFeesSection() {
   );
 }
 
-function CustomFeeUserRow({ row, generalFees, expanded, onToggle, onSave }: {
-  row        : CustomFeeRowData;
-  generalFees: FeesMap | null;
-  expanded   : boolean;
-  onToggle   : () => void;
-  onSave     : (cf: Record<FeeMethod, FeePart> | null) => void;
+function CustomFeeUserRow({ row, generalPlatform, expanded, onToggle, onSave }: {
+  row            : CustomFeeRowData;
+  generalPlatform: Record<PlatformMethod, FeePart> | null;
+  expanded       : boolean;
+  onToggle       : () => void;
+  onSave         : (cf: Record<PlatformMethod, FeePart> | null) => void;
 }) {
-  const [draft, setDraft] = useState<Record<FeeMethod, FeePart>>({} as any);
+  const [draft, setDraft] = useState<Record<PlatformMethod, FeePart>>({} as any);
 
   useEffect(() => {
-    const init: Record<FeeMethod, FeePart> = {} as any;
-    for (const m of FEE_METHODS) init[m] = row.customFees?.[m] ?? {};
+    const init: Record<PlatformMethod, FeePart> = {} as any;
+    for (const m of PLATFORM_METHODS) init[m] = row.customFees?.[m] ?? EMPTY_PART;
     setDraft(init);
   }, [row.customFees]);
 
   const hasAny = useMemo(() => {
-    return FEE_METHODS.some(m => row.customFees?.[m]?.bps || row.customFees?.[m]?.cents);
+    return PLATFORM_METHODS.some(m => row.customFees?.[m]?.value);
   }, [row.customFees]);
 
   const summary = useMemo(() => {
     if (!hasAny) return <span className="text-text3 text-xs">Usa taxa geral</span>;
-    const parts = FEE_METHODS
-      .filter(m => row.customFees?.[m]?.bps || row.customFees?.[m]?.cents)
-      .map(m => `${METHOD_META[m].label}: ${formatPart(row.customFees![m]!)}`);
+    const parts = PLATFORM_METHODS
+      .filter(m => row.customFees?.[m]?.value)
+      .map(m => `${PLATFORM_META[m].label}: ${formatPart(row.customFees![m]!)}`);
     return <span className="text-text2 text-xs">{parts.join(' · ')}</span>;
   }, [row.customFees, hasAny]);
 
-  const setCell = (m: FeeMethod, p: FeePart) =>
+  const setCell = (m: PlatformMethod, p: FeePart) =>
     setDraft(prev => ({ ...prev, [m]: p }));
 
-  const hasAnyDraft = FEE_METHODS.some(m => draft[m]?.bps || draft[m]?.cents);
+  const hasAnyDraft = PLATFORM_METHODS.some(m => draft[m]?.value);
 
   return (
     <>
@@ -561,15 +706,15 @@ function CustomFeeUserRow({ row, generalFees, expanded, onToggle, onSave }: {
                 <thead>
                   <tr>
                     <th className="w-28">Método</th>
-                    <th>Taxa geral (herdada)</th>
-                    <th>Taxa personalizada (% + R$)</th>
+                    <th>Taxa geral</th>
+                    <th>Taxa personalizada</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {FEE_METHODS.map(m => {
-                    const meta  = METHOD_META[m];
+                  {PLATFORM_METHODS.map(m => {
+                    const meta  = PLATFORM_META[m];
                     const Icon  = meta.icon;
-                    const general = generalFees?.[m]?.platform ?? {};
+                    const gen   = generalPlatform?.[m] ?? EMPTY_PART;
                     return (
                       <tr key={m}>
                         <td>
@@ -578,10 +723,10 @@ function CustomFeeUserRow({ row, generalFees, expanded, onToggle, onSave }: {
                             <span className="font-medium text-text">{meta.label}</span>
                           </div>
                         </td>
-                        <td className="text-text3 text-xs">{formatPart(general)}</td>
-                        <td className="w-80">
-                          <FeePartInputs
-                            part={draft[m] ?? {}}
+                        <td className="text-text3 text-xs">{formatPart(gen)}</td>
+                        <td className="w-64">
+                          <FeeInput
+                            part={draft[m] ?? EMPTY_PART}
                             onChange={(p) => setCell(m, p)}
                             compact
                           />
