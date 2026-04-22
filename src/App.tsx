@@ -37,6 +37,7 @@ import SecurityPage        from '@/pages/admin/Security';
 import TestEnvironmentPage from '@/pages/admin/TestEnvironment';
 import AdminFees           from '@/pages/admin/Fees';
 import AdminMessages       from '@/pages/admin/Messages';
+import AdminReleaseDays    from '@/pages/admin/ReleaseDays';
 
 // Producer pages
 import ProducerDashboard from '@/pages/producer/Dashboard';
@@ -122,6 +123,7 @@ export default function App() {
         <Route path="audit-log"          element={<AuditLogPage />} />
         <Route path="seguranca"          element={<SecurityPage />} />
         <Route path="taxas"              element={<AdminFees />} />
+        <Route path="prazos-liberacao"   element={<AdminReleaseDays />} />
         <Route path="mensagens"          element={<AdminMessages />} />
         <Route path="ambiente-de-teste"  element={<TestEnvironmentPage />} />
         <Route path="perfil"             element={<ProfilePage />} />
