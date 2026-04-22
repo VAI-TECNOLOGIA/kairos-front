@@ -25,19 +25,21 @@ const PROVIDER_META: Record<Provider, {
   icon       : any;
   color      : string;
   site       : string;
+  oauth?     : boolean;        // se true, renderiza botão "Conectar" em vez de form
+  oauthPath? : string;         // caminho relativo no backend (ex: /integrations/melhor-envio/authorize)
   fields     : Array<{ key: string; label: string; type: 'text' | 'password' | 'checkbox'; placeholder?: string; hint?: string; required?: boolean }>;
 }> = {
   MELHOR_ENVIO: {
     name       : 'Melhor Envio',
-    description: 'Cotação, emissão de etiquetas e rastreamento de envios.',
+    description: 'Cotação, emissão de etiquetas e rastreamento de envios. Conecte sua conta via OAuth.',
     icon       : Truck,
     color      : '#00A881',
     site       : 'https://melhorenvio.com.br',
+    oauth      : true,
+    oauthPath  : '/integrations/melhor-envio/authorize',
     fields     : [
-      { key: 'accessToken', label: 'Access Token',     type: 'password', placeholder: 'Bearer token do seu aplicativo OAuth2', required: true, hint: 'Gere em "Tokens" no painel do Melhor Envio.' },
-      { key: 'fromCep',     label: 'CEP de origem',    type: 'text',     placeholder: '01310100' },
-      { key: 'userAgent',   label: 'User-Agent',       type: 'text',     placeholder: 'Kairos Way (contato@sua-loja.com.br)', hint: 'Recomendado pelo Melhor Envio para identificar sua aplicação.' },
-      { key: 'sandbox',     label: 'Sandbox (homologação)', type: 'checkbox' },
+      { key: 'fromCep',   label: 'CEP de origem padrão', type: 'text', placeholder: '01310100', hint: 'Usado como origem padrão nas cotações.' },
+      { key: 'userAgent', label: 'User-Agent',           type: 'text', placeholder: 'Kairos Way (contato@sua-loja.com.br)', hint: 'Recomendado pelo Melhor Envio para identificar sua aplicação.' },
     ],
   },
   NFE_IO: {
@@ -63,6 +65,19 @@ export default function IntegrationsPage() {
     queryKey: ['user-integrations'],
     queryFn : () => api.get('/integrations').then(r => r.data),
   });
+
+  // Callback do OAuth Melhor Envio — mostra toast e limpa query
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const me = params.get('me');
+    if (me === 'ok') {
+      toast.success('Melhor Envio conectado!');
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (me === 'error') {
+      toast.error(`Falha ao conectar Melhor Envio: ${params.get('reason') || 'erro desconhecido'}`);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -205,8 +220,32 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
         </div>
       </div>
 
-      {/* Form */}
-      {editing ? (
+      {/* OAuth: botão "Conectar" quando não configurado */}
+      {meta.oauth && !row.configured && editing ? (
+        <div className="space-y-3 pt-2 border-t border-border">
+          <p className="text-xs text-text3">
+            Você vai ser redirecionado para autorizar o Kairos no Melhor Envio.
+            Depois de autorizar, volta pra cá com a conexão pronta.
+          </p>
+          <button
+            onClick={async () => {
+              try {
+                const { data } = await api.get(meta.oauthPath!);
+                if (data?.url) window.location.href = data.url;
+                else toast.error('Não foi possível iniciar a conexão');
+              } catch (e: any) {
+                toast.error(e?.response?.data?.message || 'Erro ao iniciar OAuth');
+              }
+            }}
+            className="btn-primary btn-sm inline-flex items-center gap-1.5"
+            style={{ background: meta.color, borderColor: meta.color }}
+          >
+            <Plug size={13} />
+            Conectar {meta.name}
+          </button>
+        </div>
+      ) : /* Form tradicional ou campos adicionais para OAuth já conectado */
+      editing ? (
         <div className="space-y-3 pt-2 border-t border-border">
           {meta.fields.map(f => {
             const show = showSecrets[f.key];
