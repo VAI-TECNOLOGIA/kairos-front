@@ -24,11 +24,9 @@ const ACQUIRER_METHODS = [
 ] as const;
 type AcquirerMethod = typeof ACQUIRER_METHODS[number];
 
-type FeeMode = 'PERCENT' | 'FIXED';
-
 interface FeePart {
-  mode : FeeMode;
-  value: number;
+  bps?  : number;
+  cents?: number;
 }
 
 interface FeesData {
@@ -36,7 +34,7 @@ interface FeesData {
   acquirer: Record<AcquirerMethod, FeePart>;
 }
 
-const EMPTY_PART: FeePart = { mode: 'PERCENT', value: 0 };
+const EMPTY_PART: FeePart = {};
 
 const PLATFORM_META: Record<PlatformMethod, { label: string; icon: any; color: string }> = {
   PIX       : { label: 'Pix',    icon: Zap,          color: '#00C9A7' },
@@ -58,14 +56,16 @@ const CARD_INSTALLMENT_LABEL: Record<CardInstallment, string> = {
 // ══════════════════════════════════════════════════════════════════
 
 function partToCents(p: FeePart, saleCents: number): number {
-  if (p.mode === 'PERCENT') return Math.round(saleCents * p.value / 10000);
-  return p.value;
+  const pct = p.bps   ? Math.round(saleCents * p.bps / 10000) : 0;
+  const fix = p.cents ?? 0;
+  return pct + fix;
 }
 
 function formatPart(p: FeePart): string {
-  if (!p.value) return '—';
-  if (p.mode === 'PERCENT') return `${(p.value / 100).toFixed(2).replace(/\.?0+$/, '')}%`;
-  return `R$ ${(p.value / 100).toFixed(2).replace('.', ',')}`;
+  const parts: string[] = [];
+  if (p.bps)   parts.push(`${(p.bps / 100).toFixed(2).replace(/\.?0+$/, '')}%`);
+  if (p.cents) parts.push(`R$ ${(p.cents / 100).toFixed(2).replace('.', ',')}`);
+  return parts.join(' + ') || '—';
 }
 
 function formatBRL(cents: number): string {
@@ -74,76 +74,70 @@ function formatBRL(cents: number): string {
   return `${sign}R$ ${(abs / 100).toFixed(2).replace('.', ',')}`;
 }
 
-function valueToDisplay(p: FeePart): string {
-  if (!p.value) return '';
-  return p.mode === 'PERCENT' ? (p.value / 100).toFixed(2) : (p.value / 100).toFixed(2);
-}
-
-function displayToValue(raw: string, mode: FeeMode): number {
+function bpsToInput(bps?: number): string  { return bps ? (bps / 100).toFixed(2) : ''; }
+function centsToInput(cents?: number): string { return cents ? (cents / 100).toFixed(2) : ''; }
+function parseDecimal(raw: string): number | undefined {
+  if (!raw.trim()) return undefined;
   const n = parseFloat(raw.replace(',', '.'));
-  if (isNaN(n) || n < 0) return 0;
+  if (isNaN(n) || n <= 0) return undefined;
   return Math.round(n * 100);
 }
 
 // ══════════════════════════════════════════════════════════════════
-// INPUT COM TOGGLE % / R$ (exclusivo)
+// INPUT COMBINADO: % + R$ (ambos opcionais, podem coexistir)
 // ══════════════════════════════════════════════════════════════════
 
-function FeeInput({ part, onChange, lockMode, compact }: {
+function FeeInput({ part, onChange, onlyFixed, compact }: {
   part      : FeePart;
   onChange  : (p: FeePart) => void;
-  lockMode? : FeeMode;   // força modo (usado em gateway/antifraude que são sempre R$)
+  onlyFixed?: boolean;    // restringe a só R$ (usado em Gateway/Antifraude)
   compact?  : boolean;
 }) {
-  const [raw, setRaw] = useState(valueToDisplay(part));
+  const [pct,  setPct]  = useState(bpsToInput(part.bps));
+  const [reais, setReais] = useState(centsToInput(part.cents));
 
-  useEffect(() => { setRaw(valueToDisplay(part)); }, [part.mode, part.value]);
+  useEffect(() => { setPct(bpsToInput(part.bps)); }, [part.bps]);
+  useEffect(() => { setReais(centsToInput(part.cents)); }, [part.cents]);
 
-  const setMode = (mode: FeeMode) => onChange({ mode, value: 0 });
-  const commit  = (v: string) => {
-    setRaw(v);
-    onChange({ ...part, value: displayToValue(v, part.mode) });
+  const commitPct = (v: string) => {
+    setPct(v);
+    onChange({ ...part, bps: parseDecimal(v) });
+  };
+  const commitBrl = (v: string) => {
+    setReais(v);
+    onChange({ ...part, cents: parseDecimal(v) });
   };
 
   const h = compact ? 'h-8' : 'h-9';
-  const currentMode = lockMode ?? part.mode;
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="inline-flex rounded-[7px] border border-border bg-bg overflow-hidden text-[11px]">
-        <button
-          type="button"
-          onClick={() => !lockMode && setMode('PERCENT')}
-          disabled={!!lockMode}
-          className={`px-2 py-1 font-semibold transition-colors ${
-            currentMode === 'PERCENT' ? 'bg-accent text-white' : 'text-text3'
-          } ${lockMode ? 'cursor-not-allowed opacity-60' : 'hover:text-text2'}`}
-        >%</button>
-        <button
-          type="button"
-          onClick={() => !lockMode && setMode('FIXED')}
-          disabled={!!lockMode}
-          className={`px-2 py-1 font-semibold transition-colors border-l border-border ${
-            currentMode === 'FIXED' ? 'bg-accent text-white' : 'text-text3'
-          } ${lockMode ? 'cursor-not-allowed opacity-60' : 'hover:text-text2'}`}
-        >R$</button>
-      </div>
-
-      <div className="relative flex-1 min-w-[90px]">
-        {currentMode === 'FIXED' && (
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text3 text-[10px]">R$</span>
-        )}
+    <div className={`flex items-center gap-2 ${compact ? 'text-xs' : 'text-sm'}`}>
+      {!onlyFixed && (
+        <>
+          <div className="relative flex-1 min-w-0">
+            <input
+              type="text"
+              inputMode="decimal"
+              value={pct}
+              onChange={(e) => commitPct(e.target.value)}
+              placeholder="0,00"
+              className={`input ${h} pr-7 w-full`}
+            />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text3 text-[10px]">%</span>
+          </div>
+          <span className="text-text3 text-xs select-none">+</span>
+        </>
+      )}
+      <div className="relative flex-1 min-w-0">
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text3 text-[10px]">R$</span>
         <input
           type="text"
           inputMode="decimal"
-          value={raw}
-          onChange={(e) => commit(e.target.value)}
+          value={reais}
+          onChange={(e) => commitBrl(e.target.value)}
           placeholder="0,00"
-          className={`input ${h} w-full ${currentMode === 'FIXED' ? 'pl-8' : 'pr-7'}`}
+          className={`input ${h} pl-7 w-full`}
         />
-        {currentMode === 'PERCENT' && (
-          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text3 text-[10px]">%</span>
-        )}
       </div>
     </div>
   );
@@ -197,8 +191,8 @@ export default function AdminFees() {
         <div className="flex items-start gap-2.5">
           <Info size={14} className="text-accent mt-0.5 flex-shrink-0" />
           <div className="text-xs text-text2 leading-relaxed">
-            <strong className="text-text">Cada taxa é % ou R$ fixo (exclusivo).</strong> Use o toggle para escolher.
-            A taxa aplicada é <strong className="text-text">fotografada no momento da transação</strong>
+            <strong className="text-text">Cada taxa é % + R$ fixo (somados).</strong> Preencha só o que se aplica.
+            Ex: PIX = 1,09% + R$ 0,99. A taxa aplicada é <strong className="text-text">fotografada no momento da transação</strong>
             — alterações futuras só valem para novas vendas.
           </div>
         </div>
@@ -356,7 +350,7 @@ export default function AdminFees() {
                         <FeeInput
                           part={acquirer.CARD_GATEWAY ?? EMPTY_PART}
                           onChange={(p) => setAcquirerMethod('CARD_GATEWAY', p)}
-                          lockMode="FIXED"
+                          onlyFixed
                         />
                       </td>
                     </tr>
@@ -366,7 +360,7 @@ export default function AdminFees() {
                         <FeeInput
                           part={acquirer.CARD_ANTIFRAUDE ?? EMPTY_PART}
                           onChange={(p) => setAcquirerMethod('CARD_ANTIFRAUDE', p)}
-                          lockMode="FIXED"
+                          onlyFixed
                         />
                       </td>
                     </tr>
@@ -647,13 +641,13 @@ function CustomFeeUserRow({ row, generalPlatform, expanded, onToggle, onSave }: 
   }, [row.customFees]);
 
   const hasAny = useMemo(() => {
-    return PLATFORM_METHODS.some(m => row.customFees?.[m]?.value);
+    return PLATFORM_METHODS.some(m => (row.customFees?.[m]?.bps || row.customFees?.[m]?.cents));
   }, [row.customFees]);
 
   const summary = useMemo(() => {
     if (!hasAny) return <span className="text-text3 text-xs">Usa taxa geral</span>;
     const parts = PLATFORM_METHODS
-      .filter(m => row.customFees?.[m]?.value)
+      .filter(m => (row.customFees?.[m]?.bps || row.customFees?.[m]?.cents))
       .map(m => `${PLATFORM_META[m].label}: ${formatPart(row.customFees![m]!)}`);
     return <span className="text-text2 text-xs">{parts.join(' · ')}</span>;
   }, [row.customFees, hasAny]);
@@ -661,7 +655,7 @@ function CustomFeeUserRow({ row, generalPlatform, expanded, onToggle, onSave }: 
   const setCell = (m: PlatformMethod, p: FeePart) =>
     setDraft(prev => ({ ...prev, [m]: p }));
 
-  const hasAnyDraft = PLATFORM_METHODS.some(m => draft[m]?.value);
+  const hasAnyDraft = PLATFORM_METHODS.some(m => draft[m]?.bps || draft[m]?.cents);
 
   return (
     <>
