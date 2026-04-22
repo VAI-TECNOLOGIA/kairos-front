@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
@@ -147,6 +147,27 @@ export default function CheckoutPage() {
   // ── Estado da etapa de pagamento
   const [result,     setResult]     = useState<any>(null);
   const [cvvFocused, setCvvFocused] = useState(false);
+
+  // ── Polling do status — PIX/Boleto ficam PENDING/PROCESSING e precisam ser
+  // atualizados para APPROVED quando o webhook confirmar o pagamento.
+  useEffect(() => {
+    if (!result?.orderId) return;
+    if (result.status === 'APPROVED' || result.status === 'REJECTED' || result.status === 'REFUNDED') return;
+    // Só faz polling para PIX/Boleto (cartão já resolve na primeira resposta)
+    const isAsync = result.method === 'PIX' || result.method === 'BOLETO' || result.pixCode || result.boletoUrl;
+    if (!isAsync) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const { data } = await api.get(`/checkout/order-status/${result.orderId}`);
+        if (data.status === 'APPROVED' || data.status === 'REJECTED' || data.status === 'REFUNDED') {
+          setResult((prev: any) => ({ ...prev, ...data }));
+          fire('Purchase');
+        }
+      } catch { /* silencioso */ }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [result?.orderId, result?.status, result?.method]);
 
   // ── Oferta
   const { data: offerData, isLoading } = useQuery({
