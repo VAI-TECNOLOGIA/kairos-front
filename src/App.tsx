@@ -48,7 +48,7 @@ import MyCoproducers     from '@/pages/producer/Coproducers';
 import CheckoutConfig    from '@/pages/producer/Checkout';
 import MyFinancial       from '@/pages/producer/Financial';
 import ProducerSettings  from '@/pages/producer/Settings';
-import IntegrationsPage  from '@/pages/producer/Integrations';
+import IntegrationsPage  from '@/pages/shared/Integrations';
 import Milestones        from '@/pages/producer/Milestones';
 import ProducerRefunds   from '@/pages/producer/Refunds';
 import TrackingPixels    from '@/pages/producer/TrackingPixels';
@@ -125,6 +125,7 @@ export default function App() {
         <Route path="mensagens"          element={<AdminMessages />} />
         <Route path="ambiente-de-teste"  element={<TestEnvironmentPage />} />
         <Route path="perfil"             element={<ProfilePage />} />
+        <Route path="integracoes"        element={<IntegrationsPage />} />
         <Route path="configurar-dashboard" element={<DashboardSettings />} />
         {/* Redirect legado */}
         <Route path="configuracoes"      element={<Navigate to="/admin/mensagens" replace />} />
@@ -166,6 +167,7 @@ export default function App() {
         <Route path="meus-produtos"        element={<MyProducts />} />
         <Route path="minhas-ofertas"       element={<OfferManager />} />
         <Route path="perfil"               element={<ProfilePage />} />
+        <Route path="integracoes"          element={<IntegrationsPage />} />
         <Route path="configurar-dashboard" element={<DashboardSettings />} />
         <Route path="reembolsos"           element={<AffiliateRefunds />} />
         <Route path="tracking"             element={<TrackingPixels />} />

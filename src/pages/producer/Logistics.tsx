@@ -28,12 +28,12 @@ export default function ProducerLogistics() {
   });
 
   const shipMutation = useMutation({
-    mutationFn: (orderId: string) => api.post('/logistics/jadlog/ship', { orderId }),
+    mutationFn: (orderId: string) => api.post('/logistics/ship', { orderId }),
     onSuccess: () => {
-      toast.success('Pedido enviado para Jadlog!');
+      toast.success('Envio criado no Melhor Envio!');
       qc.invalidateQueries({ queryKey: ['producer-logistics'] });
     },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Erro ao enviar para Jadlog'),
+    onError: (err: any) => toast.error(err?.response?.data?.message || 'Erro ao criar envio'),
   });
 
   async function toggleTracking(orderId: string) {
@@ -61,7 +61,7 @@ export default function ProducerLogistics() {
 
   return (
     <div>
-      <PageHeader title="Logística" sub="Gerencie envios dos seus produtos físicos via Jadlog" />
+      <PageHeader title="Envios" sub="Gerencie envios dos seus produtos físicos via Melhor Envio" />
 
       {/* Mini KPIs */}
       <div className="grid grid-cols-3 gap-3 mb-6">
@@ -115,7 +115,7 @@ export default function ProducerLogistics() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* Despachar via Jadlog */}
+                    {/* Despachar via Melhor Envio */}
                     {s.status === 'WAITING' && (
                       <button
                         onClick={() => shipMutation.mutate(s.orderId)}
@@ -123,7 +123,7 @@ export default function ProducerLogistics() {
                         className="btn-primary py-1.5 px-3 text-xs"
                       >
                         <Send size={12} />
-                        Enviar Jadlog
+                        Despachar
                       </button>
                     )}
 
@@ -166,7 +166,7 @@ function TrackingDetail({ data }: { data: any }) {
     );
   }
 
-  const eventos  = data.jadlogTracking?.eventos || [];
+  const eventos  = data.tracking?.eventos || [];
   const previsao = data.previsaoEntrega || data.estimatedAt;
   const status   = data.status || 'WAITING';
 
@@ -175,7 +175,7 @@ function TrackingDetail({ data }: { data: any }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Truck size={14} className="text-accent" />
-          <span className="text-sm font-medium text-text">{data.carrier || 'JADLOG'}</span>
+          <span className="text-sm font-medium text-text">{data.carrier || 'MELHOR_ENVIO'}</span>
           {data.trackingCode && (
             <span className="text-xs font-mono text-text3">{data.trackingCode}</span>
           )}
@@ -195,7 +195,7 @@ function TrackingDetail({ data }: { data: any }) {
       {eventos.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs font-medium text-text2 flex items-center gap-1">
-            <PackageSearch size={12} /> Eventos Jadlog
+            <PackageSearch size={12} /> Eventos de Envio
           </p>
           {eventos.slice().reverse().map((ev: any, i: number) => (
             <div key={i} className="flex items-start gap-2 ml-1">

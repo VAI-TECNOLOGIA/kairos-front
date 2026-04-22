@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Users, Package, Tag, ShoppingCart, Link2, Handshake,
   RefreshCw, DollarSign, BarChart3, Shield, Truck,
   Settings, LogOut, Bell, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
-  ChevronDown, Megaphone, Briefcase, Lock, Percent, MessageSquareHeart,
+  ChevronDown, Megaphone, Briefcase, Lock, Percent, MessageSquareHeart, Plug,
 } from 'lucide-react';
 
 type NavItem = {
@@ -41,7 +41,7 @@ const nav: NavSection[] = [
     { to: 'vendas',       icon: ShoppingCart, label: 'Vendas' },
     { to: 'assinaturas',  icon: RefreshCw,    label: 'Assinaturas' },
     { to: 'financeiro',   icon: DollarSign,   label: 'Financeiro' },
-    { to: 'logistica',    icon: Truck,        label: 'Logística & Jadlog' },
+    { to: 'logistica',    icon: Truck,        label: 'Envios' },
     { to: 'relatorios',   icon: BarChart3,    label: 'Relatórios' },
   ]},
   { group: 'Parcerias', icon: Handshake, items: [
@@ -60,6 +60,7 @@ const nav: NavSection[] = [
     { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Dashboard' },
     { to: 'taxas',                icon: Percent,           label: 'Taxas' },
     { to: 'mensagens',            icon: MessageSquareHeart, label: 'Mensagens' },
+    { to: 'integracoes',          icon: Plug,              label: 'Integrações' },
     { to: 'ambiente-de-teste',    icon: FlaskConical,      label: 'Ambiente de Teste', badge: 'beta' },
   ]},
 ];

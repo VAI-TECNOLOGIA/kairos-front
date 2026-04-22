@@ -57,7 +57,7 @@ export default function AdminLogistics() {
 
   return (
     <div>
-      <PageHeader title="Logística & Jadlog" sub="Gestão de envios e configuração da transportadora" />
+      <PageHeader title="Envios" sub="Gestão de envios. A configuração do Melhor Envio agora é individual por produtor (menu Integrações)." />
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
@@ -71,7 +71,7 @@ export default function AdminLogistics() {
           onClick={() => setTab('config')}
           className={`btn-sm ${tab === 'config' ? 'btn-primary' : 'btn-secondary'}`}
         >
-          <Settings size={13} /> Configurar Jadlog
+          <Settings size={13} /> Credenciais (legado)
         </button>
       </div>
 
@@ -187,182 +187,29 @@ function OrdersTab({ shipments, counts, isLoading, expandedId, trackingData, tog
   );
 }
 
-// ── Config Tab ───────────────────────────────────────────────────
+// ── Config Tab (migrado) ─────────────────────────────────────────
 
-function ConfigTab({ settings }: { settings: any }) {
-  const jadlog = settings?.jadlog || {};
-
-  const [form, setForm] = useState({
-    token       : jadlog.token        || '',
-    codCliente  : jadlog.codCliente   || '',
-    cnpj        : jadlog.cnpj         || '',
-    conta       : jadlog.conta        || '',
-    cepOrigem   : jadlog.cepOrigem    || '',
-    modalidade  : jadlog.modalidade   || '3',
-    remNome     : jadlog.remNome      || '',
-    remEndereco : jadlog.remEndereco  || '',
-    remNumero   : jadlog.remNumero    || '',
-    remBairro   : jadlog.remBairro    || '',
-    remCidade   : jadlog.remCidade    || '',
-    remUf       : jadlog.remUf        || '',
-    remEmail    : jadlog.remEmail     || '',
-    remFone     : jadlog.remFone      || '',
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: () => api.patch('/admin/settings', { jadlog: form }),
-    onSuccess : () => toast.success('Configurações Jadlog salvas!'),
-    onError   : (err: any) => toast.error(err?.response?.data?.message || 'Erro ao salvar'),
-  });
-
-  const isConfigured = !!(form.token && form.codCliente && form.cnpj && form.cepOrigem);
-
+function ConfigTab({ settings: _settings }: { settings: any }) {
   return (
-    <div className="max-w-2xl space-y-6">
-      {/* Status */}
-      <div className={`card flex items-center gap-3 ${isConfigured ? 'border-green/30' : 'border-amber/30'}`}>
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isConfigured ? 'bg-green/10' : 'bg-amber/10'}`}>
-          {isConfigured ? <CheckCircle size={18} className="text-green" /> : <Key size={18} className="text-amber" />}
-        </div>
-        <div>
-          <p className="text-sm font-medium text-text">
-            {isConfigured ? 'Jadlog configurada' : 'Jadlog pendente de configuracao'}
-          </p>
-          <p className="text-xs text-text3">
-            {isConfigured
-              ? 'Todos os campos obrigatorios estao preenchidos. Os envios usarao a API Jadlog.'
-              : 'Preencha Token, Codigo do Cliente, CNPJ e CEP de Origem para ativar.'}
-          </p>
-        </div>
-      </div>
-
-      {/* Chaves de API */}
-      <div className="card">
-        <div className="section-title mb-4 flex items-center gap-2">
-          <Key size={14} /> Credenciais da API Jadlog
-        </div>
-        <div className="space-y-3">
-          <div className="form-group">
-            <label className="label">Token de autenticacao *</label>
-            <input
-              value={form.token}
-              onChange={e => setForm(f => ({ ...f, token: e.target.value }))}
-              className="input font-mono text-xs"
-              placeholder="Token fornecido pela Jadlog"
-            />
+    <div className="max-w-2xl">
+      <div className="card border-amber/30 bg-amber/5">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber/15 flex-shrink-0">
+            <Key size={18} className="text-amber" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="form-group">
-              <label className="label">Codigo do Cliente *</label>
-              <input
-                value={form.codCliente}
-                onChange={e => setForm(f => ({ ...f, codCliente: e.target.value }))}
-                className="input"
-                placeholder="000000"
-              />
-            </div>
-            <div className="form-group">
-              <label className="label">Conta Corrente</label>
-              <input
-                value={form.conta}
-                onChange={e => setForm(f => ({ ...f, conta: e.target.value }))}
-                className="input"
-                placeholder="Se correntista"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="form-group">
-              <label className="label">CNPJ do tomador *</label>
-              <input
-                value={form.cnpj}
-                onChange={e => setForm(f => ({ ...f, cnpj: e.target.value }))}
-                className="input"
-                placeholder="00.000.000/0001-00"
-                maxLength={18}
-              />
-            </div>
-            <div className="form-group">
-              <label className="label">Modalidade padrao</label>
-              <select
-                value={form.modalidade}
-                onChange={e => setForm(f => ({ ...f, modalidade: e.target.value }))}
-                className="input"
-              >
-                <option value="3">.PACKAGE (Rodoviario)</option>
-                <option value="0">EXPRESSO (Aereo)</option>
-                <option value="5">ECONOMICO (Rodoviario)</option>
-                <option value="4">RODOVIARIO</option>
-                <option value="9">.COM (Aereo)</option>
-                <option value="40">PICKUP (Aereo)</option>
-              </select>
-            </div>
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-text">Configuração movida para Integrações</p>
+            <p className="text-xs text-text3">
+              As credenciais da transportadora agora são individuais por usuário.
+              Cada produtor cadastra suas próprias chaves em <strong className="text-text2">Integrações</strong>.
+            </p>
+            <p className="text-xs text-text3">
+              O provedor padrão é o <strong className="text-text2">Melhor Envio</strong>, que unifica cotações
+              e envios de Correios, Jadlog, Azul Cargo, J&T e demais transportadoras integradas.
+            </p>
           </div>
         </div>
       </div>
-
-      {/* Dados do remetente */}
-      <div className="card">
-        <div className="section-title mb-4 flex items-center gap-2">
-          <Package size={14} /> Dados do Remetente
-        </div>
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="form-group">
-              <label className="label">Nome / Razao Social</label>
-              <input value={form.remNome} onChange={e => setForm(f => ({ ...f, remNome: e.target.value }))} className="input" placeholder="Kairos Way" />
-            </div>
-            <div className="form-group">
-              <label className="label">CEP de Origem *</label>
-              <input value={form.cepOrigem} onChange={e => setForm(f => ({ ...f, cepOrigem: e.target.value }))} className="input" placeholder="01001000" maxLength={9} />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="form-group col-span-2">
-              <label className="label">Endereco</label>
-              <input value={form.remEndereco} onChange={e => setForm(f => ({ ...f, remEndereco: e.target.value }))} className="input" placeholder="Rua..." />
-            </div>
-            <div className="form-group">
-              <label className="label">Numero</label>
-              <input value={form.remNumero} onChange={e => setForm(f => ({ ...f, remNumero: e.target.value }))} className="input" placeholder="123" />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="form-group">
-              <label className="label">Bairro</label>
-              <input value={form.remBairro} onChange={e => setForm(f => ({ ...f, remBairro: e.target.value }))} className="input" />
-            </div>
-            <div className="form-group">
-              <label className="label">Cidade</label>
-              <input value={form.remCidade} onChange={e => setForm(f => ({ ...f, remCidade: e.target.value }))} className="input" />
-            </div>
-            <div className="form-group">
-              <label className="label">UF</label>
-              <input value={form.remUf} onChange={e => setForm(f => ({ ...f, remUf: e.target.value }))} className="input" placeholder="SP" maxLength={2} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="form-group">
-              <label className="label">Email</label>
-              <input value={form.remEmail} onChange={e => setForm(f => ({ ...f, remEmail: e.target.value }))} className="input" type="email" />
-            </div>
-            <div className="form-group">
-              <label className="label">Telefone</label>
-              <input value={form.remFone} onChange={e => setForm(f => ({ ...f, remFone: e.target.value }))} className="input" placeholder="(11) 99999-9999" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        onClick={() => saveMutation.mutate()}
-        disabled={saveMutation.isPending}
-        className="btn-primary w-full justify-center"
-      >
-        {saveMutation.isPending
-          ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
-          : <><Save size={14} /> Salvar configuracoes Jadlog</>}
-      </button>
     </div>
   );
 }
@@ -378,13 +225,13 @@ function TrackingInline({ data }: { data: any }) {
     );
   }
 
-  const eventos  = data.jadlogTracking?.eventos || [];
+  const eventos  = data.tracking?.eventos || [];
   const previsao = data.previsaoEntrega || data.estimatedAt;
 
   return (
     <div className="bg-bg3/50 px-4 py-3 space-y-2">
       <div className="flex items-center gap-3 text-xs">
-        <span className="text-text2 font-medium">{data.carrier || 'JADLOG'}</span>
+        <span className="text-text2 font-medium">{data.carrier || 'MELHOR_ENVIO'}</span>
         {data.trackingCode && <code className="bg-bg2 px-2 py-0.5 rounded text-text3">{data.trackingCode}</code>}
         {previsao && data.status !== 'DELIVERED' && (
           <span className="flex items-center gap-1 text-text3">

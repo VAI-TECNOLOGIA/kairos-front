@@ -4,7 +4,7 @@ import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, Link2,
-  Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity, Truck, Tv2,
+  Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity, Truck, Tv2, Plug, UserCircle,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -32,6 +32,8 @@ const nav = [
     { to: 'logistica',  icon: Truck,     label: 'Logística & Envios' },
   ]},
   { group: 'Conta', items: [
+    { to: 'perfil',               icon: UserCircle,        label: 'Perfil' },
+    { to: 'integracoes',          icon: Plug,              label: 'Integrações' },
     { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Configurar Dashboard' },
     { to: 'configuracoes',        icon: Settings,          label: 'Configurações' },
   ]},

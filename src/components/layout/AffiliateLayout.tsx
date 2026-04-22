@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { formatBRL } from '@/lib/utils';
 import {
   LayoutDashboard, ShoppingBag, Link2, DollarSign,
-  LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw, Activity, Tv2,
+  LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw, Activity, Tv2, Plug,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -28,8 +28,9 @@ const nav = [
     { to: 'tracking',  icon: Activity,  label: 'Pixels de Rastreamento' },
   ]},
   { group: 'Conta', items: [
-    { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Configurar Dashboard' },
     { to: 'perfil',               icon: UserCircle,        label: 'Meu Perfil' },
+    { to: 'integracoes',          icon: Plug,              label: 'Integrações' },
+    { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Configurar Dashboard' },
   ]},
 ];
 
