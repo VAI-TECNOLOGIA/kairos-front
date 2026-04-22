@@ -51,12 +51,24 @@ export default function ProducerLogistics() {
 
   if (isLoading) return <Loading />;
 
-  const shipments = data?.data || [];
+  // O endpoint retorna Orders (não Shipments) com shipment: Shipment | null incluso.
+  // Normalizamos: status efetivo = shipment.status OR 'WAITING' (ainda não despachado).
+  const orders = (data?.data || []).map((o: any) => ({
+    orderId       : o.id,
+    customerName  : o.customerName,
+    amountCents   : o.amountCents,
+    createdAt     : o.createdAt,
+    productName   : o.offer?.product?.name,
+    shipmentStatus: o.shipment?.status || 'WAITING',
+    trackingCode  : o.shipment?.trackingCode,
+    shipment      : o.shipment,
+    order         : { customerName: o.customerName, amountCents: o.amountCents },
+  }));
 
   const counts = {
-    waiting  : shipments.filter((s: any) => s.status === 'WAITING').length,
-    transit  : shipments.filter((s: any) => s.status === 'DISPATCHED' || s.status === 'IN_TRANSIT').length,
-    delivered: shipments.filter((s: any) => s.status === 'DELIVERED').length,
+    waiting  : orders.filter((s: any) => s.shipmentStatus === 'WAITING').length,
+    transit  : orders.filter((s: any) => s.shipmentStatus === 'DISPATCHED' || s.shipmentStatus === 'IN_TRANSIT').length,
+    delivered: orders.filter((s: any) => s.shipmentStatus === 'DELIVERED').length,
   };
 
   return (
@@ -80,7 +92,7 @@ export default function ProducerLogistics() {
       </div>
 
       {/* Lista de envios */}
-      {shipments.length === 0 ? (
+      {orders.length === 0 ? (
         <div className="card flex flex-col items-center justify-center py-16 text-center">
           <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
             <Truck size={22} className="text-accent" />
@@ -90,12 +102,13 @@ export default function ProducerLogistics() {
         </div>
       ) : (
         <div className="space-y-2">
-          {shipments.map((s: any) => {
-            const cfg = STATUS_CONFIG[s.status] || STATUS_CONFIG.WAITING;
+          {orders.map((s: any) => {
+            const cfg = STATUS_CONFIG[s.shipmentStatus] || STATUS_CONFIG.WAITING;
             const isExpanded = expandedId === s.orderId;
+            const canDispatch = s.shipmentStatus === 'WAITING';
 
             return (
-              <div key={s.id} className="card p-0 overflow-hidden">
+              <div key={s.orderId} className="card p-0 overflow-hidden">
                 <div className="flex items-center gap-4 p-4">
                   <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-bg3 flex items-center justify-center">
                     <Package size={18} className="text-text3" />
@@ -103,12 +116,13 @@ export default function ProducerLogistics() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-sm font-medium text-text">{s.order?.customerName || '—'}</span>
+                      <span className="text-sm font-medium text-text">{s.customerName || '—'}</span>
                       <span className={cfg.badge}>{cfg.label}</span>
                     </div>
                     <div className="flex items-center gap-3 text-[11px] text-text3">
                       <span className="font-mono">#{s.orderId?.slice(-8).toUpperCase()}</span>
-                      <span>{formatBRL(s.order?.amountCents || 0)}</span>
+                      {s.productName && <span>{s.productName}</span>}
+                      <span>{formatBRL(s.amountCents || 0)}</span>
                       {s.trackingCode && <span>Rastreio: {s.trackingCode}</span>}
                       <span>{formatDate(s.createdAt)}</span>
                     </div>
@@ -116,22 +130,22 @@ export default function ProducerLogistics() {
 
                   <div className="flex items-center gap-2">
                     {/* Despachar via Melhor Envio */}
-                    {s.status === 'WAITING' && (
+                    {canDispatch && (
                       <button
                         onClick={() => shipMutation.mutate(s.orderId)}
                         disabled={shipMutation.isPending}
-                        className="btn-primary py-1.5 px-3 text-xs"
+                        className="btn-primary py-1.5 px-3 text-xs flex items-center gap-1"
                       >
                         <Send size={12} />
-                        Despachar
+                        {shipMutation.isPending && shipMutation.variables === s.orderId ? 'Despachando...' : 'Despachar'}
                       </button>
                     )}
 
                     {/* Expandir tracking */}
-                    {s.status !== 'WAITING' && (
+                    {!canDispatch && (
                       <button
                         onClick={() => toggleTracking(s.orderId)}
-                        className="btn-secondary py-1.5 px-3 text-xs"
+                        className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1"
                       >
                         <Truck size={12} />
                         Rastrear
