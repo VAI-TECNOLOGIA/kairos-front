@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth.store';
-import { Camera, Save, User } from 'lucide-react';
+import { Camera, Save, User, MapPin } from 'lucide-react';
 import { maskDocument, maskPhone, validateDocument } from '@/lib/cpf';
 
 interface ProfileForm {
@@ -13,6 +13,14 @@ interface ProfileForm {
   document : string;
   phone    : string;
   birthDate: string;
+  // Endereço (salvo em Producer.metadata.address ou Affiliate.metadata.address)
+  zipCode      : string;
+  street       : string;
+  number       : string;
+  complement   : string;
+  neighborhood : string;
+  city         : string;
+  state        : string;
 }
 
 export default function ProfilePage() {
@@ -26,12 +34,22 @@ export default function ProfilePage() {
     queryFn : () => api.get('/auth/me').then(r => r.data),
   });
 
+  // Endereço vem de profile.address (Producer.metadata.address OR Affiliate.metadata.address)
+  const addr = profile?.address || {};
+
   const { register, handleSubmit, setValue, formState: { errors, isDirty } } = useForm<ProfileForm>({
     values: {
-      name     : profile?.name      || '',
-      document : profile?.document  || '',
-      phone    : profile?.phone     || '',
-      birthDate: profile?.birthDate?.slice(0, 10) || '',
+      name        : profile?.name      || '',
+      document    : profile?.document  || '',
+      phone       : profile?.phone     || '',
+      birthDate   : profile?.birthDate?.slice(0, 10) || '',
+      zipCode     : addr.zipCode       || '',
+      street      : addr.street        || '',
+      number      : addr.number        || '',
+      complement  : addr.complement    || '',
+      neighborhood: addr.neighborhood  || '',
+      city        : addr.city          || '',
+      state       : addr.state         || '',
     },
   });
 
@@ -178,21 +196,63 @@ export default function ProfilePage() {
                 inputMode="tel"
               />
             </div>
-
-            <button
-              onClick={handleSubmit(d => {
-                if (docError) { toast.error(docError); return; }
-                saveProfile.mutate(d);
-              })}
-              disabled={saveProfile.isPending}
-              className="btn-primary w-full justify-center"
-            >
-              {saveProfile.isPending
-                ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
-                : <><Save size={14} /> Salvar alterações</>}
-            </button>
           </div>
         </div>
+
+        {/* Endereço — usado como remetente em envios físicos (Melhor Envio) */}
+        <div className="card">
+          <div className="section-title mb-4 flex items-center gap-2">
+            <MapPin size={14} className="text-accent" />
+            Endereço
+            <span className="text-[11px] text-text3 font-normal">
+              — necessário para envios de produtos físicos
+            </span>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            <div className="col-span-2">
+              <label className="label">CEP</label>
+              <input {...register('zipCode')} className="input" placeholder="00000-000" maxLength={9} />
+            </div>
+            <div className="col-span-2">
+              <label className="label">Estado (UF)</label>
+              <input {...register('state')} className="input" placeholder="SP" maxLength={2} style={{ textTransform: 'uppercase' }} />
+            </div>
+            <div className="col-span-4">
+              <label className="label">Cidade</label>
+              <input {...register('city')} className="input" placeholder="São Paulo" />
+            </div>
+            <div className="col-span-3">
+              <label className="label">Rua / Logradouro</label>
+              <input {...register('street')} className="input" placeholder="Rua Exemplo" />
+            </div>
+            <div>
+              <label className="label">Número</label>
+              <input {...register('number')} className="input" placeholder="123" />
+            </div>
+            <div className="col-span-2">
+              <label className="label">Bairro</label>
+              <input {...register('neighborhood')} className="input" placeholder="Centro" />
+            </div>
+            <div className="col-span-2">
+              <label className="label">Complemento <span className="text-text3/60">(opcional)</span></label>
+              <input {...register('complement')} className="input" placeholder="Apto 42" />
+            </div>
+          </div>
+        </div>
+
+        {/* Salvar tudo */}
+        <button
+          onClick={handleSubmit(d => {
+            if (docError) { toast.error(docError); return; }
+            saveProfile.mutate(d);
+          })}
+          disabled={saveProfile.isPending}
+          className="btn-primary w-full justify-center"
+        >
+          {saveProfile.isPending
+            ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
+            : <><Save size={14} /> Salvar alterações</>}
+        </button>
       </div>
     </div>
   );
