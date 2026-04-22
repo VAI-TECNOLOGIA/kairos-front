@@ -233,6 +233,7 @@ export default function AdminFees() {
   // Custom fees por usuário (fica na página)
   const [query, setQuery]           = useState('');
   const [onlyCustom, setOnlyCustom] = useState(true);
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'PRODUCER' | 'AFFILIATE'>('ALL');
 
   interface CustomFeeRow {
     userId: string; name: string; email: string;
@@ -240,9 +241,13 @@ export default function AdminFees() {
   }
 
   const { data: usersData } = useQuery<{ data: CustomFeeRow[] }>({
-    queryKey: ['admin-fees-users', query, onlyCustom],
+    queryKey: ['admin-fees-users', query, onlyCustom, roleFilter],
     queryFn : () => api.get('/admin/fees/users', {
-      params: { q: query, onlyCustom: onlyCustom ? '1' : '0' },
+      params: {
+        q         : query,
+        onlyCustom: onlyCustom ? '1' : '0',
+        role      : roleFilter === 'ALL' ? undefined : roleFilter,
+      },
     }).then(r => r.data),
   });
 
@@ -373,8 +378,8 @@ export default function AdminFees() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 max-w-sm min-w-[200px]">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
             <input
               type="text"
@@ -384,6 +389,30 @@ export default function AdminFees() {
               className="input pl-9 h-9"
             />
           </div>
+
+          {/* Filtro por role */}
+          <div className="inline-flex rounded-[7px] border border-border bg-bg overflow-hidden text-xs">
+            {([
+              { id: 'ALL',       label: 'Todos'     },
+              { id: 'PRODUCER',  label: 'Produtor'  },
+              { id: 'AFFILIATE', label: 'Afiliado'  },
+            ] as const).map((r, i) => {
+              const active = roleFilter === r.id;
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setRoleFilter(r.id)}
+                  className={`px-3 py-1.5 font-semibold transition-colors ${
+                    active ? 'bg-accent text-white' : 'text-text3 hover:text-text2'
+                  } ${i > 0 ? 'border-l border-border' : ''}`}
+                >
+                  {r.label}
+                </button>
+              );
+            })}
+          </div>
+
           <label className="flex items-center gap-2 text-sm text-text2 cursor-pointer">
             <input
               type="checkbox"

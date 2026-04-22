@@ -184,14 +184,14 @@ export default function AdminLayout() {
                   type="button"
                   onClick={() => toggleGroup(section.group)}
                   className={cn(
-                    'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[7px] text-[11px] font-semibold uppercase tracking-wider transition-colors',
-                    hasActive ? 'text-text2' : 'text-text3 hover:text-text2',
+                    'w-full flex items-center gap-3 px-3 py-2 rounded-[7px] text-sm font-semibold transition-colors',
+                    hasActive ? 'text-text' : 'text-text2 hover:text-text',
                   )}
                 >
-                  <GroupIcon size={13} className="opacity-70" />
+                  <GroupIcon size={16} className="opacity-80" />
                   <span className="flex-1 text-left">{section.group}</span>
                   <ChevronDown
-                    size={13}
+                    size={15}
                     className={cn(
                       'transition-transform opacity-60',
                       isOpen ? 'rotate-0' : '-rotate-90',
