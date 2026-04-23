@@ -47,6 +47,9 @@ export default function Verification() {
   }
 
   const { completeness, kycStatus, pagarmeRecipientId } = kyc;
+  // Só trava edição quando produtor já tem recebedor ativo (canOperate=true).
+  // APPROVED legado (sem recipient) ainda precisa completar os dados.
+  const locked = kyc.canOperate;
 
   return (
     <div className="space-y-6">
@@ -68,30 +71,30 @@ export default function Verification() {
         icon={<User size={18} />}
         title="1. Dados cadastrais"
         complete={completeness.hasRegister}
-        locked={kycStatus === 'APPROVED'}
+        locked={locked}
       >
-        <RegisterForm onSaved={() => qc.invalidateQueries({ queryKey: ['kyc-status'] })} disabled={kycStatus === 'APPROVED'} />
+        <RegisterForm onSaved={() => qc.invalidateQueries({ queryKey: ['kyc-status'] })} disabled={locked} />
       </Section>
 
       <Section
         icon={<Banknote size={18} />}
         title="2. Dados bancários"
         complete={completeness.hasBanking}
-        locked={kycStatus === 'APPROVED'}
+        locked={locked}
       >
-        <BankingForm onSaved={() => qc.invalidateQueries({ queryKey: ['kyc-status'] })} disabled={kycStatus === 'APPROVED'} />
+        <BankingForm onSaved={() => qc.invalidateQueries({ queryKey: ['kyc-status'] })} disabled={locked} />
       </Section>
 
       <Section
         icon={<FileText size={18} />}
         title="3. Documentos"
         complete={completeness.hasDocuments}
-        locked={kycStatus === 'APPROVED'}
+        locked={locked}
       >
         <DocumentsForm
           documents={kyc.documents}
           onUploaded={() => qc.invalidateQueries({ queryKey: ['kyc-status'] })}
-          disabled={kycStatus === 'APPROVED'}
+          disabled={locked}
         />
       </Section>
 
