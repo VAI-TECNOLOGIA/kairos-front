@@ -5,7 +5,7 @@ import { formatBRL } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import {
   Trophy, Star, TrendingUp, Package, AlertCircle,
-  FileText, Check, X, UserPlus, Loader2,
+  FileText, Check, X, UserPlus, Loader2, Medal,
 } from 'lucide-react';
 
 // MANTIDO: interfaces originais preservadas
@@ -16,12 +16,21 @@ interface Milestone {
   targetType        : 'VALUE' | 'UNITS';
   targetValue       : number;
   reward            : string;
-  termsAndConditions: string | null; // NOVO
+  termsAndConditions: string | null;
   current           : number;
   percentage        : number;
   reached           : boolean;
-  isEnrolled        : boolean;       // NOVO
-  acceptedAt        : string | null; // NOVO
+  isEnrolled        : boolean;
+  acceptedAt        : string | null;
+  // Ranking
+  myName?           : string;
+  position?         : number | null;
+  totalParticipants?: number;
+}
+
+// Formata ordinal em pt-BR: 1º, 2º, 3º, ...
+function ordinal(n: number): string {
+  return `${n}º`;
 }
 
 // MANTIDO: ProducerGroup preservado
@@ -312,6 +321,31 @@ function ProducerSection({
                       <span className="mx-1">·</span>
                       {m.targetType === 'VALUE' ? 'Receita' : 'Unidades'}
                     </p>
+
+                    {/* Sua colocação — só mostra se tem posição (ou seja, já fez vendas) */}
+                    {m.position != null && m.totalParticipants && m.totalParticipants > 0 && (
+                      <div
+                        className="inline-flex items-center gap-1.5 mt-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium border"
+                        style={{
+                          color      : m.color,
+                          borderColor: `${m.color}40`,
+                          background : `${m.color}12`,
+                        }}
+                      >
+                        <Medal size={11} />
+                        <span className="text-text2">
+                          Sua colocação: <strong style={{ color: m.color }}>{m.myName || 'Você'}</strong>{' '}
+                          — <strong style={{ color: m.color }}>{ordinal(m.position)} lugar</strong>
+                          <span className="text-text3"> de {m.totalParticipants}</span>
+                        </span>
+                      </div>
+                    )}
+                    {m.position == null && m.totalParticipants != null && m.totalParticipants > 0 && (
+                      <div className="inline-flex items-center gap-1.5 mt-1.5 px-2 py-0.5 rounded-md text-[11px] border border-border bg-bg3 text-text3">
+                        <Medal size={11} />
+                        <span>Faça sua primeira venda para entrar no ranking</span>
+                      </div>
+                    )}
 
                     {isCurrent && (
                       <div className="mt-2">
