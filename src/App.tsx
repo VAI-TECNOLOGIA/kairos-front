@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth.store';
 
 // Public pages
 import LoginPage               from '@/pages/public/LoginPage';
+import ForgotPasswordPage     from '@/pages/public/ForgotPasswordPage';
 import AffiliateRegisterPage  from '@/pages/public/AffiliateRegisterPage';
 import MfaPage        from '@/pages/public/MfaPage';
 import RegisterPage   from '@/pages/public/RegisterPage';
@@ -100,6 +101,7 @@ export default function App() {
     <Routes>
       {/* ── PUBLIC ── */}
       <Route path="/login"              element={<LoginPage />} />
+      <Route path="/esqueci-senha"      element={<ForgotPasswordPage />} />
       <Route path="/mfa"                element={<MfaPage />} />
       <Route path="/cadastro"           element={<RegisterPage />} />
       <Route path="/checkout/:slug"     element={<CheckoutPage />} />

@@ -165,6 +165,11 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && <span className="text-xs text-red">{errors.password.message}</span>}
+              <div className="text-right mt-1">
+                <Link to="/esqueci-senha" className="text-xs text-text3 hover:text-accent">
+                  Esqueci minha senha
+                </Link>
+              </div>
             </div>
 
             <button
