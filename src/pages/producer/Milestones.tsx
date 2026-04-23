@@ -12,6 +12,7 @@ import {
   BookOpen, Users, GraduationCap,
   DollarSign, CreditCard,
   UserCheck, FileCheck, Clock, RefreshCw, Wallet,
+  AlertTriangle, ScrollText,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -36,7 +37,9 @@ interface MilestoneForm {
   targetType        : 'VALUE' | 'UNITS';
   targetValue       : string;       // string para o input
   reward            : string;
-  termsAndConditions: string;       // NOVO
+  termsAndConditions: string;
+  acceptanceChecked : boolean;      // checkbox de aceite
+  acceptanceText    : string;       // frase digitada
 }
 
 // MANTIDO: EMPTY_FORM preservado + campo novo adicionado
@@ -46,8 +49,25 @@ const EMPTY_FORM: MilestoneForm = {
   targetType        : 'VALUE',
   targetValue       : '',
   reward            : '',
-  termsAndConditions: '',            // NOVO
+  termsAndConditions: '',
+  acceptanceChecked : false,
+  acceptanceText    : '',
 };
+
+// Normaliza (mesma lógica do backend) para comparar a frase digitada com a esperada
+function normalizeAcceptance(s: string): string {
+  return (s || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Z0-9\s]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase();
+}
+
+function buildExpectedPhrase(name: string, cpf: string): string {
+  const digits = (cpf || '').replace(/\D/g, '');
+  return `EU, ${name || '[seu nome]'}, PORTADOR DO CPF ${digits || '[seu CPF]'}, ACEITO OS TERMOS`;
+}
 
 // MANTIDO: paleta de sugestão rápida preservada integralmente
 const COLOR_SWATCHES = [
@@ -236,10 +256,15 @@ export default function Milestones() {
   const [deleteId, setDeleteId]     = useState<string | null>(null);
 
   // ── Queries ────────────────────────────────────────────────
-  // MANTIDO: query preservada integralmente
   const { data, isLoading } = useQuery<{ data: Milestone[] }>({
     queryKey: ['milestones'],
     queryFn : () => api.get('/producers/milestones').then(r => r.data),
+  });
+
+  // Perfil do produtor — usado para gerar a frase de aceite com nome + CPF
+  const { data: profile } = useQuery<{ name: string; document: string }>({
+    queryKey: ['my-profile-short'],
+    queryFn : () => api.get('/auth/me').then(r => r.data),
   });
 
   const milestones = data?.data ?? [];
@@ -289,7 +314,9 @@ export default function Milestones() {
         ? (m.targetValue / 100).toFixed(2)
         : String(m.targetValue),
       reward            : m.reward,
-      termsAndConditions: m.termsAndConditions ?? '', // NOVO
+      termsAndConditions: m.termsAndConditions ?? '',
+      acceptanceChecked : true,   // edição não exige novo aceite
+      acceptanceText    : '',
     });
     setModalOpen(true);
   }
@@ -300,7 +327,6 @@ export default function Milestones() {
     setForm(EMPTY_FORM);
   }
 
-  // MANTIDO: handleSubmit preservado + envia termsAndConditions
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim())        { toast.error('Nome obrigatório'); return; }
@@ -309,6 +335,23 @@ export default function Milestones() {
 
     const rawValue = parseFloat(form.targetValue.replace(',', '.'));
     if (isNaN(rawValue) || rawValue <= 0) { toast.error('Meta inválida'); return; }
+
+    // Aceite obrigatório só na criação (edição mantém o aceite original)
+    if (!editingId) {
+      if (!profile?.document) {
+        toast.error('Preencha seu CPF/CNPJ em "Meu Perfil" antes de criar um marco.');
+        return;
+      }
+      if (!form.acceptanceChecked) {
+        toast.error('Marque a caixa de aceite dos termos.');
+        return;
+      }
+      const expected = buildExpectedPhrase(profile?.name || '', profile?.document || '');
+      if (normalizeAcceptance(form.acceptanceText) !== normalizeAcceptance(expected)) {
+        toast.error('A frase de aceite não confere com o modelo exibido.');
+        return;
+      }
+    }
 
     const targetValue = form.targetType === 'VALUE'
       ? Math.round(rawValue * 100)   // reais → centavos
@@ -320,7 +363,11 @@ export default function Milestones() {
       targetType        : form.targetType,
       targetValue,
       reward            : form.reward.trim(),
-      termsAndConditions: form.termsAndConditions.trim() || null, // NOVO
+      termsAndConditions: form.termsAndConditions.trim() || null,
+      ...(editingId ? {} : {
+        acceptanceText: form.acceptanceText.trim(),
+        acceptanceCpf : profile?.document,
+      }),
     });
   }
 
@@ -329,7 +376,7 @@ export default function Milestones() {
   return (
     <div>
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-xl font-bold text-text flex items-center gap-2">
             <Trophy size={20} className="text-amber" />
@@ -343,6 +390,24 @@ export default function Milestones() {
           <Plus size={16} />
           Novo Marco
         </button>
+      </div>
+
+      {/* Aviso legal fixo — isenção de responsabilidade da plataforma */}
+      <div className="card mb-6 p-4 border-l-4 border-amber bg-amber/5">
+        <div className="flex items-start gap-3">
+          <AlertTriangle size={18} className="text-amber flex-shrink-0 mt-0.5" />
+          <div className="text-xs leading-relaxed text-text2">
+            <p className="font-semibold text-text mb-1">Aviso importante — Isenção de responsabilidade</p>
+            <p>
+              A <strong>Kairos Way</strong> é uma plataforma tecnológica de gateway de pagamentos e infraestrutura.
+              Os marcos, metas e premiações aqui cadastrados são <strong>de responsabilidade exclusiva do produtor</strong> que os criou.
+              A Kairos Way <strong>não oferece, patrocina, garante, financia, entrega ou se responsabiliza</strong> por nenhum dos prêmios,
+              recompensas ou benefícios descritos nesta página, nem pelo cumprimento das obrigações assumidas perante os afiliados.
+              Eventuais descumprimentos, disputas ou litígios decorrentes dos marcos serão resolvidos diretamente entre o produtor e o(s) afiliado(s) participante(s),
+              nos termos da legislação vigente (CDC, Código Civil e demais normas aplicáveis).
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Lista de marcos */}
@@ -388,6 +453,8 @@ export default function Milestones() {
           onClose={closeModal}
           isEditing={!!editingId}
           isSaving={saveMutation.isPending}
+          producerName={profile?.name || ''}
+          producerDoc={profile?.document || ''}
         />
       )}
 
@@ -528,14 +595,24 @@ function MilestoneModal({
   onClose,
   isEditing,
   isSaving,
+  producerName,
+  producerDoc,
 }: {
-  form      : MilestoneForm;
-  setForm   : React.Dispatch<React.SetStateAction<MilestoneForm>>;
-  onSubmit  : (e: React.FormEvent) => void;
-  onClose   : () => void;
-  isEditing : boolean;
-  isSaving  : boolean;
+  form        : MilestoneForm;
+  setForm     : React.Dispatch<React.SetStateAction<MilestoneForm>>;
+  onSubmit    : (e: React.FormEvent) => void;
+  onClose     : () => void;
+  isEditing   : boolean;
+  isSaving    : boolean;
+  producerName: string;
+  producerDoc : string;
 }) {
+  const expectedPhrase = buildExpectedPhrase(producerName, producerDoc);
+  const typedMatches =
+    !!producerDoc &&
+    normalizeAcceptance(form.acceptanceText) === normalizeAcceptance(expectedPhrase);
+  const canSubmit = isEditing || (form.acceptanceChecked && typedMatches);
+
   const [showTemplates, setShowTemplates] = useState(false); // NOVO
 
   // MANTIDO: função field preservada integralmente
@@ -764,12 +841,85 @@ function MilestoneModal({
             </p>
           </div>
 
-          {/* MANTIDO: rodapé com botões preservado integralmente */}
+          {/* Termo de responsabilidade do produtor (só na criação) */}
+          {!isEditing && (
+            <div className="border border-amber/30 bg-amber/5 rounded-xl p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <ScrollText size={14} className="text-amber flex-shrink-0 mt-0.5" />
+                <div className="text-[11px] text-text2 leading-relaxed">
+                  <p className="font-semibold text-text mb-1">Termo de responsabilidade</p>
+                  <p>
+                    Ao criar este marco, declaro estar ciente e aceitar que: <strong>(i)</strong> a Kairos Way
+                    atua exclusivamente como plataforma tecnológica de gateway de pagamentos, não oferecendo,
+                    patrocinando, garantindo, financiando, entregando nem se responsabilizando por qualquer
+                    prêmio, recompensa ou benefício descrito neste marco; <strong>(ii)</strong> sou o único e
+                    exclusivo responsável, civil e tributariamente, pelo integral cumprimento das obrigações
+                    aqui assumidas perante os afiliados participantes, incluindo custos, fretes, impostos,
+                    entrega, qualidade e adequação dos prêmios; <strong>(iii)</strong> responderei diretamente
+                    por eventuais reclamações, indenizações, sanções administrativas, ações judiciais ou
+                    extrajudiciais decorrentes do descumprimento, parcial ou total, das condições aqui divulgadas,
+                    nos termos do Código Civil (arts. 186, 187, 927 e seguintes), do Código de Defesa do Consumidor
+                    (Lei 8.078/90, quando aplicável) e demais normas vigentes; <strong>(iv)</strong> isento a Kairos
+                    Way de qualquer solidariedade ou subsidiariedade nas relações decorrentes deste marco e me
+                    obrigo a mantê-la indene em eventuais disputas.
+                  </p>
+                </div>
+              </div>
+
+              {/* Checkbox de aceite */}
+              <label className="flex items-start gap-2 cursor-pointer text-[12px] text-text2">
+                <input
+                  type="checkbox"
+                  checked={form.acceptanceChecked}
+                  onChange={e => setForm(f => ({ ...f, acceptanceChecked: e.target.checked }))}
+                  className="mt-0.5 accent-accent"
+                />
+                <span>
+                  Li e aceito integralmente os termos de responsabilidade acima descritos.
+                </span>
+              </label>
+
+              {/* Confirmação digitada (estilo GitHub) */}
+              <div>
+                <label className="block text-[11px] font-medium text-text2 mb-1">
+                  Para confirmar, digite exatamente:
+                </label>
+                <div className="text-[11px] font-mono bg-bg3 rounded-lg px-3 py-2 text-text2 mb-1.5 select-all break-all">
+                  {expectedPhrase}
+                </div>
+                <input
+                  value={form.acceptanceText}
+                  onChange={e => field('acceptanceText', e.target.value)}
+                  className={`input w-full font-mono text-xs ${
+                    form.acceptanceText && !typedMatches ? 'border-red' : typedMatches ? 'border-green' : ''
+                  }`}
+                  placeholder="Digite a frase acima para confirmar"
+                  autoComplete="off"
+                />
+                {!producerDoc && (
+                  <p className="text-[11px] text-red mt-1">
+                    Seu CPF/CNPJ ainda não está preenchido em "Meu Perfil" — preencha antes de continuar.
+                  </p>
+                )}
+                {producerDoc && form.acceptanceText && !typedMatches && (
+                  <p className="text-[11px] text-red mt-1">
+                    A frase digitada não confere.
+                  </p>
+                )}
+                {typedMatches && (
+                  <p className="text-[11px] text-green mt-1 flex items-center gap-1">
+                    <Check size={11} /> Frase confirmada.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2 pt-1">
             <button
               type="submit"
-              disabled={isSaving}
-              className="btn-primary flex-1 disabled:opacity-50"
+              disabled={isSaving || !canSubmit}
+              className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar marco'}
             </button>
