@@ -1,13 +1,25 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { PageHeader, Loading } from "@/components/ui";
 import { formatDateTime } from "@/lib/utils";
 import type { AuditLog } from "@/types";
-import { Activity, AlertTriangle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { AlertTriangle } from "lucide-react";
+
+const LEVEL_FILTERS = [
+  { value: '',         label: 'Todos'    },
+  { value: 'LOW',      label: 'Low'      },
+  { value: 'MEDIUM',   label: 'Medium'   },
+  { value: 'HIGH',     label: 'High'     },
+  { value: 'CRITICAL', label: 'Critical' },
+] as const;
 
 export default function AuditLogPage() {
-  const { data, isLoading } = useQuery({ queryKey: ["audit-log"], queryFn: () => api.get("/audit?limit=50").then(r => r.data) });
+  const [level, setLevel] = useState<string>('');
+  const { data, isLoading } = useQuery({
+    queryKey: ["audit-log", level],
+    queryFn : () => api.get(`/audit?limit=50${level ? `&level=${level}` : ''}`).then(r => r.data),
+  });
   const logs: AuditLog[] = data?.data || [];
   const highCount = logs.filter(l => l.level === "HIGH" || l.level === "CRITICAL").length;
 
@@ -22,6 +34,23 @@ export default function AuditLogPage() {
           <span className="font-semibold text-red">{highCount} evento(s) de nível ALTO/CRÍTICO detectados</span>
         </div>
       )}
+
+      {/* Filtro por nível */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {LEVEL_FILTERS.map(f => (
+          <button
+            key={f.value}
+            onClick={() => setLevel(f.value)}
+            className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${
+              level === f.value
+                ? 'bg-accent/10 border-accent text-accent font-semibold'
+                : 'border-border text-text3 hover:border-accent/40 hover:text-text2'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
       {isLoading ? <Loading /> : (
         <div className="table-wrapper">
           <table className="table">

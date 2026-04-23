@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { PageHeader, Loading, StatCard } from "@/components/ui";
@@ -5,8 +6,22 @@ import { formatBRL, formatDateTime, orderStatusVariant } from "@/lib/utils";
 import type { Order } from "@/types";
 import { ShoppingCart, FileText, Loader2, ExternalLink } from "lucide-react";
 
+const STATUS_FILTERS = [
+  { value: '',           label: 'Todas'      },
+  { value: 'APPROVED',   label: 'Aprovadas'  },
+  { value: 'PENDING',    label: 'Pendentes'  },
+  { value: 'PROCESSING', label: 'Processando'},
+  { value: 'REJECTED',   label: 'Recusadas'  },
+  { value: 'REFUNDED',   label: 'Reembolsadas'},
+  { value: 'CANCELLED',  label: 'Canceladas' },
+] as const;
+
 export default function MySales() {
-  const { data, isLoading } = useQuery({ queryKey:["my-sales"], queryFn:()=>api.get("/reports/sales?limit=50").then(r=>r.data) });
+  const [status, setStatus] = useState<string>('');
+  const { data, isLoading } = useQuery({
+    queryKey:["my-sales", status],
+    queryFn :()=>api.get(`/reports/sales?limit=50${status ? `&status=${status}` : ''}`).then(r=>r.data),
+  });
   const orders: (Order & { metadata?: any })[] = data?.data || [];
 
   function renderNfeCell(o: any) {
@@ -76,6 +91,23 @@ export default function MySales() {
         <StatCard label="Total de vendas" value={data?.total||0} icon={<ShoppingCart size={16}/>}/>
         <StatCard label="Receita total" value={formatBRL(data?.totalRevenueCents||0)}/>
         <StatCard label="Ticket médio" value={data?.total?formatBRL(Math.round((data.totalRevenueCents||0)/data.total)):"—"}/>
+      </div>
+
+      {/* Filtro por status */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {STATUS_FILTERS.map(f => (
+          <button
+            key={f.value}
+            onClick={() => setStatus(f.value)}
+            className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${
+              status === f.value
+                ? 'bg-accent/10 border-accent text-accent font-semibold'
+                : 'border-border text-text3 hover:border-accent/40 hover:text-text2'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
       {isLoading ? <Loading/> : (
         <div className="table-wrapper">

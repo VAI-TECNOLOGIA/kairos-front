@@ -9,14 +9,25 @@ import toast from 'react-hot-toast';
 
 const LIMIT = 20;
 
+const STATUS_FILTERS = [
+  { value: '',           label: 'Todas'      },
+  { value: 'APPROVED',   label: 'Aprovadas'  },
+  { value: 'PENDING',    label: 'Pendentes'  },
+  { value: 'PROCESSING', label: 'Processando'},
+  { value: 'REJECTED',   label: 'Recusadas'  },
+  { value: 'REFUNDED',   label: 'Reembolsadas'},
+  { value: 'CANCELLED',  label: 'Canceladas' },
+] as const;
+
 export default function SalesPage() {
   const [page, setPage]     = useState(1);
+  const [status, setStatus] = useState<string>('');
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-sales', page],
-    queryFn : () => api.get(`/reports/sales?page=${page}&limit=${LIMIT}`).then(r => r.data),
+    queryKey: ['admin-sales', page, status],
+    queryFn : () => api.get(`/reports/sales?page=${page}&limit=${LIMIT}${status ? `&status=${status}` : ''}`).then(r => r.data),
     placeholderData: (prev) => prev,
   });
 
@@ -54,6 +65,23 @@ export default function SalesPage() {
         <StatCard label="Total de vendas"  value={total}                                                                               icon={<ShoppingCart size={16} />} />
         <StatCard label="Receita total"    value={formatBRL(data?.totalRevenueCents || 0)}                                             icon={<TrendingUp size={16} />} />
         <StatCard label="Ticket médio"     value={total ? formatBRL(Math.round((data?.totalRevenueCents || 0) / total)) : '—'} />
+      </div>
+
+      {/* Filtro por status */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {STATUS_FILTERS.map(f => (
+          <button
+            key={f.value}
+            onClick={() => { setStatus(f.value); setPage(1); }}
+            className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${
+              status === f.value
+                ? 'bg-accent/10 border-accent text-accent font-semibold'
+                : 'border-border text-text3 hover:border-accent/40 hover:text-text2'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       {isLoading ? <Loading /> : orders.length === 0 ? (

@@ -25,9 +25,10 @@ export default function AffiliateFinancial() {
     queryFn : () => api.get('/affiliates/my-stats').then(r => r.data),
   });
 
+  const [splitStatus, setSplitStatus] = useState<string>('');
   const { data: splits } = useQuery({
-    queryKey: ['affiliate-splits'],
-    queryFn : () => api.get('/financial/splits?limit=50').then(r => r.data),
+    queryKey: ['affiliate-splits', splitStatus],
+    queryFn : () => api.get(`/financial/splits?limit=50${splitStatus ? `&status=${splitStatus}` : ''}`).then(r => r.data),
   });
 
   const { data: withdrawals } = useQuery({
@@ -152,7 +153,30 @@ export default function AffiliateFinancial() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="card">
-          <div className="section-title mb-4">Histórico de comissões</div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="section-title">Histórico de comissões</div>
+          </div>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {[
+              { v: '',          l: 'Todas'     },
+              { v: 'AVAILABLE', l: 'Disponíveis'},
+              { v: 'PENDING',   l: 'Pendentes' },
+              { v: 'PAID',      l: 'Pagas'     },
+              { v: 'CANCELLED', l: 'Canceladas'},
+            ].map(f => (
+              <button
+                key={f.v}
+                onClick={() => setSplitStatus(f.v)}
+                className={`px-2 py-1 rounded-md text-[11px] border transition-colors ${
+                  splitStatus === f.v
+                    ? 'bg-accent/10 border-accent text-accent font-semibold'
+                    : 'border-border text-text3 hover:border-accent/40'
+                }`}
+              >
+                {f.l}
+              </button>
+            ))}
+          </div>
           <div className="space-y-2">
             {splitList.length === 0 ? (
               <p className="text-sm text-text3 text-center py-4">Nenhuma comissão ainda</p>
