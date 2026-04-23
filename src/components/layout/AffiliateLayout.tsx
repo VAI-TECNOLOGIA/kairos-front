@@ -150,7 +150,7 @@ export default function AffiliateLayout() {
 
           {canCreate && (
             <div>
-              <div className="sidebar-group">Co-produtor</div>
+              <div className="sidebar-group">Produtor</div>
               <NavLink
                 to="/afiliado/meus-produtos"
                 className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
@@ -260,7 +260,7 @@ export default function AffiliateLayout() {
             </div>
             <h2 className="text-xl font-bold text-text mb-2">Parabéns! 🎉</h2>
             <p className="text-text2 text-sm mb-4">
-              Agora você é oficialmente um <strong className="text-text">Co-produtor</strong> na plataforma Kairos Way.
+              Agora você é oficialmente um <strong className="text-text">Produtor</strong> na plataforma Kairos Way.
             </p>
             <div className="bg-bg3 rounded-[10px] p-4 mb-6 space-y-2 text-left">
               <div className="flex items-start gap-2 text-sm text-text2">

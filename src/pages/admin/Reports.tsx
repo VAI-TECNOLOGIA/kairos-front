@@ -60,7 +60,7 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <PageHeader title="Relatórios" sub="Performance de afiliados, co-produtores e produtos" />
+      <PageHeader title="Relatórios" sub="Performance de afiliados, produtores e produtos" />
 
       {/* KPIs gerais */}
       <div className="grid grid-cols-4 gap-4 mb-6">
@@ -76,7 +76,7 @@ export default function ReportsPage() {
           icon={<TrendingUp size={16} />}
         />
         <StatCard
-          label="Co-produtores"
+          label="Produtores"
           value={coList.length}
           icon={<Handshake size={16} />}
         />
@@ -91,7 +91,7 @@ export default function ReportsPage() {
       <TabNav
         tabs={[
           { id: 'afiliados',    label: 'Afiliados',     badge: affList.length  || undefined },
-          { id: 'coprodutores', label: 'Co-produtores', badge: coList.length   || undefined },
+          { id: 'coprodutores', label: 'Produtores', badge: coList.length   || undefined },
           { id: 'produtos',     label: 'Produtos',      badge: prodList.length || undefined },
           { id: 'chargebacks',  label: 'Chargebacks',   badge: cbList.length   || undefined },
         ]}
@@ -160,10 +160,10 @@ export default function ReportsPage() {
       {tab === 'coprodutores' && (
         <div className="mt-4">
           {loadingCo ? <Loading /> : coList.length === 0 ? (
-            <div className="card text-center py-12 text-text3">Nenhum repasse para co-produtores registrado.</div>
+            <div className="card text-center py-12 text-text3">Nenhum repasse para produtores registrado.</div>
           ) : (
             <div className="card">
-              <div className="section-title mb-4">Repasses por co-produtor</div>
+              <div className="section-title mb-4">Repasses por produtor</div>
               <div className="table-wrapper">
                 <table className="table">
                   <thead>

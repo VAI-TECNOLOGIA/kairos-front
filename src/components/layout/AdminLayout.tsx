@@ -47,7 +47,7 @@ const nav: NavSection[] = [
   ]},
   { group: 'Parcerias', icon: Handshake, items: [
     { to: 'afiliados',    icon: Link2,      label: 'Afiliados' },
-    { to: 'coprodutores', icon: Handshake,  label: 'Co-Produtores' },
+    { to: 'coprodutores', icon: Handshake,  label: 'Produtores' },
   ]},
   { group: 'Marketing', icon: Megaphone, items: [
     { to: 'tracking',    icon: Activity, label: 'Pixels de Rastreamento' },

@@ -89,7 +89,7 @@ export const PRODUCT_TYPE_LABEL: Record<string, string> = {
   PHYSICAL: 'Físico', DIGITAL: 'Digital', SUBSCRIPTION: 'Assinatura', BUNDLE: 'Bundle',
 };
 export const RECIPIENT_LABEL: Record<string, string> = {
-  PLATFORM: 'Plataforma', PRODUCER: 'Produtor', COPRODUCER: 'Co-produtor', AFFILIATE: 'Afiliado',
+  PLATFORM: 'Plataforma', PRODUCER: 'Produtor', COPRODUCER: 'Produtor', AFFILIATE: 'Afiliado',
 };
 export const RECIPIENT_COLOR: Record<string, string> = {
   PLATFORM:   'bg-purple',

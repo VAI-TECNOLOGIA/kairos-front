@@ -74,7 +74,7 @@ export const WIDGETS_BY_ROLE: Record<string, WidgetDef[]> = {
     { id: 'stat_aff_total_sales',  label: 'Vendas realizadas',  desc: 'Total de conversões via seus links' },
     { id: 'chart_revenue_14d_aff', label: 'Gráfico de faturamento', desc: 'Evolução do faturamento nos últimos 14 dias' },
     { id: 'list_top_offers',       label: 'Top ofertas',        desc: 'Ofertas com maior receita gerada por você' },
-    { id: 'banner_coprodutor',     label: 'Banner co-produtor', desc: 'Chamada para solicitar acesso como co-produtor' },
+    { id: 'banner_coprodutor',     label: 'Banner produtor', desc: 'Chamada para solicitar acesso como produtor' },
     { id: 'stat_refunds_aff',      label: 'Reembolsos & Chargebacks', desc: 'Resumo de reembolsos e chargebacks no dashboard' },
   ],
 };

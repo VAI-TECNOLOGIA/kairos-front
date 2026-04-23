@@ -211,7 +211,7 @@ export default function AffiliateDashboard() {
             </div>
             <div>
               <div className="font-semibold text-text text-sm">Quer ir além?</div>
-              <div className="text-xs text-text3">Torne-se co-produtor e cadastre seus próprios produtos para vender na plataforma.</div>
+              <div className="text-xs text-text3">Torne-se produtor e cadastre seus próprios produtos para vender na plataforma.</div>
             </div>
           </div>
           {requestStatus === 'PENDING' ? (
@@ -224,7 +224,7 @@ export default function AffiliateDashboard() {
             <span className="badge-red flex-shrink-0 text-xs">Recusado</span>
           ) : (
             <button className="btn-primary btn-sm flex-shrink-0" onClick={() => setShowModal(true)}>
-              <Handshake size={13} /> Quero ser co-produtor
+              <Handshake size={13} /> Quero ser produtor
             </button>
           )}
         </div>
@@ -251,7 +251,7 @@ export default function AffiliateDashboard() {
                 <div className="w-10 h-10 rounded-[8px] bg-accent/20 flex items-center justify-center">
                   <Handshake size={18} className="text-accent" />
                 </div>
-                <div className="font-semibold text-text">Solicitação de co-produtor</div>
+                <div className="font-semibold text-text">Solicitação de produtor</div>
               </div>
               <button onClick={() => setShowModal(false)} className="text-text3 hover:text-text">
                 <X size={18} />
@@ -259,7 +259,7 @@ export default function AffiliateDashboard() {
             </div>
             <div className="space-y-3 mb-6">
               <p className="text-sm text-text2">
-                Ao se tornar co-produtor você poderá <strong className="text-text">criar e vender seus próprios produtos</strong> na plataforma Kairos Way.
+                Ao se tornar produtor você poderá <strong className="text-text">criar e vender seus próprios produtos</strong> na plataforma Kairos Way.
               </p>
               <div className="bg-bg3 rounded-[8px] p-3 space-y-1.5 text-xs text-text2">
                 <div className="flex items-start gap-2"><span className="text-accent mt-0.5">✓</span><span>Cadastre produtos digitais, físicos ou assinaturas</span></div>

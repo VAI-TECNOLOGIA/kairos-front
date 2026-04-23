@@ -178,7 +178,7 @@ export default function OfferManager() {
             <span className="text-sm font-bold text-text">5%</span>
           </div>
 
-          <div className="text-xs text-text3 mb-3">Distribua os 95% restantes entre você, co-produtores e afiliados:</div>
+          <div className="text-xs text-text3 mb-3">Distribua os 95% restantes entre você, produtores e afiliados:</div>
           <div className="space-y-3 mb-4">
             {fields.map((f,i)=>(
               <div key={f.id} className="grid grid-cols-12 gap-2 items-center bg-bg3 p-3 rounded-[7px]">
@@ -199,7 +199,7 @@ export default function OfferManager() {
                     </select>
                   ) : splitsWatch[i]?.recipientType === "COPRODUCER" ? (
                     <select {...rs(`splits.${i}.recipientId`)} className="input input-sm">
-                      <option value="">Selecione co-produtor...</option>
+                      <option value="">Selecione produtor...</option>
                       {coproducers.map((r:any) => (
                         <option key={r.id} value={r.userId}>{r.user?.name || r.userId?.slice(-8)}</option>
                       ))}
@@ -224,7 +224,7 @@ export default function OfferManager() {
             ))}
           </div>
           <button onClick={()=>append({recipientType:"COPRODUCER",basisPoints:0})} className="btn-sec btn-sm">
-            <Plus size={13}/> Adicionar co-produtor / afiliado
+            <Plus size={13}/> Adicionar produtor / afiliado
           </button>
         </Modal>
       )}

@@ -23,7 +23,7 @@ export default function AdminCoproducers() {
 
   return (
     <div>
-      <PageHeader title="Co-Produtores" sub="Gestão de co-produção por produto" />
+      <PageHeader title="Produtores" sub="Gestão de produção por produto" />
 
       {/* Solicitações pendentes */}
       {pending.length > 0 && (
@@ -53,12 +53,12 @@ export default function AdminCoproducers() {
       {isLoading ? <Loading /> : list.length === 0 ? (
         <EmptyState
           icon={<Handshake size={32} />}
-          title="Co-produtores"
-          sub="Gerencie co-produtores e seus splits por oferta."
+          title="Produtores"
+          sub="Gerencie produtores e seus splits por oferta."
         />
       ) : (
         <div className="card">
-          <div className="section-title mb-4">Co-produtores ativos</div>
+          <div className="section-title mb-4">Produtores ativos</div>
           <div className="table-wrapper">
             <table className="table">
               <thead>

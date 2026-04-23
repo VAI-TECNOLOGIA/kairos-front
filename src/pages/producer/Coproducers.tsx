@@ -27,7 +27,7 @@ export default function MyCoproducers() {
   const approve = useMutation({
     mutationFn: (id: string) => api.post(`/coproducer-requests/${id}/approve`),
     onSuccess: () => {
-      toast.success('Co-produtor aprovado!');
+      toast.success('Produtor aprovado!');
       qc.invalidateQueries({ queryKey: ['coproducer-requests'] });
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
@@ -51,7 +51,7 @@ export default function MyCoproducers() {
 
   return (
     <div>
-      <PageHeader title="Co-Produtores" sub="Gerencie parceiros nos seus produtos" />
+      <PageHeader title="Produtores" sub="Gerencie parceiros nos seus produtos" />
 
       <div className="flex gap-2 mb-6">
         <button
@@ -59,7 +59,7 @@ export default function MyCoproducers() {
           onClick={() => setTab('coproducers')}
         >
           <Handshake size={13} />
-          Co-produtores
+          Produtores
         </button>
         <button
           className={`btn-sm ${tab === 'requests' ? 'btn-primary' : 'btn-secondary'}`}
@@ -80,8 +80,8 @@ export default function MyCoproducers() {
         isLoading ? <Loading /> : list.length === 0 ? (
           <EmptyState
             icon={<Handshake size={32} />}
-            title="Nenhum co-produtor"
-            sub="Co-produtores vinculados aos seus produtos aparecerão aqui."
+            title="Nenhum produtor"
+            sub="Produtores vinculados aos seus produtos aparecerão aqui."
           />
         ) : (
           <div className="card">
@@ -117,7 +117,7 @@ export default function MyCoproducers() {
           <EmptyState
             icon={<Clock size={32} />}
             title="Nenhuma solicitação"
-            sub="Afiliados que solicitarem ser co-produtores aparecerão aqui."
+            sub="Afiliados que solicitarem ser produtores aparecerão aqui."
           />
         ) : (
           <div className="card">

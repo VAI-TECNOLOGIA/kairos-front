@@ -24,7 +24,7 @@ const nav = [
   ]},
   { group: 'Parcerias', items: [
     { to: 'afiliados',    icon: Link2,     label: 'Afiliados' },
-    { to: 'coprodutores', icon: Handshake, label: 'Co-Produtores' },
+    { to: 'coprodutores', icon: Handshake, label: 'Produtores' },
   ]},
   { group: 'Loja', items: [
     { to: 'checkout',   icon: Monitor,   label: 'Checkout' },
