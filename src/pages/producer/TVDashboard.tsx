@@ -168,11 +168,14 @@ export default function TVDashboard() {
 
     if (role === 'AFFILIATE') {
       const d = affStats as any;
+      const conversions = d?.totalConversions ?? 0;
+      const volume      = d?.volumeCents ?? 0;
+      const ticketMedio = conversions > 0 ? Math.round(volume / conversions) : 0;
       return [
-        { label: 'Volume de Vendas',    value: formatBRL(d?.volumeCents ?? 0),                sub: dateRange.label,                   icon: <TrendingUp size={14} /> },
+        { label: 'Volume de Vendas',    value: formatBRL(volume),                             sub: dateRange.label,                   icon: <TrendingUp size={14} /> },
         { label: 'Comissão Disponível', value: formatBRL(d?.availableCents ?? 0),             sub: 'saldo liberado',                  icon: <DollarSign size={14} /> },
-        { label: 'Conversões',          value: String(d?.totalConversions ?? 0),              sub: 'vendas aprovadas',                icon: <ShoppingCart size={14} /> },
-        { label: 'Cliques',             value: String(d?.totalClicks ?? 0),                   sub: `tier: ${d?.currentTier?.name ?? '—'}`, icon: <MousePointerClick size={14} /> },
+        { label: 'Conversões',          value: String(conversions),                           sub: 'vendas aprovadas',                icon: <ShoppingCart size={14} /> },
+        { label: 'Ticket Médio',        value: formatBRL(ticketMedio),                        sub: `tier: ${d?.currentTier?.name ?? '—'}`, icon: <DollarSign size={14} /> },
       ];
     }
 

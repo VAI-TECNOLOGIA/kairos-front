@@ -139,29 +139,33 @@ export default function AffiliateLayout() {
         </div>
 
         <nav className="flex-1 px-3 py-2">
-          {nav.map((section) => (
-            <div key={section.group}>
-              <div className="sidebar-group">{section.group}</div>
-              {section.items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={`/afiliado/${item.to}`}
-                  className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
-                >
-                  <item.icon size={16} />
-                  <span className="flex-1">{item.label}</span>
-                </NavLink>
-              ))}
-            </div>
-          ))}
-          <div className="mt-1">
-            <div className="sidebar-group">Exibição</div>
-            <button onClick={() => window.open('/tv', '_blank')} className="sidebar-item w-full text-left">
+          {/* ── Início (com Dashboard TV logo abaixo de Meu Painel) ── */}
+          <div>
+            <div className="sidebar-group">Início</div>
+            <NavLink
+              to="/afiliado/dashboard"
+              className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
+            >
+              <LayoutDashboard size={16} />
+              <span className="flex-1">Meu Painel</span>
+            </NavLink>
+            <button
+              onClick={() => window.open('/tv', '_blank')}
+              className="sidebar-item w-full text-left"
+            >
               <Tv2 size={16} />
               <span className="flex-1">Dashboard TV</span>
             </button>
+            <NavLink
+              to="/afiliado/ranking"
+              className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
+            >
+              <Trophy size={16} />
+              <span className="flex-1">Ranking</span>
+            </NavLink>
           </div>
 
+          {/* ── Produtor (quando afiliado coprodutor) — colocado após Início ── */}
           {canCreate && (
             <div>
               <div className="sidebar-group">Produtor</div>
@@ -195,6 +199,23 @@ export default function AffiliateLayout() {
               </NavLink>
             </div>
           )}
+
+          {/* ── Demais grupos (pula 'Início' pois renderizado acima manualmente) ── */}
+          {nav.filter(s => s.group !== 'Início').map((section) => (
+            <div key={section.group}>
+              <div className="sidebar-group">{section.group}</div>
+              {section.items.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={`/afiliado/${item.to}`}
+                  className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
+                >
+                  <item.icon size={16} />
+                  <span className="flex-1">{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          ))}
         </nav>
 
 
