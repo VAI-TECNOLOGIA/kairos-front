@@ -56,6 +56,7 @@ import Milestones        from '@/pages/producer/Milestones';
 import ProducerRefunds   from '@/pages/producer/Refunds';
 import TrackingPixels    from '@/pages/producer/TrackingPixels';
 import ProducerLogistics from '@/pages/producer/Logistics';
+import Verification      from '@/pages/producer/Verification';
 import TVDashboard       from '@/pages/producer/TVDashboard';
 
 // Affiliate pages
@@ -158,6 +159,7 @@ export default function App() {
         <Route path="reembolsos"           element={<ProducerRefunds />} />
         <Route path="tracking"             element={<TrackingPixels />} />
         <Route path="logistica"            element={<ProducerLogistics />} />
+        <Route path="verificacao"          element={<Verification />} />
         <Route path="ajuda"                element={<HelpCenter />} />
       </Route>
 

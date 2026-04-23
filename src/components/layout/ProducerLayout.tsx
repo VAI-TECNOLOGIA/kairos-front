@@ -6,9 +6,10 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, Link2,
   Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity, Truck, Tv2, Plug, UserCircle,
-  Menu, X, HelpCircle,
+  Menu, X, HelpCircle, ShieldCheck,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
+import KycBanner from '@/components/KycBanner';
 
 const nav = [
   { group: 'Início', items: [
@@ -34,6 +35,7 @@ const nav = [
     { to: 'logistica',  icon: Truck,     label: 'Logística & Envios' },
   ]},
   { group: 'Conta', items: [
+    { to: 'verificacao',          icon: ShieldCheck,       label: 'Verificação' },
     { to: 'perfil',               icon: UserCircle,        label: 'Perfil' },
     { to: 'integracoes',          icon: Plug,              label: 'Integrações' },
     { to: 'ajuda',                icon: HelpCircle,        label: 'Central de Ajuda' },
@@ -144,6 +146,7 @@ export default function ProducerLayout() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 animate-fade-in">
+          <KycBanner />
           <Outlet />
         </main>
       </div>
