@@ -336,7 +336,6 @@ function ProducerSection({
                         <span className="text-text2">
                           Sua colocação: <strong style={{ color: m.color }}>{m.myName || 'Você'}</strong>{' '}
                           — <strong style={{ color: m.color }}>{ordinal(m.position)} lugar</strong>
-                          <span className="text-text3"> de {m.totalParticipants}</span>
                         </span>
                       </div>
                     )}
