@@ -41,12 +41,21 @@ export default function MySales() {
       }
       return <span className="text-text3 text-xs">—</span>;
     }
-    if (nfe.status === 'issued' && nfe.pdfUrl) {
+    if (nfe.status === 'issued') {
+      // Com PDF -> link direto; sem PDF -> badge "emitida" (usuário acessa pelo painel NFe.io)
+      if (nfe.pdfUrl) {
+        return (
+          <a href={nfe.pdfUrl} target="_blank" rel="noopener noreferrer"
+             className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline font-medium">
+            <FileText size={12} /> NF #{nfe.number || nfe.id?.slice(-6).toUpperCase() || ''}
+          </a>
+        );
+      }
       return (
-        <a href={nfe.pdfUrl} target="_blank" rel="noopener noreferrer"
-           className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline font-medium">
-          <FileText size={12} /> NF #{nfe.number || nfe.id?.slice(-6).toUpperCase() || ''}
-        </a>
+        <span className="inline-flex items-center gap-1 text-[11px] text-green bg-green/10 border border-green/30 px-1.5 py-0.5 rounded">
+          <FileText size={10} /> Emitida
+          {nfe.number && <span className="font-mono text-text3 ml-1">#{nfe.number}</span>}
+        </span>
       );
     }
     if (nfe.status === 'processing') {
