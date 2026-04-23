@@ -50,6 +50,7 @@ import CheckoutConfig    from '@/pages/producer/Checkout';
 import MyFinancial       from '@/pages/producer/Financial';
 import ProducerSettings  from '@/pages/producer/Settings';
 import IntegrationsPage  from '@/pages/shared/Integrations';
+import HelpCenter        from '@/pages/shared/HelpCenter';
 import Milestones        from '@/pages/producer/Milestones';
 import ProducerRefunds   from '@/pages/producer/Refunds';
 import TrackingPixels    from '@/pages/producer/TrackingPixels';
@@ -155,6 +156,7 @@ export default function App() {
         <Route path="reembolsos"           element={<ProducerRefunds />} />
         <Route path="tracking"             element={<TrackingPixels />} />
         <Route path="logistica"            element={<ProducerLogistics />} />
+        <Route path="ajuda"                element={<HelpCenter />} />
       </Route>
 
       {/* ── AFILIADO ── */}
@@ -175,6 +177,7 @@ export default function App() {
         <Route path="configurar-dashboard" element={<DashboardSettings />} />
         <Route path="reembolsos"           element={<AffiliateRefunds />} />
         <Route path="tracking"             element={<TrackingPixels />} />
+        <Route path="ajuda"                element={<HelpCenter />} />
       </Route>
 
       {/* ── CLIENTE ── */}
