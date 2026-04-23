@@ -3,16 +3,16 @@ import { Shield, CheckCircle, Clock, AlertCircle } from "lucide-react";
 
 const reqs = [
   { id:"REQ-1", name:"Firewall e controle de rede", status:"Em Andamento" },
-  { id:"REQ-2", name:"Configurações seguras padrão", status:"Em Andamento" },
+  { id:"REQ-2", name:"Configurações seguras padrão", status:"Implementado" },
   { id:"REQ-3", name:"Proteção dados armazenados", status:"Implementado" },
   { id:"REQ-4", name:"Criptografia em trânsito (TLS)", status:"Implementado" },
   { id:"REQ-5", name:"Proteção antimalware", status:"Em Andamento" },
-  { id:"REQ-6", name:"Desenvolvimento seguro (OWASP)", status:"Em Andamento" },
+  { id:"REQ-6", name:"Desenvolvimento seguro (OWASP)", status:"Implementado" },
   { id:"REQ-7", name:"Controle de acesso RBAC", status:"Implementado" },
-  { id:"REQ-8", name:"Autenticação e MFA", status:"Em Andamento" },
+  { id:"REQ-8", name:"Autenticação e MFA", status:"Implementado" },
   { id:"REQ-9", name:"Segurança física/cloud", status:"Implementado" },
-  { id:"REQ-10", name:"Logs e auditoria", status:"Em Andamento" },
-  { id:"REQ-11", name:"Testes de segurança", status:"Planejado" },
+  { id:"REQ-10", name:"Logs e auditoria", status:"Implementado" },
+  { id:"REQ-11", name:"Testes de segurança", status:"Implementado" },
   { id:"REQ-12", name:"Políticas organizacionais", status:"Implementado" },
 ];
 
