@@ -8,6 +8,7 @@ import {
   RefreshCw, DollarSign, BarChart3, Shield, Truck,
   Settings, LogOut, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
   ChevronDown, Megaphone, Briefcase, Lock, Percent, MessageSquareHeart, Plug, Clock,
+  Menu, X,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -95,6 +96,10 @@ export default function AdminLayout() {
   };
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>(getInitialExpanded);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Fecha a sidebar mobile ao trocar de rota
+  useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
   // Sempre que a rota mudar, garante que o grupo da rota atual esteja aberto
   useEffect(() => {
@@ -127,8 +132,19 @@ export default function AdminLayout() {
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
 
+      {/* Backdrop mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ── SIDEBAR ─────────────────────────────── */}
-      <aside className="w-60 flex-shrink-0 flex flex-col bg-bg2 border-r border-border overflow-y-auto">
+      <aside className={cn(
+        "fixed md:static inset-y-0 left-0 z-40 w-60 flex-shrink-0 flex flex-col bg-bg2 border-r border-border overflow-y-auto transform transition-transform md:translate-x-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full",
+      )}>
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
           <img src="/kairosLogo.png" alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
@@ -247,12 +263,20 @@ export default function AdminLayout() {
         </div>
 
         {/* Topbar */}
-        <header className="flex items-center justify-between px-6 py-3 bg-bg2 border-b border-border">
+        <header className="flex items-center justify-between px-4 md:px-6 py-3 bg-bg2 border-b border-border">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green/10 text-green border border-green/20">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(v => !v)}
+              className="md:hidden p-1.5 rounded-md text-text2 hover:bg-bg3"
+              aria-label="Menu"
+            >
+              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+            <span className="hidden sm:inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green/10 text-green border border-green/20">
               🔒 TLS 1.3
             </span>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
+            <span className="hidden sm:inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
               PCI DSS
             </span>
           </div>
@@ -280,7 +304,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-6 animate-fade-in">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 animate-fade-in">
           <Outlet />
         </main>
       </div>

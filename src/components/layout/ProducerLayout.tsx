@@ -1,10 +1,12 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, Link2,
   Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity, Truck, Tv2, Plug, UserCircle,
+  Menu, X,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -42,11 +44,20 @@ const nav = [
 export default function ProducerLayout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const session = useSessionTimeout();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
-      <aside className="w-60 flex-shrink-0 flex flex-col bg-bg2 border-r border-border overflow-y-auto">
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+      <aside className={cn(
+        "fixed md:static inset-y-0 left-0 z-40 w-60 flex-shrink-0 flex flex-col bg-bg2 border-r border-border overflow-y-auto transform transition-transform md:translate-x-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full",
+      )}>
         <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
           <img src="/kairosLogo.png" alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
           <div>
@@ -98,8 +109,16 @@ export default function ProducerLayout() {
           />
         </div>
 
-        <header className="flex items-center justify-between px-6 py-3 bg-bg2 border-b border-border">
+        <header className="flex items-center justify-between px-4 md:px-6 py-3 bg-bg2 border-b border-border">
           <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(v => !v)}
+              className="md:hidden p-1.5 rounded-md text-text2 hover:bg-bg3"
+              aria-label="Menu"
+            >
+              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
             {(user as any)?.avatarUrl ? (
               <img src={(user as any).avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover border border-border" />
             ) : (
@@ -123,7 +142,7 @@ export default function ProducerLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6 animate-fade-in">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 animate-fade-in">
           <Outlet />
         </main>
       </div>

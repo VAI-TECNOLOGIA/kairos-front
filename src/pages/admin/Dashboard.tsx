@@ -158,7 +158,7 @@ export default function AdminDashboard() {
 
       {/* KPIs */}
       {hasStats && (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {isEnabled('stat_revenue_total') && (
             <StatCard
               label="Receita total"
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
 
       {/* Receita + Últimas vendas */}
       {hasChartRow && (
-        <div className={`grid gap-4 ${isEnabled('chart_revenue_14d') && isEnabled('list_recent_sales') ? 'grid-cols-3' : 'grid-cols-1'}`}>
+        <div className={`grid gap-4 ${isEnabled('chart_revenue_14d') && isEnabled('list_recent_sales') ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-1'}`}>
           {isEnabled('chart_revenue_14d') && (
             <div className={`card ${isEnabled('list_recent_sales') ? 'col-span-2' : ''}`}>
               <div className="flex items-center justify-between mb-4">
@@ -267,7 +267,7 @@ export default function AdminDashboard() {
 
       {/* Mix pagamentos + Pedidos por hora */}
       {hasBottomRow && (
-        <div className={`grid gap-4 ${isEnabled('chart_payment_mix') && isEnabled('chart_hourly_orders') ? 'grid-cols-3' : 'grid-cols-1'}`}>
+        <div className={`grid gap-4 ${isEnabled('chart_payment_mix') && isEnabled('chart_hourly_orders') ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-1'}`}>
           {isEnabled('chart_payment_mix') && (
             <div className="card">
               <div className="section-title mb-1">Mix de pagamentos</div>

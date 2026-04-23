@@ -131,7 +131,7 @@ export default function MyProducts() {
           action={<button onClick={() => setOpenCreate(true)} className="btn-primary btn-sm">Criar produto</button>}
         />
       ) : (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {products.map((p: any) => {
             const offer  = bestOffer(p);
             const recebe = offer ? recebeAte(offer.priceCents) : null;
@@ -231,7 +231,7 @@ export default function MyProducts() {
                 </div>
                 {selected.description && <p className="text-sm text-text2 leading-relaxed">{selected.description}</p>}
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[
                   ['Tipo',      PRODUCT_TYPE_LABEL[selected.type] || selected.type],
                   ['Categoria', selected.category || '—'],
@@ -298,7 +298,7 @@ export default function MyProducts() {
         }
       >
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="form-group">
               <label className="label">Nome *</label>
               <input {...register('name')} className="input" placeholder="Nome do produto" />
@@ -364,7 +364,7 @@ export default function MyProducts() {
         {/* Aba: Informações */}
         {editTab === 'info' && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="form-group">
                 <label className="label">Nome *</label>
                 <input {...re('name')} className="input" />

@@ -24,7 +24,7 @@ export default function SecurityPage() {
   return (
     <div>
       <PageHeader title="Segurança & PCI DSS" sub={`${done}/12 requisitos implementados`} />
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <div className="card flex flex-col gap-1"><div className="stat-label">Implementados</div><div className="stat-value text-green">{done}</div></div>
         <div className="card flex flex-col gap-1"><div className="stat-label">Em andamento</div><div className="stat-value text-amber">{reqs.filter(r=>r.status==="Em Andamento").length}</div></div>
         <div className="card flex flex-col gap-1"><div className="stat-label">Conformidade</div><div className="stat-value">{Math.round(done/12*100)}%</div></div>

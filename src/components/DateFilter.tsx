@@ -125,7 +125,7 @@ export default function DateFilter({ value, onChange }: Props) {
                 <p className="text-[10px] font-semibold text-text3 uppercase tracking-wide mb-2">
                   Periodo relativo
                 </p>
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5">
                   {PRESETS.map(p => (
                     <button
                       key={p.label}
@@ -147,7 +147,7 @@ export default function DateFilter({ value, onChange }: Props) {
                 <p className="text-[10px] font-semibold text-text3 uppercase tracking-wide mb-2">
                   Periodo fixo
                 </p>
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5">
                   {ABSOLUTE_PRESETS.map(p => (
                     <button
                       key={p.label}

@@ -61,7 +61,7 @@ export default function SalesPage() {
     <div>
       <PageHeader title="Vendas" sub="Histórico completo de pedidos" />
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <StatCard label="Total de vendas"  value={total}                                                                               icon={<ShoppingCart size={16} />} />
         <StatCard label="Receita total"    value={formatBRL(data?.totalRevenueCents || 0)}                                             icon={<TrendingUp size={16} />} />
         <StatCard label="Ticket médio"     value={total ? formatBRL(Math.round((data?.totalRevenueCents || 0) / total)) : '—'} />

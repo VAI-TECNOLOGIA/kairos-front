@@ -37,7 +37,7 @@ export default function AffiliateMarketplace() {
           <p className="text-text2">Nenhuma oferta disponível para afiliação ainda.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {(offers || []).map((offer: any) => (
             <div key={offer.offerId} className="card flex flex-col gap-3">
               {offer.productImage && (

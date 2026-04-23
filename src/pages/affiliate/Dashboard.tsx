@@ -121,7 +121,7 @@ export default function AffiliateDashboard() {
 
       {/* KPIs */}
       {hasStats && (
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {isEnabled('stat_volume') && (
             <StatCard label="Faturamento gerado"  value={formatBRL(volumeCents)}               icon={<TrendingUp size={16} />} />
           )}
@@ -312,7 +312,7 @@ function AffiliateRefundSection({ refunds }: { refunds?: any }) {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         <div className="bg-bg3 rounded-xl p-3">
           <p className="text-[11px] text-text3 mb-1">Reembolsos</p>
           <p className="text-lg font-bold text-text">{refundCount}</p>

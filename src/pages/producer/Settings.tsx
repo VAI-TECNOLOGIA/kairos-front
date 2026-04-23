@@ -80,7 +80,7 @@ export default function ProducerSettings() {
     <div>
       <PageHeader title="Configurações" sub="Dados da sua conta" />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Dados da conta */}
         <div className="card">
           <div className="section-title mb-4">Informações da conta</div>

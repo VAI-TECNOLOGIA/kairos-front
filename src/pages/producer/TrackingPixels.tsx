@@ -211,7 +211,7 @@ export default function TrackingPixels() {
               <label className="block text-xs font-medium text-text2 mb-2 uppercase tracking-wide">
                 Plataforma
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {PROVIDERS.map(p => {
                   const active = form.provider === p.value;
                   return (
@@ -246,7 +246,7 @@ export default function TrackingPixels() {
             </div>
 
             {/* Name + Pixel ID */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text2 mb-1.5 uppercase tracking-wide">
                   Nome do pixel
@@ -280,7 +280,7 @@ export default function TrackingPixels() {
               <label className="block text-xs font-medium text-text2 mb-2 uppercase tracking-wide">
                 Eventos a disparar
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {EVENTS.map(ev => {
                   const active = form.events.includes(ev.value);
                   return (

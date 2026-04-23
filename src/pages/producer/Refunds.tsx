@@ -30,7 +30,7 @@ export default function ProducerRefunds() {
       <PageHeader title="Reembolsos & Chargebacks" sub="Acompanhe todas as solicitações de reembolso e contestações" />
 
       {/* Resumo */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <div className="card flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-red/10 flex items-center justify-center flex-shrink-0">
             <RotateCcw size={16} className="text-red" />

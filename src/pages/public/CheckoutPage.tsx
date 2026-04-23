@@ -711,7 +711,7 @@ export default function CheckoutPage() {
             <form onSubmit={handleSubmit(d => payMutation.mutate(d))} className="p-6 space-y-5">
 
               {/* Telefone + CPF */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-text2 mb-1.5 tracking-wide uppercase">CPF / CNPJ</label>
                   <input
@@ -756,7 +756,7 @@ export default function CheckoutPage() {
                 <label className="block text-xs font-medium text-text2 mb-3 tracking-wide uppercase">
                   Forma de pagamento <span className="text-red">*</span>
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                   {availableMethods.map(m => {
                     const info     = METHOD_LABEL[m.v];
                     const isActive = method === m.v;
@@ -779,7 +779,7 @@ export default function CheckoutPage() {
                   Endereço de cobrança
                   <span className="ml-1.5 text-[10px] text-text3 normal-case">(necessário para emitir nota fiscal)</span>
                 </p>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                   <div className="col-span-2">
                     <label className="block text-xs text-text3 mb-1">CEP</label>
                     <input {...register('zipCode', { required: 'Obrigatório' })}
@@ -857,7 +857,7 @@ export default function CheckoutPage() {
                       placeholder="NOME COMO NO CARTÃO" autoComplete="cc-name" style={{ textTransform: 'uppercase' }} />
                     {errors.cardHolder && <p className="text-xs text-red mt-1">{String(errors.cardHolder.message)}</p>}
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                     <div>
                       <label className="block text-xs text-text3 mb-1">Mês</label>
                       <input {...register('cardExpMonth', { required: true })}

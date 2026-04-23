@@ -153,7 +153,7 @@ export default function ProfilePage() {
               {errors.name && <span className="text-xs text-red">{errors.name.message}</span>}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="form-group">
                 <label className="label">CPF / CNPJ</label>
                 <input
@@ -208,7 +208,7 @@ export default function ProfilePage() {
               — necessário para envios de produtos físicos
             </span>
           </div>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div className="col-span-2">
               <label className="label">CEP</label>
               <input {...register('zipCode')} className="input" placeholder="00000-000" maxLength={9} />

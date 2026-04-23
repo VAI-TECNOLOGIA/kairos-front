@@ -99,7 +99,7 @@ function OrdersTab({ shipments, counts, isLoading, expandedId, trackingData, tog
   return (
     <>
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <div className="card p-3 text-center">
           <p className="text-2xl font-bold text-amber">{counts.waiting}</p>
           <p className="text-[11px] text-text3">Aguardando</p>

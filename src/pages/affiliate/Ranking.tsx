@@ -222,7 +222,7 @@ function ProducerSection({
           </div>
 
           {/* MANTIDO: resumo de receita e vendas preservado integralmente */}
-          <div className="grid grid-cols-2 gap-2 mt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
             <div className="bg-bg3 rounded-lg p-2.5">
               <div className="flex items-center gap-1.5 mb-0.5">
                 <TrendingUp size={11} className="text-green" />

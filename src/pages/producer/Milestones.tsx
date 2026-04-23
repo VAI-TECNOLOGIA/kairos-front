@@ -668,7 +668,7 @@ function MilestoneModal({
             <label className="block text-xs font-medium text-text2 mb-1.5">
               Tipo de meta <span className="text-red">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {(['VALUE', 'UNITS'] as const).map(t => (
                 <button
                   key={t}

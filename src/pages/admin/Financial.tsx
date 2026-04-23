@@ -60,7 +60,7 @@ export default function FinancialPage() {
       />
 
       {/* KPIs gerais */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <StatCard label="Volume total plataforma" value={formatBRL(balanceAll?.totalVolumeCents || 0)} icon={<DollarSign size={16} />} />
         <StatCard label="Faturas WL"              value={wl?.length || 0}                             icon={<RefreshCw size={16} />} />
         <StatCard label="Saques pendentes"        value={withdrawals?.data?.filter((w: any) => w.status === 'PENDING').length || 0} icon={<ArrowDownCircle size={16} />} />

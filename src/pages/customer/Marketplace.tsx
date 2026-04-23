@@ -92,7 +92,7 @@ export default function Marketplace() {
 
       {/* Loading */}
       {isLoading && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="card animate-pulse">
               <div className="h-40 bg-bg3 rounded-lg mb-3" />
@@ -123,7 +123,7 @@ export default function Marketplace() {
       {!isLoading && products.length > 0 && (
         <>
           <p className="text-xs text-text3 mb-4">{products.length} produto{products.length !== 1 ? 's' : ''}</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map((p: any) => {
               const badge = TYPE_BADGE[p.type] || TYPE_BADGE.DIGITAL;
               return (

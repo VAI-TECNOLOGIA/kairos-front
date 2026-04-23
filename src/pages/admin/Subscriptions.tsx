@@ -13,7 +13,7 @@ export default function SubscriptionsPage() {
   return (
     <div>
       <PageHeader title="Assinaturas Recorrentes" sub="Dunning automático ativo" />
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <StatCard label="MRR" value={formatBRL(mrr?.mrrCents || 0)} icon={<RefreshCw size={16}/>} />
         <StatCard label="Assinaturas ativas" value={mrr?.activeSubscriptions || 0} />
         <StatCard label="Total" value={data?.total || 0} />

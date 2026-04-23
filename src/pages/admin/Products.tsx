@@ -86,7 +86,7 @@ export default function AdminProducts() {
       {isLoading ? <Loading /> : products.length === 0 ? (
         <EmptyState icon={<Package size={32} />} title="Nenhum produto" sub="Nenhum produto encontrado nesta categoria." />
       ) : (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {products.map((p: any) => {
             const offer  = bestOffer(p);
             const recebe = offer ? recebeAte(offer.priceCents) : null;
@@ -214,7 +214,7 @@ export default function AdminProducts() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[
                   ['Tipo',       PRODUCT_TYPE_LABEL[selected.type] || selected.type],
                   ['Categoria',  selected.category || '—'],

@@ -87,7 +87,7 @@ export default function MySales() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <StatCard label="Total de vendas" value={data?.total||0} icon={<ShoppingCart size={16}/>}/>
         <StatCard label="Receita total" value={formatBRL(data?.totalRevenueCents||0)}/>
         <StatCard label="Ticket médio" value={data?.total?formatBRL(Math.round((data.totalRevenueCents||0)/data.total)):"—"}/>

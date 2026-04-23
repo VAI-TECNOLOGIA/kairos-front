@@ -86,7 +86,7 @@ export default function ProducerDashboard() {
 
       {/* KPIs */}
       {hasStats && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
           {isEnabled('stat_total_revenue_prod') && (
             <StatCard label="Faturamento total" value={formatBRL(totalRevenueCents)} icon={<TrendingUp size={16} />} sub={`este mês: ${formatBRL(monthRevenueCents)}`} />
           )}
@@ -104,7 +104,7 @@ export default function ProducerDashboard() {
 
       {/* Gráfico + Últimas vendas */}
       {hasBottom && (
-        <div className={`grid gap-4 ${isEnabled('chart_revenue_7d') && isEnabled('prod_recent_sales') ? 'grid-cols-3' : 'grid-cols-1'}`}>
+        <div className={`grid gap-4 ${isEnabled('chart_revenue_7d') && isEnabled('prod_recent_sales') ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-1'}`}>
           {isEnabled('chart_revenue_7d') && (
             <div className={`card ${isEnabled('prod_recent_sales') ? 'col-span-2' : ''}`}>
               <div className="section-title mb-1">Receita — {dateRange.label}</div>
@@ -202,7 +202,7 @@ function RefundSection({ refunds }: { refunds?: any }) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="bg-bg3 rounded-xl p-3">
           <p className="text-[11px] text-text3 mb-1">Reembolsos</p>
           <p className="text-lg font-bold text-text">{refundCount}</p>

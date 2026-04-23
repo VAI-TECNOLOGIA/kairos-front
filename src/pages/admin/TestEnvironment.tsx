@@ -78,7 +78,7 @@ export default function TestEnvironmentPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
         {/* Buscar pedido */}
         <div className="card">

@@ -84,7 +84,7 @@ export default function ProducerLogistics() {
       <PageHeader title="Envios" sub="Gerencie envios dos seus produtos físicos via Melhor Envio" />
 
       {/* Mini KPIs */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6">
         <div className="card p-3 text-center">
           <p className="text-2xl font-bold text-amber">{counts.waiting}</p>
           <p className="text-[11px] text-text3">Aguardando envio</p>

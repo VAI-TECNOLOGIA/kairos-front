@@ -125,7 +125,7 @@ export default function MyFinancial() {
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <div className="card relative">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-text3">Saldo disponível</span>
@@ -153,7 +153,7 @@ export default function MyFinancial() {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Histórico de splits */}
         <div className="card">
           <div className="section-title mb-4">Histórico de repasses</div>
