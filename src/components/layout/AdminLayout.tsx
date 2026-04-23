@@ -8,7 +8,7 @@ import {
   RefreshCw, DollarSign, BarChart3, Shield, Truck,
   Settings, LogOut, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
   ChevronDown, Megaphone, Briefcase, Lock, Percent, MessageSquareHeart, Plug, Clock,
-  Menu, X,
+  Menu, X, ShieldCheck,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -35,9 +35,10 @@ const nav: NavSection[] = [
     { to: '/tv',       icon: Tv2,             label: 'Painel TV', external: true },
   ]},
   { group: 'Produtores', icon: Briefcase, items: [
-    { to: 'produtores',   icon: Users,     label: 'Produtores' },
-    { to: 'produtos',     icon: Package,   label: 'Produtos' },
-    { to: 'ofertas',      icon: Tag,       label: 'Ofertas & Split' },
+    { to: 'produtores',   icon: Users,       label: 'Produtores' },
+    { to: 'verificacoes', icon: ShieldCheck, label: 'Verificações (KYC)' },
+    { to: 'produtos',     icon: Package,     label: 'Produtos' },
+    { to: 'ofertas',      icon: Tag,         label: 'Ofertas & Split' },
   ]},
   { group: 'Financeiro', icon: DollarSign, items: [
     { to: 'vendas',       icon: ShoppingCart, label: 'Vendas' },

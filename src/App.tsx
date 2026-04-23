@@ -23,6 +23,7 @@ import CustomerMarketplace from '@/pages/customer/Marketplace';
 // Admin pages
 import AdminDashboard      from '@/pages/admin/Dashboard';
 import ProducersPage       from '@/pages/admin/Producers';
+import KycReview           from '@/pages/admin/KycReview';
 import AdminProducts       from '@/pages/admin/Products';
 import OffersPage          from '@/pages/admin/Offers';
 import SalesPage           from '@/pages/admin/Sales';
@@ -113,6 +114,7 @@ export default function App() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard"          element={<AdminDashboard />} />
         <Route path="produtores"         element={<ProducersPage />} />
+        <Route path="verificacoes"       element={<KycReview />} />
         <Route path="produtos"           element={<AdminProducts />} />
         <Route path="ofertas"            element={<OffersPage />} />
         <Route path="vendas"             element={<SalesPage />} />

@@ -399,17 +399,47 @@ function DocumentsForm({ documents, onUploaded, disabled }: {
       {documents.length > 0 && (
         <div className="mt-4 border-t border-border pt-3">
           <div className="text-sm font-semibold mb-2">Enviados ({documents.length})</div>
-          <ul className="space-y-1 text-sm">
-            {documents.map(d => (
-              <li key={d.id} className="flex items-center justify-between">
-                <span className="text-text2">{DOC_TYPES.find(t => t.value === d.type)?.label || d.type}</span>
-                <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-xs">ver arquivo</a>
-              </li>
-            ))}
+          <ul className="space-y-2 text-sm">
+            {documents.map(d => <DocumentRow key={d.id} doc={d} />)}
           </ul>
         </div>
       )}
     </div>
+  );
+}
+
+function DocumentRow({ doc }: { doc: any }) {
+  const label = DOC_TYPES.find(t => t.value === doc.type)?.label || doc.type;
+  const status = doc.status || 'PENDING';
+  const badge = (() => {
+    switch (status) {
+      case 'APPROVED':         return { txt: 'aprovado',   cls: 'text-green bg-green/10 border-green/40' };
+      case 'NEEDS_ADJUSTMENT': return { txt: 'reenviar',   cls: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/40' };
+      case 'REJECTED':         return { txt: 'rejeitado',  cls: 'text-red-400 bg-red-500/10 border-red-500/40' };
+      default:                 return { txt: 'aguardando', cls: 'text-text2 bg-bg3 border-border' };
+    }
+  })();
+
+  return (
+    <li className="border border-border rounded-md p-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-text2 truncate">{label}</span>
+          <span className={`text-[10px] uppercase tracking-wide border px-1.5 py-0.5 rounded ${badge.cls}`}>{badge.txt}</span>
+        </div>
+        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-xs flex-shrink-0">ver arquivo</a>
+      </div>
+      {doc.adjustmentReason && (
+        <div className="mt-1.5 text-xs text-yellow-400">
+          ⚠ Admin pediu ajuste: <span className="text-text2">{doc.adjustmentReason}</span>
+        </div>
+      )}
+      {doc.rejectionReason && (
+        <div className="mt-1.5 text-xs text-red-400">
+          ✕ Rejeitado: <span className="text-text2">{doc.rejectionReason}</span>
+        </div>
+      )}
+    </li>
   );
 }
 
