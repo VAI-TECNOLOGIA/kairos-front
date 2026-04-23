@@ -66,7 +66,7 @@ function normalizeAcceptance(s: string): string {
 
 function buildExpectedPhrase(name: string, cpf: string): string {
   const digits = (cpf || '').replace(/\D/g, '');
-  return `EU, ${name || '[seu nome]'}, PORTADOR DO CPF ${digits || '[seu CPF]'}, ACEITO OS TERMOS`;
+  return `EU, ${name || '[seu nome]'}, PORTADOR DO CPF ${digits || '[seu CPF]'}, ACEITO OS TERMOS DA KAIROS GATEWAY DE PAGAMENTOS PARA RANKING & CONQUISTAS.`;
 }
 
 // MANTIDO: paleta de sugestão rápida preservada integralmente
