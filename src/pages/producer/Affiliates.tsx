@@ -4,15 +4,13 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader } from '@/components/ui';
 import { formatDateTime } from '@/lib/utils';
-import { Users, CheckCircle, XCircle, Clock, Settings } from 'lucide-react';
+import { CheckCircle, Info, Settings } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
 export default function ProducerAffiliates() {
   const qc = useQueryClient();
-  const [tab, setTab] = useState<'pending' | 'approved' | 'offers'>('pending');
-  const [rejectId, setRejectId] = useState<string | null>(null);
+  const [tab, setTab] = useState<'approved' | 'offers'>('approved');
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
-  const { register: regReject, handleSubmit: handleReject, reset: resetReject } = useForm();
   const { register: regOffer, handleSubmit: handleOffer, reset: resetOffer, setValue } = useForm();
 
   const { data: allAffiliates } = useQuery({
@@ -24,24 +22,6 @@ export default function ProducerAffiliates() {
     queryKey: ['producer-affiliate-offers'],
     queryFn : () => api.get('/affiliates/offers').then(r => r.data),
     enabled : tab === 'offers',
-  });
-
-  const approve = useMutation({
-    mutationFn: (id: string) => api.post(`/affiliates/${id}/approve`),
-    onSuccess: () => { toast.success('Afiliado aprovado!'); qc.invalidateQueries({ queryKey: ['affiliates-pending'] }); },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
-  });
-
-  const reject = useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
-      api.post(`/affiliates/${id}/reject`, { reason }),
-    onSuccess: () => {
-      toast.success('Afiliado rejeitado.');
-      qc.invalidateQueries({ queryKey: ['affiliates-pending'] });
-      setRejectId(null);
-      resetReject();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
   });
 
   const saveOfferConfig = useMutation({
@@ -60,21 +40,29 @@ export default function ProducerAffiliates() {
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
   });
 
-  const pendingList  = Array.isArray(allAffiliates) ? allAffiliates.filter((a: any) => a.status === 'PENDING')  : [];
   const approvedList = Array.isArray(allAffiliates) ? allAffiliates.filter((a: any) => a.status === 'APPROVED') : [];
 
   return (
     <div>
       <PageHeader
         title="Afiliados"
-        sub="Gerencie afiliados e configure comissões por oferta"
+        sub="Afiliados aprovados e configuração de comissões por oferta"
       />
 
-      <div className="flex gap-2 mb-6">
+      {/* Aviso — aprovação é feita pelo admin */}
+      <div className="card mb-4 p-3 border-l-4 border-accent bg-accent/5 flex items-start gap-3">
+        <Info size={15} className="text-accent flex-shrink-0 mt-0.5" />
+        <div className="text-xs text-text2 leading-relaxed">
+          A aprovação e rejeição de novos afiliados é feita pela <strong>equipe
+          administrativa da Kairos Way</strong>. Aqui você visualiza os afiliados
+          já aprovados e configura a comissão de cada oferta.
+        </div>
+      </div>
+
+      <div className="flex gap-2 mb-6 flex-wrap">
         {[
-          { id: 'pending',  icon: Clock,         label: 'Aguardando', badge: pendingList.length  },
-          { id: 'approved', icon: CheckCircle,   label: 'Aprovados',  badge: 0                   },
-          { id: 'offers',   icon: Settings,      label: 'Comissões',  badge: 0                   },
+          { id: 'approved', icon: CheckCircle,   label: 'Aprovados' },
+          { id: 'offers',   icon: Settings,      label: 'Comissões' },
         ].map(t => (
           <button
             key={t.id}
@@ -83,9 +71,6 @@ export default function ProducerAffiliates() {
           >
             <t.icon size={13} />
             {t.label}
-            {t.badge > 0 && (
-              <span className="ml-1 bg-danger text-white text-xs rounded-full px-1.5 py-0.5">{t.badge}</span>
-            )}
           </button>
         ))}
         <div className="ml-auto text-xs text-text3 flex items-center gap-1">
@@ -93,51 +78,6 @@ export default function ProducerAffiliates() {
           <span className="font-mono text-accent">/seja-afiliado</span>
         </div>
       </div>
-
-      {tab === 'pending' && (
-        <div className="card">
-          {pendingList.length === 0 ? (
-            <div className="flex flex-col items-center py-10 gap-2 text-center">
-              <Users size={28} className="text-text2" />
-              <p className="text-text2 text-sm">Nenhum afiliado aguardando aprovação.</p>
-            </div>
-          ) : (
-            <div className="table-wrapper">
-              <table className="table">
-                <thead><tr><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Cadastro</th><th>Ações</th></tr></thead>
-                <tbody>
-                  {pendingList.map((a: any) => (
-                    <tr key={a.id}>
-                      <td className="font-medium text-text">{a.user.name}</td>
-                      <td className="text-text2">{a.user.email}</td>
-                      <td className="text-text2">{a.user.phone || '—'}</td>
-                      <td className="text-text3">{formatDateTime(a.createdAt)}</td>
-                      <td>
-                        {rejectId === a.id ? (
-                          <form onSubmit={handleReject(d => reject.mutate({ id: a.id, reason: d.reason }))} className="flex gap-2">
-                            <input className="input text-xs py-1 h-7" placeholder="Motivo (opcional)" {...regReject('reason')} />
-                            <button type="submit" className="btn-danger btn-sm">Confirmar</button>
-                            <button type="button" className="btn-secondary btn-sm" onClick={() => setRejectId(null)}>Cancelar</button>
-                          </form>
-                        ) : (
-                          <div className="flex gap-2">
-                            <button className="btn-success btn-sm" onClick={() => approve.mutate(a.id)} disabled={approve.isPending}>
-                              <CheckCircle size={12} /> Aprovar
-                            </button>
-                            <button className="btn-danger btn-sm" onClick={() => setRejectId(a.id)}>
-                              <XCircle size={12} /> Rejeitar
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
 
       {tab === 'approved' && (
         <div className="card">
