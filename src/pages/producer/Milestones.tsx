@@ -91,7 +91,7 @@ const TERM_TEMPLATES: { category: string; items: TermTemplate[] }[] = [
         icon   : Plane,
         label  : 'Passagens aéreas',
         tooltip: 'Cobre apenas as passagens aéreas',
-        text   : 'Passagens aéreas: A Kairos Way arcará exclusivamente com as passagens aéreas (ida e volta) na classe econômica. Todos os demais custos relacionados à viagem são de responsabilidade individual do participante.',
+        text   : 'Passagens aéreas: O produtor arcará exclusivamente com as passagens aéreas (ida e volta) na classe econômica. Todos os demais custos relacionados à viagem são de responsabilidade individual do participante.',
       },
       {
         icon   : Hotel,
@@ -115,7 +115,7 @@ const TERM_TEMPLATES: { category: string; items: TermTemplate[] }[] = [
         icon   : ShieldCheck,
         label  : 'Seguro viagem',
         tooltip: 'Obrigatoriedade de seguro viagem',
-        text   : 'Seguro viagem: A contratação de seguro viagem é de responsabilidade exclusiva do participante e fortemente recomendada. A Kairos Way não se responsabiliza por sinistros, cancelamentos, extravios ou quaisquer eventos cobertos por seguro.',
+        text   : 'Seguro viagem: A contratação de seguro viagem é de responsabilidade exclusiva do participante e fortemente recomendada. O produtor não se responsabiliza por sinistros, cancelamentos, extravios ou quaisquer eventos cobertos por seguro.',
       },
     ],
   },
@@ -219,7 +219,7 @@ const TERM_TEMPLATES: { category: string; items: TermTemplate[] }[] = [
         icon   : RefreshCw,
         label  : 'Alteracoes e cancelamento',
         tooltip: 'Direito de alterar ou cancelar o prêmio',
-        text   : 'Alterações e cancelamento: A Kairos Way reserva-se o direito de alterar, suspender ou encerrar este programa de premiação mediante comunicado prévio de 15 (quinze) dias aos participantes inscritos, sem que isso gere qualquer indenização ou compensação.',
+        text   : 'Alterações e cancelamento: O produtor reserva-se o direito de alterar, suspender ou encerrar este programa de premiação mediante comunicado prévio de 15 (quinze) dias aos participantes inscritos, sem que isso gere qualquer indenização ou compensação.',
       },
       {
         icon   : Wallet,
