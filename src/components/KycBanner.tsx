@@ -27,7 +27,9 @@ export default function KycBanner() {
   if (location.pathname.endsWith('/verificacao')) return null;
   if (data.canOperate) return null;
 
-  const isPending  = data.kycStatus === 'PENDING';
+  // Legado: kycStatus=APPROVED porém sem recipient — orienta a completar
+  const isLegacyApproved = data.kycStatus === 'APPROVED' && !data.pagarmeRecipientId;
+  const isPending  = data.kycStatus === 'PENDING' || isLegacyApproved;
   const isSent     = data.kycStatus === 'DOCUMENTS_SENT';
   const isRejected = data.kycStatus === 'REJECTED';
 

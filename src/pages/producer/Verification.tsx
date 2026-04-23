@@ -31,6 +31,12 @@ export default function Verification() {
     queryFn : () => api.get('/producers/kyc/status').then(r => r.data),
   });
 
+  const percent = useMemo(() => {
+    if (!kyc) return 0;
+    const flags = [kyc.completeness.hasDocuments, kyc.completeness.hasBanking, kyc.completeness.hasRegister];
+    return Math.round((flags.filter(Boolean).length / flags.length) * 100);
+  }, [kyc]);
+
   if (isLoading || !kyc) {
     return (
       <div>
@@ -41,10 +47,6 @@ export default function Verification() {
   }
 
   const { completeness, kycStatus, pagarmeRecipientId } = kyc;
-  const percent = useMemo(() => {
-    const flags = [completeness.hasDocuments, completeness.hasBanking, completeness.hasRegister];
-    return Math.round((flags.filter(Boolean).length / flags.length) * 100);
-  }, [completeness]);
 
   return (
     <div className="space-y-6">
