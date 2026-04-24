@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader } from '@/components/ui';
-import { Upload, CheckCircle2, AlertCircle, Building2, User, Banknote, FileText } from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle, User, Banknote, FileText, Image as ImageIcon } from 'lucide-react';
 
 type KycStatusResponse = {
   kycStatus: 'PENDING' | 'DOCUMENTS_SENT' | 'APPROVED' | 'REJECTED';
@@ -29,6 +29,10 @@ export default function Verification() {
   const { data: kyc, isLoading } = useQuery<KycStatusResponse>({
     queryKey: ['kyc-status'],
     queryFn : () => api.get('/producers/kyc/status').then(r => r.data),
+  });
+  const { data: me } = useQuery<any>({
+    queryKey: ['producer-me'],
+    queryFn : () => api.get('/producers/me').then(r => r.data),
   });
 
   const percent = useMemo(() => {
@@ -73,7 +77,12 @@ export default function Verification() {
         complete={completeness.hasRegister}
         locked={locked}
       >
-        <RegisterForm onSaved={() => qc.invalidateQueries({ queryKey: ['kyc-status'] })} disabled={locked} />
+        <RegisterForm
+          initial={(me?.metadata as any)?.registerInformation}
+          fallback={{ name: me?.user?.name, email: me?.user?.email, document: me?.user?.document }}
+          onSaved={() => { qc.invalidateQueries({ queryKey: ['kyc-status'] }); qc.invalidateQueries({ queryKey: ['producer-me'] }); }}
+          disabled={locked}
+        />
       </Section>
 
       <Section
@@ -82,7 +91,11 @@ export default function Verification() {
         complete={completeness.hasBanking}
         locked={locked}
       >
-        <BankingForm onSaved={() => qc.invalidateQueries({ queryKey: ['kyc-status'] })} disabled={locked} />
+        <BankingForm
+          initial={me?.bankData}
+          onSaved={() => { qc.invalidateQueries({ queryKey: ['kyc-status'] }); qc.invalidateQueries({ queryKey: ['producer-me'] }); }}
+          disabled={locked}
+        />
       </Section>
 
       <Section
@@ -182,15 +195,39 @@ function Section({ icon, title, complete, locked, children }: any) {
 }
 
 // ── FORMULÁRIO DE DADOS CADASTRAIS ────────────────────────────────
-function RegisterForm({ onSaved, disabled }: { onSaved: () => void; disabled?: boolean }) {
-  const [form, setForm] = useState<any>({
+function RegisterForm({ initial, fallback, onSaved, disabled }: {
+  initial?: any;
+  fallback?: { name?: string; email?: string; document?: string };
+  onSaved: () => void;
+  disabled?: boolean;
+}) {
+  const defaults = {
     type: 'individual',
     name: '', email: '', document: '',
     birthdate: '', monthlyIncome: 500000, professionalOccupation: '', motherName: '',
     companyName: '', tradingName: '', siteUrl: '', annualRevenue: 1200000, corporationType: 'LTDA', foundingDate: '',
     phoneNumbers: [{ ddd: '', number: '', type: 'mobile' }],
     address: { street: '', streetNumber: '', complementary: '', neighborhood: '', city: '', state: '', zipCode: '', referencePoint: '' },
-  });
+  };
+  const [form, setForm] = useState<any>(defaults);
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    if (hydrated.current) return;
+    if (!initial && !fallback) return;
+    hydrated.current = true;
+    const reg = initial || {};
+    setForm({
+      ...defaults,
+      ...reg,
+      type: reg.type || 'individual',
+      name: reg.name || fallback?.name || '',
+      email: reg.email || fallback?.email || '',
+      document: reg.document || fallback?.document || '',
+      phoneNumbers: reg.phoneNumbers?.length ? reg.phoneNumbers : defaults.phoneNumbers,
+      address: { ...defaults.address, ...(reg.address || {}) },
+    });
+  }, [initial, fallback]);
 
   const mutation = useMutation({
     mutationFn: (data: any) => api.patch('/producers/register-information', data),
@@ -203,6 +240,11 @@ function RegisterForm({ onSaved, disabled }: { onSaved: () => void; disabled?: b
     if (form.type === 'individual') {
       delete payload.companyName; delete payload.tradingName; delete payload.siteUrl;
       delete payload.annualRevenue; delete payload.corporationType; delete payload.foundingDate;
+    } else {
+      // PJ: remove optional fields that are empty (Zod .url()/.regex() rejects empty string)
+      if (!payload.siteUrl) delete payload.siteUrl;
+      if (!payload.foundingDate) delete payload.foundingDate;
+      if (!payload.tradingName) delete payload.tradingName;
     }
     mutation.mutate(payload);
   };
@@ -310,11 +352,23 @@ function RegisterForm({ onSaved, disabled }: { onSaved: () => void; disabled?: b
 }
 
 // ── FORMULÁRIO DE DADOS BANCÁRIOS ─────────────────────────────────
-function BankingForm({ onSaved, disabled }: { onSaved: () => void; disabled?: boolean }) {
-  const [form, setForm] = useState<any>({
+function BankingForm({ initial, onSaved, disabled }: {
+  initial?: any;
+  onSaved: () => void;
+  disabled?: boolean;
+}) {
+  const defaults = {
     bank: '', branchNumber: '', branchCheckDigit: '', accountNumber: '', accountCheckDigit: '',
     type: 'checking', holderName: '', holderDocument: '',
-  });
+  };
+  const [form, setForm] = useState<any>(defaults);
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    if (hydrated.current || !initial) return;
+    hydrated.current = true;
+    setForm({ ...defaults, ...initial });
+  }, [initial]);
 
   const mutation = useMutation({
     mutationFn: (data: any) => api.patch('/producers/banking', data),
@@ -361,39 +415,122 @@ function BankingForm({ onSaved, disabled }: { onSaved: () => void; disabled?: bo
 }
 
 // ── UPLOAD DE DOCUMENTOS ──────────────────────────────────────────
+const ACCEPTED_DOC_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_DOC_MB = 10;
+
 function DocumentsForm({ documents, onUploaded, disabled }: {
   documents: any[];
   onUploaded: () => void;
   disabled?: boolean;
 }) {
   const [type, setType] = useState(DOC_TYPES[0].value);
-  const [url, setUrl]   = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const mutation = useMutation({
-    mutationFn: (data: any) => api.post('/producers/kyc/documents', data),
-    onSuccess : () => { toast.success('Documento adicionado'); setUrl(''); onUploaded(); },
-    onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro ao enviar'),
+  useEffect(() => {
+    if (!file) { setPreview(null); return; }
+    const u = URL.createObjectURL(file);
+    setPreview(u);
+    return () => URL.revokeObjectURL(u);
+  }, [file]);
+
+  const createDoc = useMutation({
+    mutationFn: (data: { type: string; url: string }) => api.post('/producers/kyc/documents', data),
+    onSuccess : () => {
+      toast.success('Documento enviado');
+      setFile(null);
+      if (inputRef.current) inputRef.current.value = '';
+      onUploaded();
+    },
+    onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro ao salvar documento'),
   });
+
+  const handlePick = (f: File | null) => {
+    if (!f) { setFile(null); return; }
+    if (!ACCEPTED_DOC_MIMES.includes(f.type)) {
+      toast.error('Use uma imagem JPG, PNG ou WebP');
+      return;
+    }
+    if (f.size > MAX_DOC_MB * 1024 * 1024) {
+      toast.error(`Arquivo muito grande. Máximo: ${MAX_DOC_MB}MB`);
+      return;
+    }
+    setFile(f);
+  };
+
+  const handleSend = async () => {
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await api.post<{ url: string }>('/upload/image?folder=kyc', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      await createDoc.mutateAsync({ type, url: res.data.url });
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Erro ao enviar imagem');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const busy = isUploading || createDoc.isPending;
 
   return (
     <div className="space-y-3">
       <div className="text-xs text-text3">
-        Faça o upload do arquivo no seu provedor (Google Drive, Dropbox, etc), copie o link público e cole abaixo.
+        Envie uma <strong>foto ou imagem escaneada</strong> do documento (JPG, PNG ou WebP — até {MAX_DOC_MB}MB).
+        Tire a foto com boa iluminação e sem reflexos.
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Field label="Tipo">
-          <select className="input" value={type} onChange={e => setType(e.target.value)} disabled={disabled}>
+          <select className="input" value={type} onChange={e => setType(e.target.value)} disabled={disabled || busy}>
             {DOC_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </Field>
         <div className="md:col-span-2">
-          <Field label="URL do arquivo">
-            <input className="input" type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://..." disabled={disabled} />
+          <Field label="Arquivo">
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+              <button
+                type="button"
+                className="btn-ghost border border-border flex items-center gap-2 justify-center"
+                onClick={() => inputRef.current?.click()}
+                disabled={disabled || busy}
+              >
+                <ImageIcon size={14} />
+                {file ? 'Trocar imagem' : 'Escolher imagem'}
+              </button>
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={e => handlePick(e.target.files?.[0] || null)}
+              />
+              {file && (
+                <span className="text-xs text-text2 truncate">
+                  {file.name} <span className="text-text3">({(file.size / 1024).toFixed(0)} KB)</span>
+                </span>
+              )}
+            </div>
+            {preview && (
+              <div className="mt-2">
+                <img src={preview} alt="Pré-visualização" className="max-h-40 rounded-md border border-border" />
+              </div>
+            )}
           </Field>
         </div>
       </div>
-      <button className="btn-primary" onClick={() => mutation.mutate({ type, url })} disabled={mutation.isPending || !url || disabled}>
-        <Upload size={14} className="mr-1 inline" /> Adicionar
+      <button
+        className="btn-primary"
+        onClick={handleSend}
+        disabled={busy || !file || disabled}
+      >
+        <Upload size={14} className="mr-1 inline" />
+        {busy ? 'Enviando...' : 'Adicionar'}
       </button>
 
       {documents.length > 0 && (
