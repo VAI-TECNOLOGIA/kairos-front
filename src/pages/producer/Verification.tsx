@@ -214,7 +214,9 @@ function RegisterForm({ initial, fallback, onSaved, disabled }: {
 
   useEffect(() => {
     if (hydrated.current) return;
-    if (!initial && !fallback) return;
+    const hasInitial = initial && Object.keys(initial).length > 0;
+    const hasFallback = !!(fallback?.name || fallback?.email || fallback?.document);
+    if (!hasInitial && !hasFallback) return; // espera /producers/me carregar
     hydrated.current = true;
     const reg = initial || {};
     setForm({
@@ -365,7 +367,8 @@ function BankingForm({ initial, onSaved, disabled }: {
   const hydrated = useRef(false);
 
   useEffect(() => {
-    if (hydrated.current || !initial) return;
+    if (hydrated.current) return;
+    if (!initial || Object.keys(initial).length === 0) return; // espera /producers/me carregar
     hydrated.current = true;
     setForm({ ...defaults, ...initial });
   }, [initial]);
