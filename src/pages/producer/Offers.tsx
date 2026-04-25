@@ -1,21 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import api from "@/lib/api";
 import { useAuthStore } from "@/stores/auth.store";
-import { PageHeader, Modal, Loading, EmptyState, SplitBarVisual } from "@/components/ui";
-import { formatBRL, RECIPIENT_LABEL } from "@/lib/utils";
-import type { Product, Offer } from "@/types";
-import { Tag, Plus, Settings, Copy, AlertCircle, Lock } from "lucide-react";
+import { PageHeader, Modal, EmptyState, SplitBarVisual } from "@/components/ui";
+import { formatBRL } from "@/lib/utils";
+import type { Product } from "@/types";
+import { Tag, Plus, Copy, AlertCircle, Lock } from "lucide-react";
 
 const offerSchema = z.object({ productId: z.string(), name: z.string().min(3), priceCents: z.number().int().positive(), type: z.enum(["STANDARD","UPSELL","ORDERBUMP","SUBSCRIPTION"]) });
 type OfferForm = z.infer<typeof offerSchema>;
-
-const splitSchema = z.object({ splits: z.array(z.object({ recipientType: z.enum(["PRODUCER","COPRODUCER","AFFILIATE"]), recipientId: z.string().optional(), basisPoints: z.number().min(0.01).max(100), description: z.string().optional() })) });
-type SplitForm = z.infer<typeof splitSchema>;
 
 export default function OfferManager() {
   const qc = useQueryClient();
@@ -23,7 +20,6 @@ export default function OfferManager() {
   const isAffiliate = user?.role === 'AFFILIATE';
 
   const [openOffer, setOpenOffer] = useState(false);
-  const [splitOfferId, setSplitOfferId] = useState<string|null>(null);
 
   const { data: products } = useQuery({ queryKey:["my-products"], queryFn:()=>api.get("/products").then(r=>r.data) });
 
@@ -36,65 +32,27 @@ export default function OfferManager() {
   const platformPct     = platformBps / 100;                      // 5
   const producerQuotaPct = 100 - platformPct;                     // 95
 
-  // Queries de afiliados e co-produtores só para PRODUCER/ADMIN
-  const { data: affiliatesData } = useQuery({
-    queryKey: ["my-affiliates"],
-    queryFn : () => api.get("/affiliates/pending?status=APPROVED").then(r => r.data),
-    enabled : !isAffiliate,
-  });
-  const { data: coproducersData } = useQuery({
-    queryKey: ["coproducers-list"],
-    queryFn : () => api.get("/coproducers").then(r => r.data),
-    enabled : !isAffiliate,
-  });
-
-  const affiliates  = affiliatesData?.data  || [];
-  const coproducers = coproducersData?.data || coproducersData || [];
   const allProducts: Product[] = products?.data || [];
 
-  const { register: ro, handleSubmit: ho, reset: rro, formState:{errors:eo} } = useForm<OfferForm>({ resolver: zodResolver(offerSchema), defaultValues:{type:"STANDARD"} });
-  const { register: rs, handleSubmit: hs, control, watch: ws, reset: resetSplits } = useForm<SplitForm>({ resolver: zodResolver(splitSchema), defaultValues:{ splits:[{recipientType:"PRODUCER",basisPoints:producerQuotaPct}] } });
-  const { fields, append, remove } = useFieldArray({ control, name:"splits" });
-  const splitsWatch = ws("splits");
-  const totalPct = splitsWatch.reduce((s,x)=>s+(x.basisPoints||0),0);
+  const { register: ro, handleSubmit: ho, reset: rro } = useForm<OfferForm>({ resolver: zodResolver(offerSchema), defaultValues:{type:"STANDARD"} });
 
-  // Quando abre o modal de splits, carrega os splits existentes (se houver)
-  // para que o produtor edite em vez de recriar do zero.
-  useEffect(() => {
-    if (!splitOfferId) return;
-    // Acha a oferta na lista já carregada
-    const offer = allProducts.flatMap(p => p.offers || []).find((o: any) => o.id === splitOfferId);
-    const existing = ((offer as any)?.splitRules || []).filter((r: any) => r.recipientType !== 'PLATFORM');
-    if (existing.length > 0) {
-      resetSplits({
-        splits: existing.map((r: any) => ({
-          recipientType: r.recipientType,
-          recipientId  : r.recipientId || undefined,
-          basisPoints  : r.basisPoints / 100,  // bps → %
-          description  : r.description || undefined,
-        })),
-      });
-    } else {
-      resetSplits({ splits: [{ recipientType: "PRODUCER", basisPoints: producerQuotaPct }] });
-    }
-  }, [splitOfferId, allProducts, resetSplits, producerQuotaPct]);
+  const saveStandardSplit = async (offerId: string) => {
+    const { data: fee } = await api.get('/admin/platform-fee');
+    const pBps = fee.platformBps || 500;
+    const prodBps = 10000 - pBps;
+    await api.post(`/offers/${offerId}/splits`, {
+      splits: [
+        { recipientType: "PLATFORM", recipientId: "platform", basisPoints: pBps, description: `Taxa plataforma ${(pBps / 100).toFixed(2)}%` },
+        { recipientType: "PRODUCER", basisPoints: prodBps, description: `Produtor ${(prodBps / 100).toFixed(2)}%` },
+      ],
+    });
+  };
 
   const createOffer = useMutation({
     mutationFn: async (d: OfferForm) => {
       const offer = await api.post("/offers", d);
-      // Split padrão automático (produtor OU afiliado co-produtor):
-      // Plataforma (% configurada pelo admin) + Produtor/CoProdutor (resto)
-      // Sem isso, o checkout reclama "split não configurado".
       try {
-        const { data: fee } = await api.get('/admin/platform-fee');
-        const platformBps = fee.platformBps || 500; // fallback 5%
-        const producerBps = 10000 - platformBps;
-        await api.post(`/offers/${offer.data.id}/splits`, {
-          splits: [
-            { recipientType: "PLATFORM", recipientId: "platform", basisPoints: platformBps, description: `Taxa plataforma ${(platformBps / 100).toFixed(2)}%` },
-            { recipientType: "PRODUCER", basisPoints: producerBps, description: `Produtor ${(producerBps / 100).toFixed(2)}%` },
-          ],
-        });
+        await saveStandardSplit(offer.data.id);
       } catch (err: any) {
         console.warn('[offers] split padrão não configurado:', err?.message);
       }
@@ -109,28 +67,13 @@ export default function OfferManager() {
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao criar oferta'),
   });
 
-  const configSplits = useMutation({
-    mutationFn: async ({ id, splits }: { id:string; splits:SplitForm["splits"] }) => {
-      // O backend exige soma EXATA de 10000 bps. A taxa da plataforma (platformBps)
-      // nunca é editável pelo produtor — incluímos aqui antes de enviar.
-      const userSplits = splits.map(s => ({
-        ...s,
-        basisPoints: Math.round(s.basisPoints * 100),  // % → bps
-      }));
-      const fullSplits = [
-        { recipientType: 'PLATFORM' as const, recipientId: 'platform', basisPoints: platformBps, description: `Taxa plataforma ${platformPct}%` },
-        ...userSplits,
-      ];
-      return api.post(`/offers/${id}/splits`, { splits: fullSplits });
-    },
+  const fixSplit = useMutation({
+    mutationFn: async (offerId: string) => saveStandardSplit(offerId),
     onSuccess: () => {
-      toast.success('Splits configurados!');
+      toast.success('Split configurado!');
       qc.invalidateQueries({ queryKey: ['my-products'] });
-      setSplitOfferId(null);
     },
-    onError: (e: any) => {
-      toast.error(e?.response?.data?.message || 'Erro ao salvar splits. Verifique se a soma é exatamente 100%.');
-    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao configurar split'),
   });
 
   const copyLink = async (slug: string) => {
@@ -142,7 +85,7 @@ export default function OfferManager() {
     <div>
       <PageHeader
         title="Ofertas & Split Engine"
-        sub={isAffiliate ? "Gerencie as ofertas dos seus produtos" : "Configure splits independentes por oferta"}
+        sub={isAffiliate ? "Gerencie as ofertas dos seus produtos" : "Crie ofertas e gerencie os links de checkout"}
         actions={<button onClick={()=>setOpenOffer(true)} className="btn-primary btn-sm"><Plus size={14}/> Nova oferta</button>}
       />
 
@@ -192,11 +135,6 @@ export default function OfferManager() {
                           <Lock size={11} /> Link bloqueado
                         </span>
                       )}
-                      {!isAffiliate && (
-                        <button onClick={()=>setSplitOfferId(o.id)} className="btn-sec btn-sm">
-                          <Settings size={13}/> Splits
-                        </button>
-                      )}
                     </div>
                   </div>
 
@@ -211,18 +149,18 @@ export default function OfferManager() {
                     </div>
                   )}
 
-                  {/* Alerta — splits não configurados */}
+                  {/* Alerta — split não configurado (oferta legada) */}
                   {!productRejected && !hasSplits && (
                     <div className="flex items-start gap-2 bg-amber/10 border border-amber/30 rounded-[6px] p-2.5 text-xs text-amber">
                       <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <strong>Splits não configurados.</strong>{' '}
-                        O link de checkout ficará bloqueado até você distribuir 100% entre
-                        plataforma, produtor, co-produtores e afiliados. Clique em{' '}
+                        <strong>Split não configurado.</strong>{' '}
+                        Aplica o split padrão ({platformPct}% plataforma + {producerQuotaPct}% você) automaticamente.{' '}
                         <button
-                          onClick={() => setSplitOfferId(o.id)}
+                          onClick={() => fixSplit.mutate(o.id)}
+                          disabled={fixSplit.isPending}
                           className="underline hover:no-underline font-semibold"
-                        >Splits</button> para configurar.
+                        >{fixSplit.isPending ? 'Configurando...' : 'Configurar agora'}</button>.
                       </div>
                     </div>
                   )}
@@ -272,97 +210,6 @@ export default function OfferManager() {
         </div>
       </Modal>
 
-      {/* Modal splits — só para PRODUCER/ADMIN */}
-      {!isAffiliate && (
-        <Modal open={!!splitOfferId} onClose={()=>setSplitOfferId(null)} title="Configurar Splits" size="lg"
-          footer={
-            <div className="flex items-center justify-between w-full flex-wrap gap-2">
-              <span className={`text-sm font-semibold ${totalPct===producerQuotaPct?"text-green":"text-red"}`}>
-                Sua distribuição: {totalPct}% de {producerQuotaPct}%
-                {totalPct===producerQuotaPct
-                  ? " — OK"
-                  : totalPct>producerQuotaPct
-                    ? ` (excedeu em ${totalPct-producerQuotaPct}%)`
-                    : ` (faltam ${producerQuotaPct-totalPct}%)`}
-              </span>
-              <div className="flex gap-2">
-                <button className="btn-ghost" onClick={()=>setSplitOfferId(null)}>Cancelar</button>
-                <button disabled={totalPct!==producerQuotaPct || configSplits.isPending} className="btn-primary"
-                  onClick={hs(d=>configSplits.mutate({id:splitOfferId!,splits:d.splits}))}>
-                  {configSplits.isPending ? 'Salvando...' : 'Salvar splits'}
-                </button>
-              </div>
-            </div>
-          }>
-
-          <div className="flex items-start gap-2 bg-accent/5 border border-accent/20 rounded-[7px] p-3 mb-4 text-xs text-text2">
-            <AlertCircle size={13} className="text-accent flex-shrink-0 mt-0.5" />
-            <div>
-              Distribua exatamente <strong>{producerQuotaPct}%</strong> entre você (Produtor), co-produtores e afiliados.
-              A taxa de <strong>{platformPct}%</strong> da plataforma é aplicada automaticamente — você não precisa incluí-la aqui.
-              Para afiliados específicos, selecione "Afiliado" e escolha o perfil na segunda coluna.
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between bg-purple/10 border border-purple/30 rounded-[7px] p-3 mb-4">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-sm bg-purple flex-shrink-0" />
-              <span className="text-sm font-medium text-text">Plataforma Kairos Way</span>
-              <span className="badge-gray text-[10px]">automático</span>
-            </div>
-            <span className="text-sm font-bold text-text">{platformPct}%</span>
-          </div>
-
-          <div className="text-xs text-text3 mb-3">Sua parte ({producerQuotaPct}% restantes):</div>
-          <div className="space-y-3 mb-4">
-            {fields.map((f,i)=>(
-              <div key={f.id} className="grid grid-cols-12 gap-2 items-center bg-bg3 p-3 rounded-[7px]">
-                <div className="col-span-4">
-                  <select {...rs(`splits.${i}.recipientType`)} className="input input-sm">
-                    {["PRODUCER","COPRODUCER","AFFILIATE"].map(t=>(
-                      <option key={t} value={t}>{RECIPIENT_LABEL[t]}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-span-4">
-                  {splitsWatch[i]?.recipientType === "AFFILIATE" ? (
-                    <select {...rs(`splits.${i}.recipientId`)} className="input input-sm">
-                      <option value="">Selecione afiliado...</option>
-                      {affiliates.map((a:any) => (
-                        <option key={a.id} value={a.userId}>{a.user.name} ({a.code})</option>
-                      ))}
-                    </select>
-                  ) : splitsWatch[i]?.recipientType === "COPRODUCER" ? (
-                    <select {...rs(`splits.${i}.recipientId`)} className="input input-sm">
-                      <option value="">Selecione produtor...</option>
-                      {coproducers.map((r:any) => (
-                        <option key={r.id} value={r.userId}>{r.user?.name || r.userId?.slice(-8)}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div className="input input-sm bg-bg2 text-text3 text-xs flex items-center px-2">
-                      Você — preenchido automaticamente
-                    </div>
-                  )}
-                </div>
-                <div className="col-span-3 flex items-center gap-1">
-                  <input {...rs(`splits.${i}.basisPoints`,{valueAsNumber:true})} type="number"
-                    className="input input-sm" placeholder={String(producerQuotaPct)} min={0.01} max={producerQuotaPct} step={0.5}/>
-                  <span className="text-xs text-text3 flex-shrink-0">%</span>
-                </div>
-                <div className="col-span-1 flex justify-end">
-                  {fields.length>1 && (
-                    <button onClick={()=>remove(i)} className="text-red hover:text-red/70 text-lg leading-none">×</button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-          <button onClick={()=>append({recipientType:"COPRODUCER",basisPoints:0})} className="btn-sec btn-sm">
-            <Plus size={13}/> Adicionar produtor / afiliado
-          </button>
-        </Modal>
-      )}
     </div>
   );
 }

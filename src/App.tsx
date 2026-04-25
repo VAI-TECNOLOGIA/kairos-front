@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import LoginPage               from '@/pages/public/LoginPage';
 import ForgotPasswordPage     from '@/pages/public/ForgotPasswordPage';
 import AffiliateRegisterPage  from '@/pages/public/AffiliateRegisterPage';
+import AffiliateInvitePage    from '@/pages/public/AffiliateInvitePage';
 import MfaPage        from '@/pages/public/MfaPage';
 import RegisterPage   from '@/pages/public/RegisterPage';
 import CheckoutPage   from '@/pages/public/CheckoutPage';
@@ -108,6 +109,7 @@ export default function App() {
       <Route path="/cadastro"           element={<RegisterPage />} />
       <Route path="/checkout/:slug"     element={<CheckoutPage />} />
       <Route path="/seja-afiliado"      element={<AffiliateRegisterPage />} />
+      <Route path="/afiliar/:offerSlug" element={<AffiliateInvitePage />} />
 
       {/* ── ADMIN ── */}
       <Route path="/admin" element={<ProtectedRoute role={['ADMIN','STAFF']}><AdminLayout /></ProtectedRoute>}>

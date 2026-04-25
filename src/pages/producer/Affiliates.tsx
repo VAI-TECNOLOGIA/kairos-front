@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader } from '@/components/ui';
 import { formatDateTime } from '@/lib/utils';
-import { CheckCircle, Info, Settings } from 'lucide-react';
+import { CheckCircle, Info, Settings, Copy, Link2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
 export default function ProducerAffiliates() {
@@ -130,14 +130,32 @@ export default function ProducerAffiliates() {
           ) : (
             <div className="table-wrapper">
               <table className="table">
-                <thead><tr><th>Produto / Oferta</th><th>Comissão</th><th>Afiliados</th><th>Status</th><th>Ação</th></tr></thead>
+                <thead><tr><th>Produto / Oferta</th><th>Comissão</th><th>Afiliados</th><th>Status</th><th>Link de convite</th><th>Ação</th></tr></thead>
                 <tbody>
-                  {(offers || []).map((o: any) => (
+                  {(offers || []).map((o: any) => {
+                    const inviteUrl = `${window.location.origin}/afiliar/${o.slug}`;
+                    return (
                     <tr key={o.id}>
                       <td><div className="font-medium text-text">{o.product?.name}</div><div className="text-xs text-text3">{o.name}</div></td>
                       <td>{o.affiliateConfig ? <span className="badge-blue">{o.affiliateConfig.commissionBps / 100}%</span> : <span className="text-text3 text-xs">—</span>}</td>
                       <td>{o._count?.affiliateEnrollments || 0}</td>
                       <td>{o.affiliateConfig?.enabled ? <span className="badge-green">Ativo</span> : <span className="badge-amber">Inativo</span>}</td>
+                      <td>
+                        {o.affiliateConfig?.enabled ? (
+                          <button
+                            className="btn-secondary btn-sm"
+                            title={inviteUrl}
+                            onClick={() => {
+                              navigator.clipboard.writeText(inviteUrl);
+                              toast.success('Link de convite copiado!');
+                            }}
+                          >
+                            <Link2 size={12} /> Copiar <Copy size={10} />
+                          </button>
+                        ) : (
+                          <span className="text-text3 text-xs">Habilite a comissão</span>
+                        )}
+                      </td>
                       <td>
                         <button className="btn-secondary btn-sm" onClick={() => {
                           setSelectedOffer(o);
@@ -149,7 +167,8 @@ export default function ProducerAffiliates() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
