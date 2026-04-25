@@ -210,26 +210,33 @@ function RegisterForm({ initial, fallback, onSaved, disabled }: {
     address: { street: '', streetNumber: '', complementary: '', neighborhood: '', city: '', state: '', zipCode: '', referencePoint: '' },
   };
   const [form, setForm] = useState<any>(defaults);
-  const hydrated = useRef(false);
+  const dirty = useRef(false);
+  const lastSyncKey = useRef<string>('');
 
+  // Sync initial→form sempre que initial chegar (1ª vez ou após save).
+  // NÃO sobrescreve enquanto user está digitando (dirty=true).
   useEffect(() => {
-    if (hydrated.current) return;
-    const hasInitial = initial && Object.keys(initial).length > 0;
-    const hasFallback = !!(fallback?.name || fallback?.email || fallback?.document);
-    if (!hasInitial && !hasFallback) return; // espera /producers/me carregar
-    hydrated.current = true;
     const reg = initial || {};
+    const fb  = fallback || {};
+    const key = JSON.stringify({ reg, fb });
+    if (key === lastSyncKey.current) return;
+    if (dirty.current) return;
+    const hasAnything = Object.keys(reg).length > 0 || fb.name || fb.email || fb.document;
+    if (!hasAnything) return;
+    lastSyncKey.current = key;
     setForm({
       ...defaults,
       ...reg,
       type: reg.type || 'individual',
-      name: reg.name || fallback?.name || '',
-      email: reg.email || fallback?.email || '',
-      document: reg.document || fallback?.document || '',
+      name: reg.name || fb.name || '',
+      email: reg.email || fb.email || '',
+      document: reg.document || fb.document || '',
       phoneNumbers: reg.phoneNumbers?.length ? reg.phoneNumbers : defaults.phoneNumbers,
       address: { ...defaults.address, ...(reg.address || {}) },
     });
   }, [initial, fallback]);
+
+  const updateForm = (patch: any) => { dirty.current = true; setForm((f: any) => ({ ...f, ...patch })); };
 
   const mutation = useMutation({
     mutationFn: (data: any) => api.patch('/producers/register-information', data),
@@ -255,47 +262,47 @@ function RegisterForm({ initial, fallback, onSaved, disabled }: {
     <div className="space-y-4">
       <div className="flex gap-3">
         <label className="flex items-center gap-2 text-sm">
-          <input type="radio" checked={form.type === 'individual'} onChange={() => setForm({ ...form, type: 'individual' })} disabled={disabled} />
+          <input type="radio" checked={form.type === 'individual'} onChange={() => updateForm({ type: 'individual' })} disabled={disabled} />
           Pessoa Física
         </label>
         <label className="flex items-center gap-2 text-sm">
-          <input type="radio" checked={form.type === 'corporation'} onChange={() => setForm({ ...form, type: 'corporation' })} disabled={disabled} />
+          <input type="radio" checked={form.type === 'corporation'} onChange={() => updateForm({ type: 'corporation' })} disabled={disabled} />
           Pessoa Jurídica
         </label>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Field label={form.type === 'corporation' ? 'Razão social' : 'Nome completo'}>
-          <input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} disabled={disabled} />
+          <input className="input" value={form.name} onChange={e => updateForm({ name: e.target.value })} disabled={disabled} />
         </Field>
         <Field label="E-mail">
-          <input className="input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} disabled={disabled} />
+          <input className="input" type="email" value={form.email} onChange={e => updateForm({ email: e.target.value })} disabled={disabled} />
         </Field>
         <Field label={form.type === 'corporation' ? 'CNPJ' : 'CPF'}>
-          <input className="input" value={form.document} onChange={e => setForm({ ...form, document: e.target.value })} disabled={disabled} />
+          <input className="input" value={form.document} onChange={e => updateForm({ document: e.target.value })} disabled={disabled} />
         </Field>
         {form.type === 'individual' ? (
           <>
             <Field label="Data de nascimento (DD/MM/AAAA)">
-              <input className="input" value={form.birthdate} onChange={e => setForm({ ...form, birthdate: e.target.value })} disabled={disabled} />
+              <input className="input" value={form.birthdate} onChange={e => updateForm({ birthdate: e.target.value })} disabled={disabled} />
             </Field>
             <Field label="Profissão">
-              <input className="input" value={form.professionalOccupation} onChange={e => setForm({ ...form, professionalOccupation: e.target.value })} disabled={disabled} />
+              <input className="input" value={form.professionalOccupation} onChange={e => updateForm({ professionalOccupation: e.target.value })} disabled={disabled} />
             </Field>
             <Field label="Renda mensal (centavos)">
-              <input className="input" type="number" value={form.monthlyIncome} onChange={e => setForm({ ...form, monthlyIncome: +e.target.value })} disabled={disabled} />
+              <input className="input" type="number" value={form.monthlyIncome} onChange={e => updateForm({ monthlyIncome: +e.target.value })} disabled={disabled} />
             </Field>
             <Field label="Nome da mãe">
-              <input className="input" value={form.motherName} onChange={e => setForm({ ...form, motherName: e.target.value })} disabled={disabled} />
+              <input className="input" value={form.motherName} onChange={e => updateForm({ motherName: e.target.value })} disabled={disabled} />
             </Field>
           </>
         ) : (
           <>
             <Field label="Nome fantasia">
-              <input className="input" value={form.tradingName} onChange={e => setForm({ ...form, tradingName: e.target.value })} disabled={disabled} />
+              <input className="input" value={form.tradingName} onChange={e => updateForm({ tradingName: e.target.value })} disabled={disabled} />
             </Field>
             <Field label="Tipo da empresa">
-              <select className="input" value={form.corporationType} onChange={e => setForm({ ...form, corporationType: e.target.value })} disabled={disabled}>
+              <select className="input" value={form.corporationType} onChange={e => updateForm({ corporationType: e.target.value })} disabled={disabled}>
                 <option value="LTDA">LTDA</option>
                 <option value="EIRELI">EIRELI</option>
                 <option value="MEI">MEI</option>
@@ -303,13 +310,13 @@ function RegisterForm({ initial, fallback, onSaved, disabled }: {
               </select>
             </Field>
             <Field label="Data de fundação (DD/MM/AAAA)">
-              <input className="input" value={form.foundingDate} onChange={e => setForm({ ...form, foundingDate: e.target.value })} disabled={disabled} />
+              <input className="input" value={form.foundingDate} onChange={e => updateForm({ foundingDate: e.target.value })} disabled={disabled} />
             </Field>
             <Field label="Faturamento anual (centavos)">
-              <input className="input" type="number" value={form.annualRevenue} onChange={e => setForm({ ...form, annualRevenue: +e.target.value })} disabled={disabled} />
+              <input className="input" type="number" value={form.annualRevenue} onChange={e => updateForm({ annualRevenue: +e.target.value })} disabled={disabled} />
             </Field>
             <Field label="Site">
-              <input className="input" value={form.siteUrl} onChange={e => setForm({ ...form, siteUrl: e.target.value })} disabled={disabled} />
+              <input className="input" value={form.siteUrl} onChange={e => updateForm({ siteUrl: e.target.value })} disabled={disabled} />
             </Field>
           </>
         )}
@@ -319,13 +326,13 @@ function RegisterForm({ initial, fallback, onSaved, disabled }: {
         <div className="text-sm font-semibold mb-2">Telefone</div>
         <div className="grid grid-cols-3 gap-2">
           <Field label="DDD">
-            <input className="input" value={form.phoneNumbers[0].ddd} onChange={e => setForm({ ...form, phoneNumbers: [{ ...form.phoneNumbers[0], ddd: e.target.value }] })} disabled={disabled} />
+            <input className="input" value={form.phoneNumbers[0].ddd} onChange={e => updateForm({ phoneNumbers: [{ ...form.phoneNumbers[0], ddd: e.target.value }] })} disabled={disabled} />
           </Field>
           <Field label="Número">
-            <input className="input" value={form.phoneNumbers[0].number} onChange={e => setForm({ ...form, phoneNumbers: [{ ...form.phoneNumbers[0], number: e.target.value }] })} disabled={disabled} />
+            <input className="input" value={form.phoneNumbers[0].number} onChange={e => updateForm({ phoneNumbers: [{ ...form.phoneNumbers[0], number: e.target.value }] })} disabled={disabled} />
           </Field>
           <Field label="Tipo">
-            <select className="input" value={form.phoneNumbers[0].type} onChange={e => setForm({ ...form, phoneNumbers: [{ ...form.phoneNumbers[0], type: e.target.value as any }] })} disabled={disabled}>
+            <select className="input" value={form.phoneNumbers[0].type} onChange={e => updateForm({ phoneNumbers: [{ ...form.phoneNumbers[0], type: e.target.value as any }] })} disabled={disabled}>
               <option value="mobile">Celular</option>
               <option value="home">Fixo</option>
             </select>
@@ -336,13 +343,13 @@ function RegisterForm({ initial, fallback, onSaved, disabled }: {
       <div className="border-t border-border pt-3">
         <div className="text-sm font-semibold mb-2">Endereço</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Field label="CEP"><input className="input" value={form.address.zipCode} onChange={e => setForm({ ...form, address: { ...form.address, zipCode: e.target.value } })} disabled={disabled} /></Field>
-          <Field label="Logradouro"><input className="input" value={form.address.street} onChange={e => setForm({ ...form, address: { ...form.address, street: e.target.value } })} disabled={disabled} /></Field>
-          <Field label="Número"><input className="input" value={form.address.streetNumber} onChange={e => setForm({ ...form, address: { ...form.address, streetNumber: e.target.value } })} disabled={disabled} /></Field>
-          <Field label="Complemento"><input className="input" value={form.address.complementary} onChange={e => setForm({ ...form, address: { ...form.address, complementary: e.target.value } })} disabled={disabled} /></Field>
-          <Field label="Bairro"><input className="input" value={form.address.neighborhood} onChange={e => setForm({ ...form, address: { ...form.address, neighborhood: e.target.value } })} disabled={disabled} /></Field>
-          <Field label="Cidade"><input className="input" value={form.address.city} onChange={e => setForm({ ...form, address: { ...form.address, city: e.target.value } })} disabled={disabled} /></Field>
-          <Field label="UF"><input className="input" maxLength={2} value={form.address.state} onChange={e => setForm({ ...form, address: { ...form.address, state: e.target.value.toUpperCase() } })} disabled={disabled} /></Field>
+          <Field label="CEP"><input className="input" value={form.address.zipCode} onChange={e => updateForm({ address: { ...form.address, zipCode: e.target.value } })} disabled={disabled} /></Field>
+          <Field label="Logradouro"><input className="input" value={form.address.street} onChange={e => updateForm({ address: { ...form.address, street: e.target.value } })} disabled={disabled} /></Field>
+          <Field label="Número"><input className="input" value={form.address.streetNumber} onChange={e => updateForm({ address: { ...form.address, streetNumber: e.target.value } })} disabled={disabled} /></Field>
+          <Field label="Complemento"><input className="input" value={form.address.complementary} onChange={e => updateForm({ address: { ...form.address, complementary: e.target.value } })} disabled={disabled} /></Field>
+          <Field label="Bairro"><input className="input" value={form.address.neighborhood} onChange={e => updateForm({ address: { ...form.address, neighborhood: e.target.value } })} disabled={disabled} /></Field>
+          <Field label="Cidade"><input className="input" value={form.address.city} onChange={e => updateForm({ address: { ...form.address, city: e.target.value } })} disabled={disabled} /></Field>
+          <Field label="UF"><input className="input" maxLength={2} value={form.address.state} onChange={e => updateForm({ address: { ...form.address, state: e.target.value.toUpperCase() } })} disabled={disabled} /></Field>
         </div>
       </div>
 
@@ -364,14 +371,19 @@ function BankingForm({ initial, onSaved, disabled }: {
     type: 'checking', holderName: '', holderDocument: '',
   };
   const [form, setForm] = useState<any>(defaults);
-  const hydrated = useRef(false);
+  const dirty = useRef(false);
+  const lastSyncKey = useRef<string>('');
 
   useEffect(() => {
-    if (hydrated.current) return;
-    if (!initial || Object.keys(initial).length === 0) return; // espera /producers/me carregar
-    hydrated.current = true;
+    if (!initial) return;
+    const key = JSON.stringify(initial);
+    if (key === lastSyncKey.current) return;
+    if (dirty.current) return;
+    lastSyncKey.current = key;
     setForm({ ...defaults, ...initial });
   }, [initial]);
+
+  const updateForm = (patch: any) => { dirty.current = true; setForm((f: any) => ({ ...f, ...patch })); };
 
   const mutation = useMutation({
     mutationFn: (data: any) => api.patch('/producers/banking', data),
@@ -383,31 +395,31 @@ function BankingForm({ initial, onSaved, disabled }: {
     <div className="space-y-3">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Field label="Banco (código 3 dígitos)">
-          <input className="input" maxLength={3} value={form.bank} onChange={e => setForm({ ...form, bank: e.target.value })} disabled={disabled} />
+          <input className="input" maxLength={3} value={form.bank} onChange={e => updateForm({ bank: e.target.value })} disabled={disabled} />
         </Field>
         <Field label="Agência">
-          <input className="input" value={form.branchNumber} onChange={e => setForm({ ...form, branchNumber: e.target.value })} disabled={disabled} />
+          <input className="input" value={form.branchNumber} onChange={e => updateForm({ branchNumber: e.target.value })} disabled={disabled} />
         </Field>
         <Field label="Dígito da agência (opcional)">
-          <input className="input" maxLength={2} value={form.branchCheckDigit} onChange={e => setForm({ ...form, branchCheckDigit: e.target.value })} disabled={disabled} />
+          <input className="input" maxLength={2} value={form.branchCheckDigit} onChange={e => updateForm({ branchCheckDigit: e.target.value })} disabled={disabled} />
         </Field>
         <Field label="Conta">
-          <input className="input" value={form.accountNumber} onChange={e => setForm({ ...form, accountNumber: e.target.value })} disabled={disabled} />
+          <input className="input" value={form.accountNumber} onChange={e => updateForm({ accountNumber: e.target.value })} disabled={disabled} />
         </Field>
         <Field label="Dígito da conta">
-          <input className="input" maxLength={2} value={form.accountCheckDigit} onChange={e => setForm({ ...form, accountCheckDigit: e.target.value })} disabled={disabled} />
+          <input className="input" maxLength={2} value={form.accountCheckDigit} onChange={e => updateForm({ accountCheckDigit: e.target.value })} disabled={disabled} />
         </Field>
         <Field label="Tipo">
-          <select className="input" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} disabled={disabled}>
+          <select className="input" value={form.type} onChange={e => updateForm({ type: e.target.value })} disabled={disabled}>
             <option value="checking">Corrente</option>
             <option value="savings">Poupança</option>
           </select>
         </Field>
         <Field label="Titular">
-          <input className="input" value={form.holderName} onChange={e => setForm({ ...form, holderName: e.target.value })} disabled={disabled} />
+          <input className="input" value={form.holderName} onChange={e => updateForm({ holderName: e.target.value })} disabled={disabled} />
         </Field>
         <Field label="CPF/CNPJ do titular">
-          <input className="input" value={form.holderDocument} onChange={e => setForm({ ...form, holderDocument: e.target.value })} disabled={disabled} />
+          <input className="input" value={form.holderDocument} onChange={e => updateForm({ holderDocument: e.target.value })} disabled={disabled} />
         </Field>
       </div>
       <button className="btn-primary" onClick={() => mutation.mutate(form)} disabled={mutation.isPending || disabled}>
