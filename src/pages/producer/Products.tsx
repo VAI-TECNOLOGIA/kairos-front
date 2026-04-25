@@ -130,16 +130,13 @@ export default function MyProducts() {
             return (
               <div
                 key={p.id}
-                onClick={() => setSelected(p)}
+                onClick={(e) => openEdit(p, e)}
                 className="card p-0 overflow-hidden cursor-pointer hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5 transition-all group relative"
               >
-                {/* Botão editar */}
-                <button
-                  onClick={(e) => openEdit(p, e)}
-                  className="absolute top-2 right-2 z-10 w-7 h-7 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Pencil size={12} />
-                </button>
+                {/* Indicador "Editar" no hover (entrada direta — click em qualquer lugar abre edit) */}
+                <div className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 bg-accent/90 backdrop-blur-sm rounded-full px-2 py-1 text-[10px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Pencil size={11} /> Abrir
+                </div>
 
                 {/* Imagem */}
                 <div className="relative bg-bg3 aspect-square overflow-hidden">
