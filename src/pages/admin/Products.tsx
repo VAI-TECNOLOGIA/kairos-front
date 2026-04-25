@@ -190,9 +190,9 @@ export default function AdminProducts() {
             </div>
           }
         >
-          <div className="flex gap-5">
+          <div className="flex flex-col sm:flex-row gap-5">
             {/* Imagem */}
-            <div className="w-40 flex-shrink-0">
+            <div className="w-32 sm:w-40 flex-shrink-0 mx-auto sm:mx-0">
               {selected.imageUrl ? (
                 <img src={selected.imageUrl} alt={selected.name} className="w-full rounded-xl object-cover border border-border" style={{ aspectRatio: '1' }} />
               ) : (
@@ -205,8 +205,8 @@ export default function AdminProducts() {
             {/* Info */}
             <div className="flex-1 min-w-0 space-y-3">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h2 className="text-lg font-bold text-text">{selected.name}</h2>
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <h2 className="text-lg font-bold text-text break-words">{selected.name}</h2>
                   <span className={productStatusVariant(selected.status)}>{selected.status}</span>
                 </div>
                 {selected.description && (
@@ -234,23 +234,23 @@ export default function AdminProducts() {
                   <div className="text-xs text-text3 uppercase tracking-wide mb-2">Ofertas</div>
                   <div className="space-y-1.5">
                     {selected.offers.map((o: any) => (
-                      <div key={o.id} className="flex items-center justify-between bg-bg3 rounded-[7px] px-3 py-2">
-                        <div>
-                          <div className="text-sm font-medium text-text">{o.name}</div>
+                      <div key={o.id} className="flex items-center justify-between gap-2 bg-bg3 rounded-[7px] px-3 py-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium text-text truncate">{o.name}</div>
                           {o.slug && (
                             <a
                               href={`/checkout/${o.slug}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-[10px] text-accent flex items-center gap-1 hover:underline"
+                              className="text-[10px] text-accent flex items-center gap-1 hover:underline truncate"
                             >
-                              /checkout/{o.slug} <ExternalLink size={9} />
+                              <span className="truncate">/checkout/{o.slug}</span> <ExternalLink size={9} className="flex-shrink-0" />
                             </a>
                           )}
                         </div>
-                        <div className="text-right">
-                          <div className="text-sm font-bold text-text">{formatBRL(o.priceCents)}</div>
-                          <div className="text-[10px] text-green">Recebe {formatBRL(recebeAte(o.priceCents))}</div>
+                        <div className="text-right flex-shrink-0">
+                          <div className="text-sm font-bold text-text whitespace-nowrap">{formatBRL(o.priceCents)}</div>
+                          <div className="text-[10px] text-green whitespace-nowrap">Recebe {formatBRL(recebeAte(o.priceCents))}</div>
                         </div>
                       </div>
                     ))}

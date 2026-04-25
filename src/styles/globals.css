@@ -141,14 +141,14 @@ body {
     @apply fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4;
   }
   .modal {
-    @apply bg-bg2 border border-border rounded-[12px] w-full max-w-lg shadow-2xl animate-slide-up;
+    @apply bg-bg2 border border-border rounded-[12px] w-full max-w-lg shadow-2xl animate-slide-up flex flex-col max-h-[90vh];
   }
   .modal-header {
-    @apply flex items-center justify-between p-5 border-b border-border;
+    @apply flex items-center justify-between p-5 border-b border-border flex-shrink-0;
   }
-  .modal-body { @apply p-5; }
+  .modal-body { @apply p-5 overflow-y-auto flex-1 min-h-0; }
   .modal-footer {
-    @apply flex justify-end gap-2 p-5 border-t border-border;
+    @apply flex justify-end gap-2 p-5 border-t border-border flex-shrink-0;
   }
 
   .split-bar {
