@@ -3,8 +3,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import api from '@/lib/api';
-import { PageHeader, Loading, EmptyState } from '@/components/ui';
-import { formatDateTime } from '@/lib/utils';
+import { PageHeader, Loading, EmptyState, DateCell, WhatsAppLink } from '@/components/ui';
 import type { Affiliate } from '@/types';
 import { Link2, CheckCircle, XCircle, Clock, Users } from 'lucide-react';
 
@@ -87,10 +86,15 @@ export default function AffiliatesPage() {
                   <tbody>
                     {pendingList.map((a: any) => (
                       <tr key={a.id}>
-                        <td className="font-medium text-text">{a.user.name}</td>
+                        <td>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="font-medium text-text truncate">{a.user.name}</span>
+                            <WhatsAppLink phone={a.user.phone} />
+                          </div>
+                        </td>
                         <td className="text-text2">{a.user.email}</td>
                         <td className="text-text2">{a.user.phone || '—'}</td>
-                        <td className="text-text3">{formatDateTime(a.createdAt)}</td>
+                        <td><DateCell date={a.createdAt} /></td>
                         <td>
                           {rejectId === a.id ? (
                             <form
@@ -133,11 +137,16 @@ export default function AffiliatesPage() {
                   <tbody>
                     {approvedList.map((a: any) => (
                       <tr key={a.id}>
-                        <td className="font-medium text-text">{a.user.name}</td>
+                        <td>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="font-medium text-text truncate">{a.user.name}</span>
+                            <WhatsAppLink phone={a.user.phone} />
+                          </div>
+                        </td>
                         <td className="text-text2">{a.user.email}</td>
                         <td><code className="text-xs bg-bg3 px-2 py-0.5 rounded text-accent">{a.code}</code></td>
                         <td><span className={a.isActive ? 'badge-green' : 'badge-gray'}>{a.isActive ? 'Ativo' : 'Inativo'}</span></td>
-                        <td className="text-text3">{formatDateTime(a.approvedAt)}</td>
+                        <td><DateCell date={a.approvedAt} /></td>
                       </tr>
                     ))}
                   </tbody>
@@ -162,7 +171,7 @@ export default function AffiliatesPage() {
                         <td className="font-medium text-text">{a.user.name}</td>
                         <td className="text-text2">{a.user.email}</td>
                         <td className="text-text3 text-xs">{a.rejectedReason || '—'}</td>
-                        <td className="text-text3">{formatDateTime(a.rejectedAt)}</td>
+                        <td><DateCell date={a.rejectedAt} /></td>
                       </tr>
                     ))}
                   </tbody>

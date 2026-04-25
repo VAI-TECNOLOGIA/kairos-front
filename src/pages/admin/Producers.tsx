@@ -3,8 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
-import { PageHeader, Modal, TabNav, EmptyState, Loading } from '@/components/ui';
-import { formatDate, kycStatusVariant } from '@/lib/utils';
+import { PageHeader, Modal, TabNav, EmptyState, Loading, DateCell, WhatsAppLink } from '@/components/ui';
+import { kycStatusVariant, formatDate } from '@/lib/utils';
 import type { Producer } from '@/types';
 import { Users, CheckCircle, XCircle, Eye, LogIn } from 'lucide-react';
 
@@ -113,11 +113,16 @@ export default function ProducersPage() {
             <tbody>
               {producers.map(p => (
                 <tr key={p.id}>
-                  <td className="font-medium text-text">{p.user.name}</td>
+                  <td>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-medium text-text truncate">{p.user.name}</span>
+                      <WhatsAppLink phone={p.user.phone} />
+                    </div>
+                  </td>
                   <td>{p.user.email}</td>
                   <td>{p.companyName || '—'}</td>
                   <td><span className={kycStatusVariant(p.kycStatus)}>{p.kycStatus}</span></td>
-                  <td>{formatDate(p.createdAt)}</td>
+                  <td><DateCell date={p.createdAt} /></td>
                   <td>
                     <div className="flex gap-1">
                       <button
