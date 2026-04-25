@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
+import { useAuthStore } from '@/stores/auth.store';
 import { PageHeader, Modal, TabNav, EmptyState, Loading } from '@/components/ui';
 import { formatDate, kycStatusVariant } from '@/lib/utils';
 import type { Producer } from '@/types';
-import { Users, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Eye, LogIn } from 'lucide-react';
 
 // FIX F-19: mapeamento completo de tab → status
 function tabToStatus(tab: string): string | undefined {
@@ -20,10 +21,21 @@ function tabToStatus(tab: string): string | undefined {
 
 export default function ProducersPage() {
   const qc = useQueryClient();
+  const setAuth = useAuthStore(s => s.setAuth);
   const [tab, setTab] = useState('all');
   const [selected, setSelected] = useState<Producer | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [showReject, setShowReject] = useState(false);
+
+  const impersonate = useMutation({
+    mutationFn: (userId: string) => api.post(`/admin/impersonate/${userId}`).then(r => r.data),
+    onSuccess: (data) => {
+      setAuth(data.user, data.accessToken, data.refreshToken);
+      toast.success(`Logado como ${data.user.name}`);
+      window.location.href = '/produtor/dashboard';
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao logar como produtor'),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-producers', tab],
@@ -162,8 +174,20 @@ export default function ProducersPage() {
                 </button>
               </div>
             ) : (
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <button onClick={() => setSelected(null)} className="btn-ghost btn-sm">Fechar</button>
+                <button
+                  onClick={() => {
+                    if (confirm(`Você vai entrar como ${selected.user.name}. Suas ações serão registradas no audit log. Continuar?`)) {
+                      impersonate.mutate(selected.user.id);
+                    }
+                  }}
+                  disabled={impersonate.isPending}
+                  className="btn-secondary btn-sm"
+                  title="Entra como o produtor (auditado)"
+                >
+                  <LogIn size={13} /> {impersonate.isPending ? 'Entrando...' : 'Login como produtor'}
+                </button>
                 {['PENDING', 'DOCUMENTS_SENT'].includes(selected.kycStatus) && (
                   <>
                     <button onClick={() => setShowReject(true)} className="btn-danger btn-sm">

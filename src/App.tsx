@@ -41,6 +41,11 @@ import TestEnvironmentPage from '@/pages/admin/TestEnvironment';
 import AdminFees           from '@/pages/admin/Fees';
 import AdminMessages       from '@/pages/admin/Messages';
 import AdminReleaseDays    from '@/pages/admin/ReleaseDays';
+import FeeCalculator       from '@/pages/admin/FeeCalculator';
+import AdminBalances       from '@/pages/admin/Balances';
+import AdminReceivables    from '@/pages/admin/Receivables';
+import AdminFeesRevenue    from '@/pages/admin/FeesRevenue';
+import AdminRiskProducts   from '@/pages/admin/RiskProducts';
 
 // Producer pages
 import ProducerDashboard from '@/pages/producer/Dashboard';
@@ -133,6 +138,11 @@ export default function App() {
         <Route path="taxas"              element={<AdminFees />} />
         <Route path="prazos-liberacao"   element={<AdminReleaseDays />} />
         <Route path="mensagens"          element={<AdminMessages />} />
+        <Route path="calculadora"        element={<FeeCalculator />} />
+        <Route path="saldo-global"       element={<AdminBalances />} />
+        <Route path="recebimentos"       element={<AdminReceivables />} />
+        <Route path="receitas"           element={<AdminFeesRevenue />} />
+        <Route path="risco-produtos"     element={<AdminRiskProducts />} />
         <Route path="ambiente-de-teste"  element={<TestEnvironmentPage />} />
         <Route path="perfil"             element={<ProfilePage />} />
         <Route path="integracoes"        element={<IntegrationsPage />} />

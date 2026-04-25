@@ -27,6 +27,21 @@ export function timeAgo(date: string | Date): string {
   return formatDistanceToNow(new Date(date), { locale: ptBR, addSuffix: true });
 }
 
+/** Formata data para exibição em duas linhas: relativa + absoluta */
+export function dateRelAbs(date: string | Date | null | undefined): { rel: string; abs: string } | null {
+  if (!date) return null;
+  return { rel: timeAgo(date), abs: formatDateTime(date) };
+}
+
+/** Gera link wa.me a partir de telefone (BR). Aceita +55, espaços, parênteses, traços. */
+export function whatsappLink(phone: string | null | undefined): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 10) return null;
+  const withCountry = digits.startsWith('55') ? digits : `55${digits}`;
+  return `https://wa.me/${withCountry}`;
+}
+
 /** Converte basis points para porcentagem: 2000 → 20.00 */
 export function bpsToPct(bps: number): string {
   return (bps / 100).toFixed(2);

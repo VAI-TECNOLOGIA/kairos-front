@@ -1,22 +1,27 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import api from '@/lib/api';
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, Package, Tag, ShoppingCart, Link2, Handshake,
-  RefreshCw, DollarSign, BarChart3, Shield, Truck,
+  RefreshCw, DollarSign, BarChart3, Shield, Truck, Calculator,
   Settings, LogOut, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
   ChevronDown, Megaphone, Briefcase, Lock, Percent, MessageSquareHeart, Plug, Clock,
-  Menu, X, ShieldCheck,
+  Menu, X, ShieldCheck, Wallet, CalendarRange, AlertTriangle, Wrench,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
+import { BadgeCount } from '@/components/ui';
 
 type NavItem = {
   to    : string;
   icon  : any;
   label : string;
   badge?: string;
+  /** Counter de notificação (sobrepõe o badge string) */
+  count?: number;
   /** Link externo (ex: abre em nova aba) */
   external?: boolean;
 };
@@ -29,23 +34,29 @@ type NavSection = {
   alwaysOpen?: boolean;
 };
 
-const nav: NavSection[] = [
+const buildNav = (counts: { producers: number; pendingProducts: number; pendingKyc: number }): NavSection[] => [
   { group: 'Visão Geral', icon: LayoutDashboard, items: [
     { to: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/tv',       icon: Tv2,             label: 'Painel TV', external: true },
   ]},
   { group: 'Produtores', icon: Briefcase, items: [
-    { to: 'produtores',   icon: Users,       label: 'Produtores' },
-    { to: 'verificacoes', icon: ShieldCheck, label: 'Verificações (KYC)' },
-    { to: 'produtos',     icon: Package,     label: 'Produtos' },
+    { to: 'produtores',   icon: Users,       label: 'Produtores', count: counts.producers },
+    { to: 'verificacoes', icon: ShieldCheck, label: 'Verificações (KYC)', count: counts.pendingKyc },
+    { to: 'produtos',     icon: Package,     label: 'Produtos', count: counts.pendingProducts },
     { to: 'ofertas',      icon: Tag,         label: 'Ofertas & Split' },
   ]},
   { group: 'Financeiro', icon: DollarSign, items: [
-    { to: 'vendas',       icon: ShoppingCart, label: 'Vendas' },
-    { to: 'assinaturas',  icon: RefreshCw,    label: 'Assinaturas' },
-    { to: 'financeiro',   icon: DollarSign,   label: 'Financeiro' },
-    { to: 'logistica',    icon: Truck,        label: 'Envios' },
-    { to: 'relatorios',   icon: BarChart3,    label: 'Relatórios' },
+    { to: 'vendas',       icon: ShoppingCart,  label: 'Vendas' },
+    { to: 'assinaturas',  icon: RefreshCw,     label: 'Assinaturas' },
+    { to: 'financeiro',   icon: DollarSign,    label: 'Financeiro' },
+    { to: 'recebimentos', icon: CalendarRange, label: 'Recebimentos' },
+    { to: 'receitas',     icon: BarChart3,     label: 'Receitas e Taxas' },
+    { to: 'logistica',    icon: Truck,         label: 'Envios' },
+  ]},
+  { group: 'Relatórios', icon: BarChart3, items: [
+    { to: 'relatorios',         icon: BarChart3,     label: 'Geral' },
+    { to: 'saldo-global',       icon: Wallet,        label: 'Saldo Global' },
+    { to: 'risco-produtos',     icon: AlertTriangle, label: 'Risco (Produtos)' },
   ]},
   { group: 'Parcerias', icon: Handshake, items: [
     { to: 'afiliados',    icon: Link2,      label: 'Afiliados' },
@@ -53,6 +64,9 @@ const nav: NavSection[] = [
   ]},
   { group: 'Marketing', icon: Megaphone, items: [
     { to: 'tracking',    icon: Activity, label: 'Pixels de Rastreamento' },
+  ]},
+  { group: 'Ferramentas', icon: Wrench, items: [
+    { to: 'calculadora', icon: Calculator, label: 'Calculadora de taxas' },
   ]},
   { group: 'Segurança', icon: Lock, items: [
     { to: 'audit-log',    icon: Activity, label: 'Audit Log' },
@@ -76,6 +90,29 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const session  = useSessionTimeout();
+
+  // Counts ao vivo pra badges no sidebar
+  const { data: counts } = useQuery({
+    queryKey: ['admin-sidebar-counts'],
+    queryFn : async () => {
+      try {
+        const [verifs, products] = await Promise.all([
+          api.get('/admin/verifications').then(r => r.data).catch(() => []),
+          api.get('/products?status=PENDING').then(r => r.data).catch(() => ({ data: [] })),
+        ]);
+        const verifList = Array.isArray(verifs) ? verifs : (verifs?.data || []);
+        const prodList  = Array.isArray(products?.data) ? products.data : [];
+        return {
+          producers      : verifList.length || 0,
+          pendingKyc     : verifList.filter((v: any) => v.kycStatus === 'DOCUMENTS_SENT' || v.kycStatus === 'PENDING').length,
+          pendingProducts: prodList.filter((p: any) => p.status === 'PENDING').length,
+        };
+      } catch { return { producers: 0, pendingKyc: 0, pendingProducts: 0 }; }
+    },
+    refetchInterval: 60_000,
+    staleTime      : 30_000,
+  });
+  const nav = buildNav(counts || { producers: 0, pendingKyc: 0, pendingProducts: 0 });
 
   // Expandido por padrão: apenas o grupo cujo item está ativo na rota atual
   const getInitialExpanded = (): Record<string, boolean> => {
@@ -189,6 +226,9 @@ export default function AdminLayout() {
                 >
                   <item.icon size={16} />
                   <span className="flex-1">{item.label}</span>
+                  {item.count != null && item.count > 0 && (
+                    <BadgeCount value={item.count} variant={item.label.toLowerCase().includes('verif') ? 'amber' : 'accent'} />
+                  )}
                   {item.badge && (
                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber/15 text-amber border border-amber/30 uppercase tracking-wide">
                       {item.badge}

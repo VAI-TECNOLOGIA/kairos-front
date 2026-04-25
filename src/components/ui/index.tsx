@@ -1,7 +1,52 @@
 import { ReactNode } from 'react';
-import { cn, formatBRL, bpsToPct, RECIPIENT_COLOR, RECIPIENT_LABEL } from '@/lib/utils';
-import { X } from 'lucide-react';
+import { cn, formatBRL, bpsToPct, RECIPIENT_COLOR, RECIPIENT_LABEL, dateRelAbs, whatsappLink } from '@/lib/utils';
+import { X, MessageCircle } from 'lucide-react';
 import type { SplitRule } from '@/types';
+
+// ── DATE CELL (relativa em cima + absoluta embaixo) ────────────────
+export function DateCell({ date, className }: { date: string | Date | null | undefined; className?: string }) {
+  const d = dateRelAbs(date);
+  if (!d) return <span className="text-text3 text-xs">—</span>;
+  return (
+    <div className={cn('text-xs leading-tight', className)}>
+      <div className="text-text">{d.rel}</div>
+      <div className="text-text3 text-[10px]">{d.abs}</div>
+    </div>
+  );
+}
+
+// ── WHATSAPP BUTTON ────────────────────────────────────────────────
+export function WhatsAppLink({ phone, size = 14 }: { phone: string | null | undefined; size?: number }) {
+  const url = whatsappLink(phone);
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={e => e.stopPropagation()}
+      className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-green/15 hover:bg-green/25 text-green flex-shrink-0 transition-colors"
+      title={`WhatsApp: ${phone}`}
+    >
+      <MessageCircle size={size} strokeWidth={2.2} />
+    </a>
+  );
+}
+
+// ── BADGE COUNT (sidebar) ──────────────────────────────────────────
+export function BadgeCount({ value, variant = 'accent' }: { value: number; variant?: 'accent' | 'amber' | 'red' }) {
+  if (!value) return null;
+  const colors = {
+    accent: 'bg-accent/20 text-accent',
+    amber : 'bg-amber/20 text-amber',
+    red   : 'bg-red/20 text-red',
+  };
+  return (
+    <span className={cn('inline-flex items-center justify-center min-w-[20px] h-[18px] px-1.5 rounded-full text-[10px] font-semibold', colors[variant])}>
+      {value > 99 ? '99+' : value}
+    </span>
+  );
+}
 
 // ── STAT CARD ──────────────────────────────────────────────────────
 interface StatCardProps {

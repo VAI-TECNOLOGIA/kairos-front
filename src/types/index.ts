@@ -24,7 +24,7 @@ export interface Producer {
   isActive: boolean;
   approvedAt?: string;
   createdAt: string;
-  user: { name: string; email: string; phone?: string };
+  user: { id: string; name: string; email: string; phone?: string };
 }
 
 // ── PRODUCT ──────────────────────────────────────
