@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,6 +27,7 @@ type FormData = z.infer<typeof schema>;
 
 export default function MyProducts() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [openCreate, setOpenCreate]       = useState(false);
   const [selected, setSelected]           = useState<any>(null);
   const [editProduct, setEdit]            = useState<any>(null);
@@ -84,18 +86,7 @@ export default function MyProducts() {
 
   const openEdit = (p: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    setEdit(p);
-    setEditImageUrl(p.imageUrl || '');
-    setEditSuccessMsg(p.successMessage || '');
-    setEditSuccessIcon(p.successIcon || DEFAULT_SUCCESS_ICON);
-    setEditSuccessColor(p.successIconColor || DEFAULT_SUCCESS_COLOR);
-    setEditTab('info');
-    setPreviewMsg(false);
-    sv('name',        p.name);
-    sv('type',        p.type);
-    sv('description', p.description || '');
-    sv('category',    p.category    || '');
-    sv('digitalUrl',  p.digitalUrl  || '');
+    navigate(`/produtor/produtos/${p.id}`);
   };
 
   const { data: feeData } = usePlatformFee();

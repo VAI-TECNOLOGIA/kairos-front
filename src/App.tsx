@@ -50,6 +50,12 @@ import AdminRiskProducts   from '@/pages/admin/RiskProducts';
 // Producer pages
 import ProducerDashboard from '@/pages/producer/Dashboard';
 import MyProducts        from '@/pages/producer/Products';
+import ProductEdit       from '@/pages/producer/ProductEdit';
+import ProductInfoSection from '@/pages/producer/product-sections/Info';
+import ProductOffersSection from '@/pages/producer/product-sections/Offers';
+import ProductAffiliationSection from '@/pages/producer/product-sections/Affiliation';
+import { ProductFilesSection, ProductMembersAreaSection } from '@/pages/producer/product-sections/Delivery';
+import { ProductCheckoutSection, ProductFunnelSection, ProductCoproducersSection, ProductLinksSection, ProductPixelsSection } from '@/pages/producer/product-sections/Misc';
 import OfferManager      from '@/pages/producer/Offers';
 import MySales           from '@/pages/producer/Sales';
 import MyAffiliates      from '@/pages/producer/Affiliates';
@@ -159,6 +165,18 @@ export default function App() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard"     element={<ProducerDashboard />} />
         <Route path="produtos"      element={<MyProducts />} />
+        <Route path="produtos/:id"  element={<ProductEdit />}>
+          <Route index            element={<ProductInfoSection />} />
+          <Route path="ofertas"   element={<ProductOffersSection />} />
+          <Route path="arquivos"  element={<ProductFilesSection />} />
+          <Route path="area-membros" element={<ProductMembersAreaSection />} />
+          <Route path="checkout"  element={<ProductCheckoutSection />} />
+          <Route path="funil"     element={<ProductFunnelSection />} />
+          <Route path="afiliacao" element={<ProductAffiliationSection />} />
+          <Route path="coprodutores" element={<ProductCoproducersSection />} />
+          <Route path="links"     element={<ProductLinksSection />} />
+          <Route path="pixels"    element={<ProductPixelsSection />} />
+        </Route>
         <Route path="ofertas"       element={<OfferManager />} />
         <Route path="vendas"        element={<MySales />} />
         <Route path="afiliados"     element={<MyAffiliates />} />
