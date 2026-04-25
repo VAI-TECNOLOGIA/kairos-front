@@ -148,6 +148,10 @@ export default function ProductInfoSection() {
                 <select {...register('category', { required: true })} className="input">
                   <option value="">Selecione...</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
+                  {/* Mantém compatível com categorias legadas */}
+                  {product?.category && !CATEGORIES.includes(product.category) && (
+                    <option value={product.category}>{product.category}</option>
+                  )}
                 </select>
               </div>
               <div>

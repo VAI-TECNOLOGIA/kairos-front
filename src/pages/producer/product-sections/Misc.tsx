@@ -1,6 +1,6 @@
 import { useOutletContext, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Copy, Construction, ShoppingBag, Filter, Activity, Link2, Users } from 'lucide-react';
+import { Copy, Construction, ShoppingBag, Activity, Link2, Users } from 'lucide-react';
 
 function PlaceholderSection({ icon: Icon, title, description, ctaText, ctaTo }: any) {
   return (
@@ -30,16 +30,6 @@ export function ProductCheckoutSection() {
       description="Customize cores, banner, ordem de campos e ofertas extras no checkout deste produto."
       ctaText="Ir para configurações globais de checkout"
       ctaTo="/produtor/checkout"
-    />
-  );
-}
-
-export function ProductFunnelSection() {
-  return (
-    <PlaceholderSection
-      icon={Filter}
-      title="Funil de vendas"
-      description="Configure upsells, downsells e order bumps que aparecem após a compra principal."
     />
   );
 }

@@ -55,7 +55,7 @@ import ProductInfoSection from '@/pages/producer/product-sections/Info';
 import ProductOffersSection from '@/pages/producer/product-sections/Offers';
 import ProductAffiliationSection from '@/pages/producer/product-sections/Affiliation';
 import { ProductFilesSection, ProductMembersAreaSection } from '@/pages/producer/product-sections/Delivery';
-import { ProductCheckoutSection, ProductFunnelSection, ProductCoproducersSection, ProductLinksSection, ProductPixelsSection } from '@/pages/producer/product-sections/Misc';
+import { ProductCheckoutSection, ProductCoproducersSection, ProductLinksSection, ProductPixelsSection } from '@/pages/producer/product-sections/Misc';
 import OfferManager      from '@/pages/producer/Offers';
 import MySales           from '@/pages/producer/Sales';
 import MyAffiliates      from '@/pages/producer/Affiliates';
@@ -171,7 +171,6 @@ export default function App() {
           <Route path="arquivos"  element={<ProductFilesSection />} />
           <Route path="area-membros" element={<ProductMembersAreaSection />} />
           <Route path="checkout"  element={<ProductCheckoutSection />} />
-          <Route path="funil"     element={<ProductFunnelSection />} />
           <Route path="afiliacao" element={<ProductAffiliationSection />} />
           <Route path="coprodutores" element={<ProductCoproducersSection />} />
           <Route path="links"     element={<ProductLinksSection />} />

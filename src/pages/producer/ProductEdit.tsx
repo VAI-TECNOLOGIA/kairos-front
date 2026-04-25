@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { Loading } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, Info, Tag, FileText, Users as UsersIcon, ShoppingBag, Filter, Link2, Activity, Image as ImageIcon, Handshake, Monitor } from 'lucide-react';
+import { ArrowLeft, Info, Tag, FileText, Users as UsersIcon, ShoppingBag, Link2, Activity, Image as ImageIcon, Handshake, Monitor } from 'lucide-react';
 
 interface Product {
   id          : string;
@@ -26,7 +26,6 @@ const SECTIONS = [
   ]},
   { group: 'Checkout', items: [
     { to: 'checkout',        icon: ShoppingBag, label: 'Personalizar checkout' },
-    { to: 'funil',           icon: Filter,      label: 'Funil de vendas' },
   ]},
   { group: 'Parceiros', items: [
     { to: 'afiliacao',       icon: Handshake,   label: 'Afiliação' },
