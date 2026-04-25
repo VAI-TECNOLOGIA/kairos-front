@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { DateCell, WhatsAppLink } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { Copy, Users, Info } from 'lucide-react';
+import { Copy, Users, Info, Lock } from 'lucide-react';
 
 type Tab = 'config' | 'affiliates';
 
@@ -21,6 +21,7 @@ export default function ProductAffiliationSection() {
   const { product } = useOutletContext<{ product: any }>();
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>('config');
+  const isApproved = product?.status === 'APPROVED';
 
   // Pega a primeira oferta como referência (concorrente trata afiliação por produto;
   // nosso modelo é por oferta, então sincronizamos todas as ofertas com a mesma config)
@@ -55,10 +56,11 @@ export default function ProductAffiliationSection() {
         cookieDays   : d.cookieDays,
         description  : d.affiliateDescription,
       })));
-      // Atualiza descrição e flag marketplace no produto
+      // Atualiza descrição e flag marketplace no produto.
+      // Vitrine força false se produto não APPROVED (backend também valida).
       await api.patch(`/products/${product.id}`, {
         affiliateDescription: d.affiliateDescription || null,
-        showInMarketplace   : d.showInMarketplace,
+        showInMarketplace   : isApproved ? d.showInMarketplace : false,
       });
     },
     onSuccess: () => {
@@ -116,6 +118,14 @@ export default function ProductAffiliationSection() {
 
       {tab === 'config' && (
         <form onSubmit={handleSubmit(d => save.mutate(d))} className="space-y-4">
+          {!isApproved && (
+            <div className="card p-3 bg-amber/10 border border-amber/30 flex items-start gap-2 text-sm text-amber">
+              <Lock size={14} className="flex-shrink-0 mt-0.5" />
+              <div>
+                <strong>Aguardando aprovação</strong> — Você pode configurar a comissão, mas o link de afiliação e a vitrine só ficam disponíveis após o admin aprovar este produto.
+              </div>
+            </div>
+          )}
           <div className="card p-4 space-y-4">
             {offers.length === 0 ? (
               <div className="bg-amber/10 border border-amber/30 rounded p-3 text-sm text-amber flex items-start gap-2">
@@ -151,23 +161,33 @@ export default function ProductAffiliationSection() {
                   <textarea {...register('affiliateDescription')} rows={3} className="input resize-y" placeholder="O que motiva o afiliado a divulgar este produto?" />
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" {...register('showInMarketplace')} className="sr-only peer" />
+                <div className={`flex items-center gap-3 ${!isApproved ? 'opacity-50' : ''}`}>
+                  <label className={`relative inline-flex items-center ${isApproved ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
+                    <input type="checkbox" {...register('showInMarketplace')} disabled={!isApproved} className="sr-only peer" />
                     <div className="w-11 h-6 bg-bg3 rounded-full peer-checked:bg-accent transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:after:translate-x-5"></div>
                   </label>
                   <span className="text-sm text-text">Exibir produto na vitrine</span>
+                  {!isApproved && <span className="text-[10px] text-amber inline-flex items-center gap-1"><Lock size={10} /> Requer aprovação</span>}
                 </div>
 
                 {inviteUrl && watch('commissionPct') > 0 && (
-                  <div className="bg-bg3 rounded p-3">
-                    <div className="text-[10px] text-text3 uppercase mb-1">Link de convite direto</div>
-                    <div className="flex items-center justify-between gap-2">
-                      <code className="text-xs text-text font-mono truncate">{inviteUrl}</code>
-                      <button type="button" onClick={() => { navigator.clipboard.writeText(inviteUrl); toast.success('Link copiado'); }} className="btn-ghost btn-sm flex-shrink-0">
-                        <Copy size={12} />
-                      </button>
+                  <div className={`bg-bg3 rounded p-3 ${!isApproved ? 'opacity-60' : ''}`}>
+                    <div className="text-[10px] text-text3 uppercase mb-1 flex items-center gap-1">
+                      Link de convite direto
+                      {!isApproved && <span className="text-amber inline-flex items-center gap-1 normal-case ml-1"><Lock size={10} /> bloqueado até aprovação</span>}
                     </div>
+                    {isApproved ? (
+                      <div className="flex items-center justify-between gap-2">
+                        <code className="text-xs text-text font-mono truncate">{inviteUrl}</code>
+                        <button type="button" onClick={() => { navigator.clipboard.writeText(inviteUrl); toast.success('Link copiado'); }} className="btn-ghost btn-sm flex-shrink-0">
+                          <Copy size={12} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-text3 italic">
+                        O link só pode ser compartilhado depois que o admin aprovar o produto.
+                      </div>
+                    )}
                   </div>
                 )}
               </>

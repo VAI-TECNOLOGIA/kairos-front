@@ -1,6 +1,6 @@
 import { useOutletContext, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Copy, Construction, ShoppingBag, Activity, Link2, Users } from 'lucide-react';
+import { Copy, Construction, ShoppingBag, Activity, Link2, Users, Lock } from 'lucide-react';
 
 function PlaceholderSection({ icon: Icon, title, description, ctaText, ctaTo }: any) {
   return (
@@ -73,9 +73,18 @@ export function ProductCoproducersSection() {
 export function ProductLinksSection() {
   const { product } = useOutletContext<{ product: any }>();
   const offers: any[] = product?.offers || [];
+  const isApproved = product?.status === 'APPROVED';
   return (
     <div className="space-y-3">
       <h2 className="text-base font-semibold text-text">Links de divulgação</h2>
+      {!isApproved && (
+        <div className="card p-3 bg-amber/10 border border-amber/30 flex items-start gap-2 text-sm text-amber">
+          <Lock size={14} className="flex-shrink-0 mt-0.5" />
+          <div>
+            <strong>Aguardando aprovação</strong> — Os links de checkout e convite de afiliação só funcionam depois que o admin aprovar o produto.
+          </div>
+        </div>
+      )}
       <div className="space-y-2">
         {offers.length === 0 ? (
           <div className="card p-6 text-center text-text3">
@@ -87,22 +96,36 @@ export function ProductLinksSection() {
             const url = `${window.location.origin}/checkout/${o.slug}`;
             const inviteUrl = `${window.location.origin}/afiliar/${o.slug}`;
             return (
-              <div key={o.id} className="card p-3 space-y-2">
+              <div key={o.id} className={`card p-3 space-y-2 ${!isApproved ? 'opacity-60' : ''}`}>
                 <div className="text-sm font-medium text-text">{o.name}</div>
                 <div>
-                  <div className="text-[10px] text-text3 uppercase mb-1">Checkout</div>
-                  <div className="flex items-center justify-between gap-2 bg-bg3 rounded p-2">
-                    <code className="text-xs text-text2 font-mono truncate flex-1">{url}</code>
-                    <button onClick={() => { navigator.clipboard.writeText(url); toast.success('Copiado'); }} className="btn-ghost btn-sm flex-shrink-0"><Copy size={11} /></button>
+                  <div className="text-[10px] text-text3 uppercase mb-1 flex items-center gap-1">
+                    Checkout
+                    {!isApproved && <span className="text-amber normal-case inline-flex items-center gap-1 ml-1"><Lock size={9} /> bloqueado</span>}
                   </div>
+                  {isApproved ? (
+                    <div className="flex items-center justify-between gap-2 bg-bg3 rounded p-2">
+                      <code className="text-xs text-text2 font-mono truncate flex-1">{url}</code>
+                      <button onClick={() => { navigator.clipboard.writeText(url); toast.success('Copiado'); }} className="btn-ghost btn-sm flex-shrink-0"><Copy size={11} /></button>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-text3 italic bg-bg3 rounded p-2">Disponível após aprovação do admin</div>
+                  )}
                 </div>
                 {o.affiliateConfig?.enabled && (
                   <div>
-                    <div className="text-[10px] text-text3 uppercase mb-1">Convite afiliação</div>
-                    <div className="flex items-center justify-between gap-2 bg-bg3 rounded p-2">
-                      <code className="text-xs text-text2 font-mono truncate flex-1">{inviteUrl}</code>
-                      <button onClick={() => { navigator.clipboard.writeText(inviteUrl); toast.success('Copiado'); }} className="btn-ghost btn-sm flex-shrink-0"><Copy size={11} /></button>
+                    <div className="text-[10px] text-text3 uppercase mb-1 flex items-center gap-1">
+                      Convite afiliação
+                      {!isApproved && <span className="text-amber normal-case inline-flex items-center gap-1 ml-1"><Lock size={9} /> bloqueado</span>}
                     </div>
+                    {isApproved ? (
+                      <div className="flex items-center justify-between gap-2 bg-bg3 rounded p-2">
+                        <code className="text-xs text-text2 font-mono truncate flex-1">{inviteUrl}</code>
+                        <button onClick={() => { navigator.clipboard.writeText(inviteUrl); toast.success('Copiado'); }} className="btn-ghost btn-sm flex-shrink-0"><Copy size={11} /></button>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-text3 italic bg-bg3 rounded p-2">Disponível após aprovação do admin</div>
+                    )}
                   </div>
                 )}
               </div>
