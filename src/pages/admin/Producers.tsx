@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { PageHeader, Modal, TabNav, EmptyState, Loading, DateCell, WhatsAppLink } from '@/components/ui';
 import { kycStatusVariant, formatDate } from '@/lib/utils';
 import type { Producer } from '@/types';
-import { Users, CheckCircle, XCircle, Eye, LogIn } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Eye, LogIn, Unlock, Lock } from 'lucide-react';
 
 // FIX F-19: mapeamento completo de tab → status
 function tabToStatus(tab: string): string | undefined {
@@ -35,6 +35,15 @@ export default function ProducersPage() {
       window.location.href = '/produtor/dashboard';
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao logar como produtor'),
+  });
+
+  const unlockUser = useMutation({
+    mutationFn: (userId: string) => api.post(`/admin/users/${userId}/unlock`).then(r => r.data),
+    onSuccess : (data) => {
+      toast.success(data.wasLocked ? 'Conta desbloqueada' : 'Conta já estava liberada');
+      qc.invalidateQueries({ queryKey: ['admin-producers'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao desbloquear'),
   });
 
   const { data, isLoading } = useQuery({
@@ -117,6 +126,16 @@ export default function ProducersPage() {
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="font-medium text-text truncate">{p.user.name}</span>
                       <WhatsAppLink phone={p.user.phone} />
+                      {(() => {
+                        const u = p.user as any;
+                        const isLocked = u?.lockedUntil && new Date(u.lockedUntil) > new Date();
+                        if (!isLocked) return null;
+                        return (
+                          <span title={`Bloqueada até ${new Date(u.lockedUntil).toLocaleString('pt-BR')}`} className="inline-flex items-center gap-1 text-[10px] bg-red/15 text-red px-1.5 py-0.5 rounded">
+                            <Lock size={10} /> bloqueada
+                          </span>
+                        );
+                      })()}
                     </div>
                   </td>
                   <td>{p.user.email}</td>
@@ -181,6 +200,22 @@ export default function ProducersPage() {
             ) : (
               <div className="flex gap-2 flex-wrap">
                 <button onClick={() => setSelected(null)} className="btn-ghost btn-sm">Fechar</button>
+                {(() => {
+                  const u = selected.user as any;
+                  const isLocked = u?.lockedUntil && new Date(u.lockedUntil) > new Date();
+                  const hasFails = (u?.failedAttempts || 0) > 0;
+                  if (!isLocked && !hasFails) return null;
+                  return (
+                    <button
+                      onClick={() => unlockUser.mutate(u.id)}
+                      disabled={unlockUser.isPending}
+                      className="btn-amber btn-sm"
+                      title={isLocked ? `Bloqueado até ${new Date(u.lockedUntil).toLocaleString('pt-BR')}` : `${u.failedAttempts} tentativas inválidas`}
+                    >
+                      <Unlock size={13} /> {unlockUser.isPending ? 'Liberando...' : 'Desbloquear conta'}
+                    </button>
+                  );
+                })()}
                 <button
                   onClick={() => {
                     if (confirm(`Você vai entrar como ${selected.user.name}. Suas ações serão registradas no audit log. Continuar?`)) {

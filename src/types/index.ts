@@ -24,7 +24,15 @@ export interface Producer {
   isActive: boolean;
   approvedAt?: string;
   createdAt: string;
-  user: { id: string; name: string; email: string; phone?: string };
+  user: {
+    id            : string;
+    name          : string;
+    email         : string;
+    phone?        : string;
+    failedAttempts?: number;
+    lockedUntil?  : string | null;
+    isActive?     : boolean;
+  };
 }
 
 // ── PRODUCT ──────────────────────────────────────
