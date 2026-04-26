@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +28,8 @@ type FormData = z.infer<typeof schema>;
 export default function MyProducts() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const isAffiliateArea = useLocation().pathname.startsWith('/afiliado/');
+  const productBase = isAffiliateArea ? '/afiliado/meus-produtos' : '/produtor/produtos';
   const [openCreate, setOpenCreate]       = useState(false);
   const [selected, setSelected]           = useState<any>(null);
   const [editProduct, setEdit]            = useState<any>(null);
@@ -86,7 +88,7 @@ export default function MyProducts() {
 
   const openEdit = (p: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/produtor/produtos/${p.id}`);
+    navigate(`${productBase}/${p.id}`);
   };
 
   const { data: feeData } = usePlatformFee();

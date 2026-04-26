@@ -41,6 +41,8 @@ export default function ProductEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const isAffiliateArea = location.pathname.startsWith('/afiliado/');
+  const productBase = isAffiliateArea ? '/afiliado/meus-produtos' : '/produtor/produtos';
 
   const { data: product, isLoading } = useQuery<Product>({
     queryKey: ['producer-product', id],
@@ -66,7 +68,7 @@ export default function ProductEdit() {
   return (
     <div>
       {/* Voltar */}
-      <button onClick={() => navigate('/produtor/produtos')} className="btn-ghost btn-sm mb-3 text-text3">
+      <button onClick={() => navigate(productBase)} className="btn-ghost btn-sm mb-3 text-text3">
         <ArrowLeft size={14} /> Voltar para produtos
       </button>
 
@@ -100,7 +102,7 @@ export default function ProductEdit() {
               <div className="text-[10px] uppercase font-semibold text-text3 px-3 py-1 tracking-wide">{section.group}</div>
               <div className="space-y-0.5">
                 {section.items.map(item => {
-                  const fullPath = `/produtor/produtos/${id}${item.to ? `/${item.to}` : ''}`;
+                  const fullPath = `${productBase}/${id}${item.to ? `/${item.to}` : ''}`;
                   const isActive = location.pathname === fullPath || (item.to === '' && location.pathname === fullPath);
                   return (
                     <NavLink

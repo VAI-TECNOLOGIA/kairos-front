@@ -204,6 +204,17 @@ export default function App() {
         <Route path="financeiro"     element={<AffiliateFinancial />} />
         {/* Rotas exclusivas para afiliado co-produtor */}
         <Route path="meus-produtos"        element={<MyProducts />} />
+        <Route path="meus-produtos/:id"    element={<ProductEdit />}>
+          <Route index            element={<ProductInfoSection />} />
+          <Route path="ofertas"   element={<ProductOffersSection />} />
+          <Route path="arquivos"  element={<ProductFilesSection />} />
+          <Route path="area-membros" element={<ProductMembersAreaSection />} />
+          <Route path="checkout"  element={<ProductCheckoutSection />} />
+          <Route path="afiliacao" element={<ProductAffiliationSection />} />
+          <Route path="coprodutores" element={<ProductCoproducersSection />} />
+          <Route path="links"     element={<ProductLinksSection />} />
+          <Route path="pixels"    element={<ProductPixelsSection />} />
+        </Route>
         <Route path="minhas-ofertas"       element={<OfferManager />} />
         <Route path="minhas-vendas"        element={<MySales />} />
         <Route path="logistica"            element={<ProducerLogistics />} />

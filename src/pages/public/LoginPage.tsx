@@ -38,8 +38,10 @@ export default function LoginPage() {
       if (data.user && data.accessToken && data.refreshToken) {
         setAuth(data.user, data.accessToken, data.refreshToken);
         toast.success(`Bem-vindo, ${data.user.name}!`);
-        if (data.user.role === 'CUSTOMER') { navigate('/cliente/compras'); return; }
-        navigate(data.user.role === 'PRODUCER' ? '/produtor/dashboard' : '/admin/dashboard');
+        if (data.user.role === 'CUSTOMER')  { navigate('/cliente/compras');  return; }
+        if (data.user.role === 'PRODUCER')  { navigate('/produtor/dashboard'); return; }
+        if (data.user.role === 'AFFILIATE') { navigate('/afiliado/dashboard'); return; }
+        navigate('/admin/dashboard');
       }
     },
     onError: (err: any) => {

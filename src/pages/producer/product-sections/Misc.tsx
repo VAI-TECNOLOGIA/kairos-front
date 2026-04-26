@@ -1,6 +1,10 @@
-import { useOutletContext, Link } from 'react-router-dom';
+import { useOutletContext, Link, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Copy, Construction, ShoppingBag, Activity, Link2, Users, Lock } from 'lucide-react';
+
+function useIsAffiliateArea() {
+  return useLocation().pathname.startsWith('/afiliado/');
+}
 
 function PlaceholderSection({ icon: Icon, title, description, ctaText, ctaTo }: any) {
   return (
@@ -23,13 +27,14 @@ function PlaceholderSection({ icon: Icon, title, description, ctaText, ctaTo }: 
 }
 
 export function ProductCheckoutSection() {
+  const isAffiliateArea = useIsAffiliateArea();
   return (
     <PlaceholderSection
       icon={ShoppingBag}
       title="Personalizar checkout"
       description="Customize cores, banner, ordem de campos e ofertas extras no checkout deste produto."
-      ctaText="Ir para configurações globais de checkout"
-      ctaTo="/produtor/checkout"
+      ctaText={isAffiliateArea ? undefined : "Ir para configurações globais de checkout"}
+      ctaTo={isAffiliateArea ? undefined : "/produtor/checkout"}
     />
   );
 }
@@ -37,6 +42,7 @@ export function ProductCheckoutSection() {
 export function ProductCoproducersSection() {
   const { product } = useOutletContext<{ product: any }>();
   const list: any[] = product?.coproducers || [];
+  const isAffiliateArea = useIsAffiliateArea();
   return (
     <div className="space-y-3">
       <h2 className="text-base font-semibold text-text">Co produtores</h2>
@@ -45,7 +51,9 @@ export function ProductCoproducersSection() {
           <div className="text-center text-text3 py-6">
             <Users size={28} className="mx-auto mb-2 opacity-40" />
             <p className="text-sm">Nenhum co-produtor neste produto.</p>
-            <Link to="/produtor/coprodutores" className="text-accent text-xs hover:underline mt-1 inline-block">Gerenciar parceiros</Link>
+            {!isAffiliateArea && (
+              <Link to="/produtor/coprodutores" className="text-accent text-xs hover:underline mt-1 inline-block">Gerenciar parceiros</Link>
+            )}
           </div>
         ) : (
           <div className="space-y-2">
@@ -138,13 +146,14 @@ export function ProductLinksSection() {
 }
 
 export function ProductPixelsSection() {
+  const isAffiliateArea = useIsAffiliateArea();
   return (
     <PlaceholderSection
       icon={Activity}
       title="Integração de pixels"
       description="Configure pixels de Facebook, Google Analytics, TikTok e outros para rastreamento de conversões deste produto."
       ctaText="Ir para configurações globais de pixels"
-      ctaTo="/produtor/tracking"
+      ctaTo={isAffiliateArea ? '/afiliado/tracking' : '/produtor/tracking'}
     />
   );
 }
