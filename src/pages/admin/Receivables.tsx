@@ -85,8 +85,11 @@ export default function AdminReceivables() {
         {/* KPIs do dia */}
         <div className="card p-4">
           <div className="text-sm text-text3 mb-1">Resumo dos recebimentos do período selecionado</div>
-          <div className="text-base font-bold text-text mb-4 capitalize">
-            {format(selected, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+          <div className="text-base font-bold text-text mb-4">
+            {(() => {
+              const f = format(selected, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
+              return f.charAt(0).toUpperCase() + f.slice(1);
+            })()}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">

@@ -91,7 +91,10 @@ export default function ProducerDashboard() {
             <StatCard label="Faturamento total" value={formatBRL(totalRevenueCents)} icon={<TrendingUp size={16} />} sub={`este mês: ${formatBRL(monthRevenueCents)}`} />
           )}
           {isEnabled('stat_balance_pending') && (
-            <StatCard label="Saldo pendente"   value={formatBRL(balance?.pendingCents || 0)}   sub="aguardando confirmação" />
+            <>
+              <StatCard label="Saldo disponível" value={formatBRL(balance?.availableCents || 0)} sub="liberado para saque" />
+              <StatCard label="Saldo pendente"   value={formatBRL(balance?.pendingCents   || 0)} sub="aguardando confirmação" />
+            </>
           )}
           {isEnabled('stat_active_products') && (
             <StatCard label="Produtos ativos"  value={data?.products || 0}                     icon={<Package size={16} />} />

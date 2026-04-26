@@ -303,9 +303,13 @@ export default function AdminProducts() {
               {selected.producer ? (
                 <>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
-                      {selected.producer.user?.name?.slice(0, 2).toUpperCase() || '?'}
-                    </div>
+                    {selected.producer.user?.avatarUrl ? (
+                      <img src={selected.producer.user.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-border" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold">
+                        {selected.producer.user?.name?.slice(0, 2).toUpperCase() || '?'}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-text">{selected.producer.user?.name}</div>
                       <div className="text-xs text-text3">{selected.producer.user?.email}</div>
