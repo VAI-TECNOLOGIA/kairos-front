@@ -162,7 +162,7 @@ export default function AdminProducts() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-xs text-text3 italic">Sem oferta cadastrada</div>
+                    <div className="text-xs text-amber italic">Configure sua primeira oferta para esse produto</div>
                   )}
                 </div>
               </div>

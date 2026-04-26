@@ -65,16 +65,24 @@ export default function AffiliateLinks() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-bg3 border border-border">
-                <span className="text-xs text-text3 font-mono flex-1 truncate">{e.link}</span>
-                <button
-                  className={`btn-sm ${copied === e.id ? 'btn-success' : 'btn-secondary'}`}
-                  onClick={() => copyLink(e.link, e.id)}
-                >
-                  <Copy size={12} />
-                  {copied === e.id ? 'Copiado!' : 'Copiar'}
-                </button>
-              </div>
+              {(() => {
+                // Gera link dinâmico com origin atual (corrige links legados com domínio antigo)
+                const link = e.offerSlug && e.affiliateCode
+                  ? `${window.location.origin}/checkout/${e.offerSlug}?ref=${e.affiliateCode}`
+                  : e.link;
+                return (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-bg3 border border-border">
+                    <span className="text-xs text-text3 font-mono flex-1 truncate">{link}</span>
+                    <button
+                      className={`btn-sm ${copied === e.id ? 'btn-success' : 'btn-secondary'}`}
+                      onClick={() => copyLink(link, e.id)}
+                    >
+                      <Copy size={12} />
+                      {copied === e.id ? 'Copiado!' : 'Copiar'}
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </div>

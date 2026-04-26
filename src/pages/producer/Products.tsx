@@ -176,7 +176,9 @@ export default function MyProducts() {
                       <div className="text-[10px] text-text3">de {formatBRL(offer.priceCents)} (–5% plataforma)</div>
                     </div>
                   ) : (
-                    <div className="text-xs text-text3 italic">Sem oferta cadastrada</div>
+                    <div className="text-xs text-amber italic flex items-start gap-1">
+                      <span>Configure sua primeira oferta para esse produto</span>
+                    </div>
                   )}
                 </div>
               </div>
