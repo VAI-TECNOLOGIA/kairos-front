@@ -453,6 +453,30 @@ export default function CheckoutPage() {
     );
   }
 
+  // ── TELA REJEITADO ────────────────────────────────────────────
+  if (result?.status === 'REJECTED') return (
+    <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <div className="bg-bg2 border border-red/30 rounded-2xl p-8 text-center">
+          <div className="w-14 h-14 rounded-full bg-red/10 border border-red/30 flex items-center justify-center mx-auto mb-5">
+            <span className="text-red text-2xl">!</span>
+          </div>
+          <h2 className="text-xl font-semibold text-text mb-2">Pagamento recusado</h2>
+          <p className="text-sm text-text2 mb-5">
+            {(result as any).rejectionReason || 'O pagamento não foi aprovado pelo gateway. Verifique os dados informados (CPF, telefone, endereço) e tente novamente.'}
+          </p>
+          <button
+            onClick={() => { setResult(null); }}
+            className="w-full bg-accent hover:bg-blue-600 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
+          >
+            Tentar novamente
+          </button>
+          <p className="text-xs text-text3 mt-4">Pedido <span className="font-mono">{result.orderId?.slice(-8).toUpperCase()}</span></p>
+        </div>
+      </div>
+    </div>
+  );
+
   // ── TELA PIX ──────────────────────────────────────────────────
   if (result?.pixCode || result?.method === 'PIX') return (
     <div className="min-h-screen bg-bg flex items-center justify-center p-4">
