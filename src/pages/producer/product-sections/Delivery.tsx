@@ -25,8 +25,7 @@ export function ProductFilesSection() {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      fd.append('purpose', 'product-digital');
-      const r = await api.post('/uploads', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const r = await api.post('/upload/image?folder=products-digital', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       save.mutate(r.data.url);
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Erro no upload');

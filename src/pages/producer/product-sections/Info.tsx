@@ -93,8 +93,7 @@ export default function ProductInfoSection() {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      fd.append('purpose', 'product');
-      const r = await api.post('/uploads', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const r = await api.post('/upload/image?folder=products', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       setImageUrl(r.data.url);
       toast.success('Imagem carregada — clique em Salvar para confirmar');
     } catch (e: any) {
