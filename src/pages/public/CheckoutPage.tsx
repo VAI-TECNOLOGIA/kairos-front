@@ -263,11 +263,13 @@ export default function CheckoutPage() {
       fire('AddPaymentInfo');
       let cardToken: string | undefined;
       if (formData.method === 'CREDIT_CARD') {
+        const rawYear = (formData.cardExpYear || '').replace(/\D/g, '');
+        const expYear = rawYear.length === 2 ? `20${rawYear}` : rawYear;
         cardToken = await tokenizeCard({
           number  : formData.cardNumber   || '',
           holder  : formData.cardHolder   || '',
-          expMonth: formData.cardExpMonth || '',
-          expYear : formData.cardExpYear  || '',
+          expMonth: (formData.cardExpMonth || '').replace(/\D/g, '').padStart(2, '0'),
+          expYear,
           cvv     : formData.cardCvv      || '',
         });
       }
@@ -886,13 +888,13 @@ export default function CheckoutPage() {
                       <label className="block text-xs text-text3 mb-1">Mês</label>
                       <input {...register('cardExpMonth', { required: true })}
                         className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 text-center outline-none focus:border-accent transition-all"
-                        placeholder="MM" maxLength={2} autoComplete="cc-exp-month" />
+                        placeholder="MM" maxLength={2} inputMode="numeric" autoComplete="cc-exp-month" />
                     </div>
                     <div>
                       <label className="block text-xs text-text3 mb-1">Ano</label>
                       <input {...register('cardExpYear', { required: true })}
                         className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 text-center outline-none focus:border-accent transition-all"
-                        placeholder="AAAA" maxLength={4} autoComplete="cc-exp-year" />
+                        placeholder="AA ou AAAA" maxLength={4} inputMode="numeric" autoComplete="cc-exp-year" />
                     </div>
                     <div>
                       <label className="block text-xs text-text3 mb-1">CVV</label>
