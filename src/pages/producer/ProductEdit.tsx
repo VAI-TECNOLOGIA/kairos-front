@@ -15,27 +15,36 @@ interface Product {
   offers?     : any[];
 }
 
-const SECTIONS = [
-  { group: 'Geral', items: [
-    { to: '',                icon: Info,        label: 'Informações' },
-    { to: 'ofertas',         icon: Tag,         label: 'Ofertas',         countKey: 'offers' as const },
-  ]},
-  { group: 'Entregas', items: [
-    { to: 'arquivos',        icon: FileText,    label: 'Arquivos' },
-    { to: 'area-membros',    icon: Monitor,     label: 'Área de membros' },
-  ]},
-  { group: 'Checkout', items: [
-    { to: 'checkout',        icon: ShoppingBag, label: 'Personalizar checkout' },
-  ]},
-  { group: 'Parceiros', items: [
-    { to: 'afiliacao',       icon: Handshake,   label: 'Afiliação' },
-    { to: 'coprodutores',    icon: UsersIcon,   label: 'Co produtores' },
-  ]},
-  { group: 'Tráfego', items: [
-    { to: 'links',           icon: Link2,       label: 'Links de divulgação' },
-    { to: 'pixels',          icon: Activity,    label: 'Integração de pixels' },
-  ]},
-];
+function buildSections(productType?: string) {
+  const isDigital = productType === 'DIGITAL';
+  const sections = [
+    { group: 'Geral', items: [
+      { to: '',                icon: Info,        label: 'Informações' },
+      { to: 'ofertas',         icon: Tag,         label: 'Ofertas',         countKey: 'offers' as const },
+    ]},
+  ];
+  // Entregas (Arquivos + Área de membros) só para produto DIGITAL (cursos, ebooks)
+  if (isDigital) {
+    sections.push({ group: 'Entregas', items: [
+      { to: 'arquivos',        icon: FileText,    label: 'Arquivos' },
+      { to: 'area-membros',    icon: Monitor,     label: 'Área de membros' },
+    ]});
+  }
+  sections.push(
+    { group: 'Checkout', items: [
+      { to: 'checkout',        icon: ShoppingBag, label: 'Personalizar checkout' },
+    ]},
+    { group: 'Parceiros', items: [
+      { to: 'afiliacao',       icon: Handshake,   label: 'Afiliação' },
+      { to: 'coprodutores',    icon: UsersIcon,   label: 'Co produtores' },
+    ]},
+    { group: 'Tráfego', items: [
+      { to: 'links',           icon: Link2,       label: 'Links de divulgação' },
+      { to: 'pixels',          icon: Activity,    label: 'Integração de pixels' },
+    ]},
+  );
+  return sections;
+}
 
 export default function ProductEdit() {
   const { id } = useParams<{ id: string }>();
@@ -97,7 +106,7 @@ export default function ProductEdit() {
       <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">
         {/* Sidebar de seções */}
         <aside className="card p-2 h-fit md:sticky md:top-4">
-          {SECTIONS.map((section, gi) => (
+          {buildSections(product.type).map((section, gi) => (
             <div key={section.group} className={gi > 0 ? 'mt-3' : ''}>
               <div className="text-[10px] uppercase font-semibold text-text3 px-3 py-1 tracking-wide">{section.group}</div>
               <div className="space-y-0.5">

@@ -14,8 +14,13 @@ export default function AffiliateMarketplace() {
 
   const enroll = useMutation({
     mutationFn: (offerId: string) => api.post('/affiliates/enroll', { offerId }),
-    onSuccess: () => {
-      toast.success('Inscrito com sucesso! Acesse Meus Links para copiar seu link.');
+    onSuccess: (res: any) => {
+      const created = (res?.data?.enrollments || []).filter((e: any) => e.created).length;
+      const total   = (res?.data?.enrollments || []).length;
+      const msg = total > 1
+        ? `Inscrito em ${total} oferta(s) deste produto${created > 0 ? ` (${created} novas)` : ''}. Veja em Meus Links.`
+        : 'Inscrito com sucesso! Acesse Meus Links para copiar seu link.';
+      toast.success(msg);
       qc.invalidateQueries({ queryKey: ['affiliate-marketplace'] });
       qc.invalidateQueries({ queryKey: ['affiliate-enrollments'] });
     },

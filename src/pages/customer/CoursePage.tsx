@@ -28,10 +28,6 @@ function ytEmbed(url: string): string | null {
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/);
   return m ? `https://www.youtube.com/embed/${m[1]}` : null;
 }
-function vimeoEmbed(url: string): string | null {
-  const m = url.match(/vimeo\.com\/(\d+)/);
-  return m ? `https://player.vimeo.com/video/${m[1]}` : null;
-}
 
 export default function CoursePage() {
   const { productId } = useParams<{ productId: string }>();
@@ -152,11 +148,10 @@ function ModuleCard({ module, selectedLessonId, onSelectLesson }: {
 }
 
 function LessonView({ lesson, commentsEnabled }: { lesson: Lesson; commentsEnabled: boolean }) {
-  let embedUrl: string | null = null;
-  if (!lesson.hideVideo && lesson.videoUrl) {
-    if (lesson.videoSource === 'YOUTUBE') embedUrl = ytEmbed(lesson.videoUrl);
-    else if (lesson.videoSource === 'VIMEO') embedUrl = vimeoEmbed(lesson.videoUrl);
-  }
+  // Decide o player: YouTube → embed, MP4 → tag video, OTHER → iframe genérico (URL fornecida pelo produtor)
+  const embedUrl = !lesson.hideVideo && lesson.videoUrl && lesson.videoSource === 'YOUTUBE'
+    ? ytEmbed(lesson.videoUrl)
+    : null;
 
   return (
     <div className="space-y-4">
@@ -164,9 +159,16 @@ function LessonView({ lesson, commentsEnabled }: { lesson: Lesson; commentsEnabl
         {!lesson.hideVideo && lesson.videoUrl ? (
           lesson.videoSource === 'MP4_DIRECT' ? (
             <video controls src={lesson.videoUrl} className="w-full aspect-video bg-black" />
-          ) : embedUrl ? (
+          ) : lesson.videoSource === 'YOUTUBE' && embedUrl ? (
             <iframe
               src={embedUrl}
+              className="w-full aspect-video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : lesson.videoSource === 'OTHER' ? (
+            <iframe
+              src={lesson.videoUrl}
               className="w-full aspect-video"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

@@ -440,14 +440,14 @@ function LessonModal({ moduleId, lesson, onClose, onSaved }: { moduleId: string;
               <label className="label">Origem do vídeo</label>
               <select className="input" value={videoSource} onChange={e => setVideoSource(e.target.value)}>
                 <option value="YOUTUBE">YouTube</option>
-                <option value="VIMEO">Vimeo</option>
                 <option value="MP4_DIRECT">MP4 direto (URL)</option>
+                <option value="OTHER">Outros</option>
               </select>
             </div>
             <div className="form-group">
               <label className="label">URL do vídeo</label>
               <input className="input" value={videoUrl} onChange={e => setVideoUrl(e.target.value)}
-                placeholder={videoSource === 'YOUTUBE' ? 'https://youtube.com/watch?v=...' : videoSource === 'VIMEO' ? 'https://vimeo.com/...' : 'https://...mp4'} />
+                placeholder={videoSource === 'YOUTUBE' ? 'https://youtube.com/watch?v=...' : videoSource === 'MP4_DIRECT' ? 'https://...mp4' : 'URL do vídeo (embed iframe ou link direto)'} />
             </div>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={defaultPlayer} onChange={e => setDefaultPlayer(e.target.checked)} className="w-4 h-4" />
