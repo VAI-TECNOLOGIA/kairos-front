@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '@/stores/auth.store';
 import api from '@/lib/api';
 import type { LoginResponse } from '@/types';
-import { Eye, EyeOff, Lock, Mail, ShoppingBag, Briefcase, Link2 } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ShoppingBag, Link2 } from 'lucide-react';
 
 const schema = z.object({
   email   : z.string().email('Email inválido'),
@@ -203,36 +203,31 @@ export default function LoginPage() {
             <ShoppingBag size={15} className="text-accent" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-text">Comprou algum produto?</div>
+            <div className="text-sm font-medium text-text">Meus produtos</div>
             <div className="text-[11px] text-text3">Acessar minhas compras</div>
           </div>
           <span className="text-text3 group-hover:text-accent transition-colors">→</span>
         </Link>
 
-        {/* Não tem conta — solicitar como produtor ou afiliado */}
-        <div className="mt-4 text-center">
-          <p className="text-xs text-text3 mb-2">Não tem conta?</p>
-          <div className="grid grid-cols-2 gap-2">
-            <Link
-              to="/cadastro"
-              className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border border-white/10 hover:border-accent/50 transition-colors"
-              style={{ background: 'rgba(255, 255, 255, 0.03)' }}
-            >
-              <Briefcase size={14} className="text-accent" />
-              <span className="text-xs font-medium text-text">Sou produtor</span>
-              <span className="text-[10px] text-text3">Solicitar cadastro</span>
-            </Link>
-            <Link
-              to="/seja-afiliado"
-              className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl border border-white/10 hover:border-accent/50 transition-colors"
-              style={{ background: 'rgba(255, 255, 255, 0.03)' }}
-            >
-              <Link2 size={14} className="text-accent" />
-              <span className="text-xs font-medium text-text">Sou afiliado</span>
-              <span className="text-[10px] text-text3">Solicitar cadastro</span>
-            </Link>
+        {/* Não tem conta — solicitar cadastro como afiliado */}
+        <Link
+          to="/seja-afiliado"
+          className="mt-3 flex items-center gap-2.5 px-4 py-3 rounded-xl border border-white/10 hover:border-accent/50 transition-colors group"
+          style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+          }}
+        >
+          <div className="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center flex-shrink-0">
+            <Link2 size={15} className="text-accent" />
           </div>
-        </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-text">Quer ser afiliado?</div>
+            <div className="text-[11px] text-text3">Solicitar cadastro</div>
+          </div>
+          <span className="text-text3 group-hover:text-accent transition-colors">→</span>
+        </Link>
       </div>
     </div>
   );
