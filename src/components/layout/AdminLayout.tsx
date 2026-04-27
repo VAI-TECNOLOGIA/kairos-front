@@ -7,7 +7,7 @@ import api from '@/lib/api';
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, Package, Tag, ShoppingCart, Link2, Handshake,
-  RefreshCw, DollarSign, BarChart3, Shield, Truck, Calculator,
+  RefreshCw, DollarSign, BarChart3, Shield, Calculator,
   Settings, LogOut, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
   ChevronDown, Megaphone, Briefcase, Lock, Percent, MessageSquareHeart, Plug, Clock,
   Menu, X, ShieldCheck, Wallet, CalendarRange, AlertTriangle, Wrench,
@@ -51,7 +51,6 @@ const buildNav = (counts: { producers: number; pendingProducts: number; pendingK
     { to: 'financeiro',   icon: DollarSign,    label: 'Financeiro' },
     { to: 'recebimentos', icon: CalendarRange, label: 'Recebimentos' },
     { to: 'receitas',     icon: BarChart3,     label: 'Receitas e Taxas' },
-    { to: 'logistica',    icon: Truck,         label: 'Envios' },
   ]},
   { group: 'Relatórios', icon: BarChart3, items: [
     { to: 'relatorios',         icon: BarChart3,     label: 'Geral' },
