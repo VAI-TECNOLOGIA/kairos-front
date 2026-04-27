@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth.store';
 import { Camera, Save, User, MapPin } from 'lucide-react';
 import { maskDocument, maskPhone, validateDocument } from '@/lib/cpf';
+import SecurityCard from '@/components/SecurityCard';
 
 interface ProfileForm {
   name     : string;
@@ -253,6 +254,9 @@ export default function ProfilePage() {
             ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
             : <><Save size={14} /> Salvar alterações</>}
         </button>
+
+        {/* Segurança da conta — alterar senha + MFA */}
+        <SecurityCard />
       </div>
     </div>
   );
