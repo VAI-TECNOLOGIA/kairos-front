@@ -40,20 +40,31 @@ export default function AffiliateLinks() {
         <div className="flex flex-col gap-4">
           {(enrollments || []).map((e: any) => (
             <div key={e.id} className="card">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="flex items-center gap-3">
+              <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
                   {e.productImage && (
-                    <img src={e.productImage} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                    <img src={e.productImage} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
                   )}
-                  <div>
-                    <div className="font-semibold text-text">{e.productName}</div>
-                    <div className="text-xs text-text3">{e.offerName}</div>
-                    <span className="badge-blue text-xs mt-1 inline-block">{e.commissionBps / 100}% comissão</span>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-text truncate">{e.productName}</div>
+                    <div className="text-xs text-text3 truncate">{e.offerName}</div>
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <span className="badge-blue text-xs">{e.commissionBps / 100}% comissão</span>
+                      {e.priceCents != null && (
+                        <span className="text-[11px] text-text3">
+                          Produto: <strong className="text-text2">{formatBRL(e.priceCents)}</strong>
+                        </span>
+                      )}
+                      {e.commissionPerSaleCents != null && e.commissionPerSaleCents > 0 && (
+                        <span className="text-[11px] text-green-400">
+                          Você ganha <strong>{formatBRL(e.commissionPerSaleCents)}</strong> por venda
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 text-sm text-text2 flex-shrink-0">
-                  
                   <div className="flex items-center gap-1">
                     <ShoppingCart size={13} />
                     {e.conversions} vendas

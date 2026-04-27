@@ -230,13 +230,15 @@ export default function App() {
         <Route path="ajuda"                element={<HelpCenter />} />
       </Route>
 
+      {/* ── CURSO (shell próprio, fora do CustomerLayout) ── */}
+      <Route path="/cliente/curso/:productId" element={<CoursePage />} />
+
       {/* ── CLIENTE ── */}
       <Route path="/cliente" element={<CustomerLayout />}>
         <Route index element={<Navigate to="marketplace" replace />} />
         <Route path="login"       element={<CustomerAuthPage />} />
         <Route path="marketplace" element={<CustomerMarketplace />} />
         <Route path="compras"     element={<MyPurchases />} />
-        <Route path="curso/:productId" element={<CoursePage />} />
       </Route>
 
       {/* ── REDIRECT ROOT ── */}

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { Modal, Loading } from '@/components/ui';
 import { ImageUpload } from '@/components/ui/ImageUpload';
-import { Plus, Pencil, Trash2, Video, Lock, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Video, Lock, Eye, EyeOff, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
 
 type Lesson = {
   id: string; title: string; description: string | null;
@@ -113,23 +113,34 @@ function AreaEditor({ area, productId, onChanged }: { area: Area; productId: str
 
   return (
     <div className="space-y-4">
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
-        {[
-          { k: 'preferences', label: 'Preferências' },
-          { k: 'modules',     label: 'Módulos', count: area.modules.length },
-        ].map(t => (
-          <button
-            key={t.k}
-            onClick={() => setTab(t.k as any)}
-            className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
-              tab === t.k ? 'border-accent text-accent' : 'border-transparent text-text3 hover:text-text2'
-            }`}
-          >
-            {t.label}
-            {(t as any).count > 0 && <span className="bg-bg3 text-text2 text-[10px] px-1.5 py-0.5 rounded-full">{(t as any).count}</span>}
-          </button>
-        ))}
+      {/* Header com tabs e botão Visualizar */}
+      <div className="flex items-center justify-between border-b border-border">
+        <div className="flex gap-1">
+          {[
+            { k: 'preferences', label: 'Preferências' },
+            { k: 'modules',     label: 'Módulos', count: area.modules.length },
+          ].map(t => (
+            <button
+              key={t.k}
+              onClick={() => setTab(t.k as any)}
+              className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
+                tab === t.k ? 'border-accent text-accent' : 'border-transparent text-text3 hover:text-text2'
+              }`}
+            >
+              {t.label}
+              {(t as any).count > 0 && <span className="bg-bg3 text-text2 text-[10px] px-1.5 py-0.5 rounded-full">{(t as any).count}</span>}
+            </button>
+          ))}
+        </div>
+        <a
+          href={`/cliente/curso/${productId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-ghost btn-sm text-text2 hover:text-accent inline-flex items-center gap-1.5 mb-1"
+          title="Abrir o curso como o aluno vai ver (em nova aba)"
+        >
+          <ExternalLink size={13} /> Visualizar
+        </a>
       </div>
 
       {tab === 'preferences' && <PreferencesPanel area={area} onSaved={onChanged} />}
