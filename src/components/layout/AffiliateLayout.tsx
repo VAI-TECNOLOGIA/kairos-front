@@ -9,7 +9,7 @@ import { formatBRL } from '@/lib/utils';
 import {
   LayoutDashboard, ShoppingBag, Link2, DollarSign,
   LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw, Activity, Tv2, Plug, Truck,
-  Menu, HelpCircle,
+  Menu, HelpCircle, ShieldCheck,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -30,6 +30,7 @@ const nav = [
     { to: 'tracking',  icon: Activity,  label: 'Pixels de Rastreamento' },
   ]},
   { group: 'Conta', items: [
+    { to: 'verificacao',          icon: ShieldCheck,       label: 'Verificação' },
     { to: 'perfil',               icon: UserCircle,        label: 'Meu Perfil' },
     { to: 'integracoes',          icon: Plug,              label: 'Integrações' },
     { to: 'ajuda',                icon: HelpCircle,        label: 'Central de Ajuda' },

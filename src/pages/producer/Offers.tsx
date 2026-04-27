@@ -34,7 +34,8 @@ export default function OfferManager() {
 
   const allProducts: Product[] = products?.data || [];
 
-  const { register: ro, handleSubmit: ho, reset: rro } = useForm<OfferForm>({ resolver: zodResolver(offerSchema), defaultValues:{type:"STANDARD"} });
+  const { register: ro, handleSubmit: ho, reset: rro, watch: wo } = useForm<OfferForm>({ resolver: zodResolver(offerSchema), defaultValues:{type:"STANDARD"} });
+  const watchOfferPrice = wo('priceCents');
 
   const saveStandardSplit = async (offerId: string) => {
     const { data: fee } = await api.get('/admin/platform-fee');
@@ -199,7 +200,11 @@ export default function OfferManager() {
           </div>
           <div className="form-group"><label className="label">Nome da oferta *</label><input {...ro("name")} className="input" placeholder="Ex: Oferta Normal"/></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="form-group"><label className="label">Preço (centavos) *</label><input {...ro("priceCents",{valueAsNumber:true})} type="number" className="input" placeholder="9700"/></div>
+            <div className="form-group">
+              <label className="label">Preço (em centavos) *</label>
+              <input {...ro("priceCents",{valueAsNumber:true})} type="number" className="input" placeholder="9700"/>
+              <p className="text-[11px] text-text2 mt-1">Equivale a <strong className="text-accent">{formatBRL(Number(watchOfferPrice) || 0)}</strong></p>
+            </div>
             <div className="form-group"><label className="label">Tipo</label><select {...ro("type")} className="input"><option value="STANDARD">Padrão</option><option value="UPSELL">Upsell</option><option value="ORDERBUMP">Order Bump</option></select></div>
           </div>
           {isAffiliate && (

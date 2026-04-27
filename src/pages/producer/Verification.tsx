@@ -289,8 +289,9 @@ function RegisterForm({ initial, fallback, onSaved, disabled }: {
             <Field label="Profissão">
               <input className="input" value={form.professionalOccupation} onChange={e => updateForm({ professionalOccupation: e.target.value })} disabled={disabled} />
             </Field>
-            <Field label="Renda mensal (centavos)">
+            <Field label="Renda mensal (em centavos)">
               <input className="input" type="number" value={form.monthlyIncome} onChange={e => updateForm({ monthlyIncome: +e.target.value })} disabled={disabled} />
+              <p className="text-[11px] text-text2 mt-1">Equivale a <strong className="text-accent">{(Number(form.monthlyIncome)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</strong></p>
             </Field>
             <Field label="Nome da mãe">
               <input className="input" value={form.motherName} onChange={e => updateForm({ motherName: e.target.value })} disabled={disabled} />
@@ -312,8 +313,9 @@ function RegisterForm({ initial, fallback, onSaved, disabled }: {
             <Field label="Data de fundação (DD/MM/AAAA)">
               <input className="input" value={form.foundingDate} onChange={e => updateForm({ foundingDate: e.target.value })} disabled={disabled} />
             </Field>
-            <Field label="Faturamento anual (centavos)">
+            <Field label="Faturamento anual (em centavos)">
               <input className="input" type="number" value={form.annualRevenue} onChange={e => updateForm({ annualRevenue: +e.target.value })} disabled={disabled} />
+              <p className="text-[11px] text-text2 mt-1">Equivale a <strong className="text-accent">{(Number(form.annualRevenue)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</strong></p>
             </Field>
             <Field label="Site">
               <input className="input" value={form.siteUrl} onChange={e => updateForm({ siteUrl: e.target.value })} disabled={disabled} />

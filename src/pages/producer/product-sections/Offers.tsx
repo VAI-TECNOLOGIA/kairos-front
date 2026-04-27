@@ -9,10 +9,12 @@ import { formatBRL, cn } from '@/lib/utils';
 import { Plus, Copy, Lock, AlertCircle, Trash2, Tag } from 'lucide-react';
 
 interface OfferForm {
-  productId  : string;
-  name       : string;
-  priceCents : number;
-  type       : string;
+  productId          : string;
+  name               : string;
+  priceCents         : number;
+  type               : string;
+  subscriptionCycle ?: string;
+  subscriptionMonths?: number | null;
 }
 
 export default function ProductOffersSection() {
@@ -22,13 +24,22 @@ export default function ProductOffersSection() {
   const productApproved = product?.status === 'APPROVED';
   const productRejected = product?.status === 'REJECTED';
 
-  const { register, handleSubmit, reset } = useForm<OfferForm>({
+  const { register, handleSubmit, reset, watch } = useForm<OfferForm>({
     defaultValues: { productId: product?.id, type: 'STANDARD' },
   });
+  const watchType  = watch('type');
+  const watchPrice = watch('priceCents');
 
   const create = useMutation({
     mutationFn: async (d: OfferForm) => {
-      const offer = await api.post('/offers', { ...d, productId: product.id });
+      const payload: any = { ...d, productId: product.id };
+      if (d.type !== 'SUBSCRIPTION') {
+        delete payload.subscriptionCycle;
+        delete payload.subscriptionMonths;
+      } else if (!payload.subscriptionMonths) {
+        payload.subscriptionMonths = null; // vitalícia
+      }
+      const offer = await api.post('/offers', payload);
       try {
         const fee = await api.get('/admin/platform-fee');
         const platformBps = fee.data.platformBps || 500;
@@ -134,8 +145,11 @@ export default function ProductOffersSection() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Preço (centavos) *</label>
+              <label className="label">Preço (em centavos) *</label>
               <input {...register('priceCents', { valueAsNumber: true, required: true, min: 100 })} type="number" className="input" placeholder="9700" />
+              <p className="text-[11px] text-text2 mt-1">
+                Equivale a <strong className="text-accent">{formatBRL(Number(watchPrice) || 0)}</strong>
+              </p>
             </div>
             <div>
               <label className="label">Tipo</label>
@@ -143,9 +157,44 @@ export default function ProductOffersSection() {
                 <option value="STANDARD">Padrão</option>
                 <option value="UPSELL">Upsell</option>
                 <option value="ORDERBUMP">Order Bump</option>
+                <option value="SUBSCRIPTION">Assinatura recorrente</option>
               </select>
             </div>
           </div>
+
+          {watchType === 'SUBSCRIPTION' && (
+            <div className="grid grid-cols-2 gap-3 p-3 rounded bg-accent/5 border border-accent/20">
+              <div className="col-span-2 text-xs text-accent font-medium">Configuração da assinatura</div>
+              <div>
+                <label className="label">Frequência *</label>
+                <select {...register('subscriptionCycle')} className="input" defaultValue="MONTHLY">
+                  <option value="WEEKLY">Semanal</option>
+                  <option value="BIWEEKLY">Quinzenal</option>
+                  <option value="MONTHLY">Mensal</option>
+                  <option value="QUARTERLY">Trimestral</option>
+                  <option value="SEMIANNUAL">Semestral</option>
+                  <option value="ANNUAL">Anual</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Duração total</label>
+                <select
+                  {...register('subscriptionMonths', { setValueAs: v => v === '' || v === '0' ? null : Number(v) })}
+                  className="input"
+                  defaultValue=""
+                >
+                  <option value="">Vitalícia (até cancelar)</option>
+                  <option value="3">3 meses</option>
+                  <option value="6">6 meses</option>
+                  <option value="12">12 meses</option>
+                  <option value="24">24 meses</option>
+                  <option value="36">36 meses</option>
+                </select>
+                <p className="text-[10px] text-text3 mt-1">Se preenchida, a cobrança encerra após o período. Cliente paga × frequência.</p>
+              </div>
+            </div>
+          )}
+
           <div className={cn('text-xs p-3 rounded bg-bg3 text-text3')}>
             Split padrão automático: 5% plataforma + 95% produtor.
           </div>

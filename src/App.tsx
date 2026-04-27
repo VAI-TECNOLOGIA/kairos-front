@@ -226,6 +226,7 @@ export default function App() {
         <Route path="configurar-dashboard" element={<DashboardSettings />} />
         <Route path="reembolsos"           element={<AffiliateRefunds />} />
         <Route path="tracking"             element={<TrackingPixels />} />
+        <Route path="verificacao"          element={<Verification />} />
         <Route path="ajuda"                element={<HelpCenter />} />
       </Route>
 

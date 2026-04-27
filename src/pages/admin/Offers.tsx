@@ -24,7 +24,8 @@ export default function OfferManager() {
   const { data: products } = useQuery({ queryKey:["my-products"], queryFn:()=>api.get("/products").then(r=>r.data) });
   const allProducts: Product[] = products?.data || [];
 
-  const { register: ro, handleSubmit: ho, reset: rro, formState:{errors:eo} } = useForm<OfferForm>({ resolver: zodResolver(offerSchema), defaultValues:{type:"STANDARD"} });
+  const { register: ro, handleSubmit: ho, reset: rro, watch: wo, formState:{errors:eo} } = useForm<OfferForm>({ resolver: zodResolver(offerSchema), defaultValues:{type:"STANDARD"} });
+  const watchAdminPrice = wo('priceCents');
   const { register: rs, handleSubmit: hs, control, watch: ws } = useForm<SplitForm>({ resolver: zodResolver(splitSchema), defaultValues:{ splits:[{recipientType:"PLATFORM",basisPoints:500},{recipientType:"PRODUCER",basisPoints:9500}] } });
   const { fields, append, remove } = useFieldArray({ control, name:"splits" });
   const splitsWatch = ws("splits");
@@ -85,7 +86,11 @@ export default function OfferManager() {
           </div>
           <div className="form-group"><label className="label">Nome da oferta *</label><input {...ro("name")} className="input" placeholder="Ex: Oferta Normal"/></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="form-group"><label className="label">Preço (centavos) *</label><input {...ro("priceCents",{valueAsNumber:true})} type="number" className="input" placeholder="9700"/></div>
+            <div className="form-group">
+              <label className="label">Preço (em centavos) *</label>
+              <input {...ro("priceCents",{valueAsNumber:true})} type="number" className="input" placeholder="9700"/>
+              <p className="text-[11px] text-text2 mt-1">Equivale a <strong className="text-accent">{formatBRL(Number(watchAdminPrice) || 0)}</strong></p>
+            </div>
             <div className="form-group"><label className="label">Tipo</label><select {...ro("type")} className="input"><option value="STANDARD">Padrão</option><option value="UPSELL">Upsell</option><option value="ORDERBUMP">Order Bump</option></select></div>
           </div>
         </div>
