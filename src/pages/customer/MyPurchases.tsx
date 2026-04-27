@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import {
   ShoppingBag, Package, Zap, CreditCard, FileText,
   ExternalLink, RotateCcw, ChevronDown, ChevronUp, AlertTriangle,
-  Truck, MapPin, CheckCircle, Clock, PackageSearch,
+  Truck, MapPin, CheckCircle, Clock, PackageSearch, PlayCircle,
 } from 'lucide-react';
 
 const METHOD_ICON: Record<string, React.ReactNode> = {
@@ -212,8 +212,19 @@ export default function MyPurchases() {
                         #{order.id.slice(-8).toUpperCase()}
                       </span>
 
+                      {/* Curso online (área de membros) */}
+                      {order.offer?.product?.membersArea && (
+                        <button
+                          onClick={() => navigate(`/cliente/curso/${order.offer.product.id}`)}
+                          className="flex items-center gap-1 text-[11px] text-accent hover:underline"
+                        >
+                          <PlayCircle size={11} />
+                          Acessar curso
+                        </button>
+                      )}
+
                       {/* Produto digital — link de acesso */}
-                      {order.offer?.product?.type === 'DIGITAL' && order.offer?.product?.digitalUrl && (
+                      {order.offer?.product?.type === 'DIGITAL' && !order.offer?.product?.membersArea && order.offer?.product?.digitalUrl && (
                         <a
                           href={order.offer.product.digitalUrl}
                           target="_blank"

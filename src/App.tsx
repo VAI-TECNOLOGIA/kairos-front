@@ -20,6 +20,7 @@ import CustomerLayout  from '@/components/layout/CustomerLayout';
 import CustomerAuthPage from '@/pages/customer/CustomerAuthPage';
 import MyPurchases      from '@/pages/customer/MyPurchases';
 import CustomerMarketplace from '@/pages/customer/Marketplace';
+import CoursePage         from '@/pages/customer/CoursePage';
 
 // Admin pages
 import AdminDashboard      from '@/pages/admin/Dashboard';
@@ -234,6 +235,7 @@ export default function App() {
         <Route path="login"       element={<CustomerAuthPage />} />
         <Route path="marketplace" element={<CustomerMarketplace />} />
         <Route path="compras"     element={<MyPurchases />} />
+        <Route path="curso/:productId" element={<CoursePage />} />
       </Route>
 
       {/* ── REDIRECT ROOT ── */}

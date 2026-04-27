@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { DateCell, WhatsAppLink } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { Copy, Users, Info, Lock } from 'lucide-react';
+import { Copy, Users, Info, Lock, UserMinus } from 'lucide-react';
 
 type Tab = 'config' | 'affiliates';
 
@@ -88,6 +88,25 @@ export default function ProductAffiliationSection() {
     },
     enabled: tab === 'affiliates' && offers.length > 0,
   });
+
+  const blockAffiliate = useMutation({
+    mutationFn: (affiliateId: string) => api.post(`/affiliates/products/${product.id}/affiliates/${affiliateId}/block`),
+    onSuccess : () => {
+      toast.success('Afiliado removido — link não comissiona mais e re-inscrição bloqueada');
+      qc.invalidateQueries({ queryKey: ['product-affiliates', product?.id] });
+    },
+    onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro ao remover'),
+  });
+
+  const askBlock = (e: any) => {
+    const name = e.affiliate?.user?.name || 'este afiliado';
+    if (window.confirm(
+      `Remover ${name} desta oferta?\n\n` +
+      `O link de afiliação dele para de comissionar e ele não poderá se inscrever novamente em nenhuma oferta deste produto.`
+    )) {
+      blockAffiliate.mutate(e.affiliate?.id || e.affiliateId);
+    }
+  };
 
   const inviteSlug = firstOffer?.slug;
   const inviteUrl  = inviteSlug ? `${window.location.origin}/afiliar/${inviteSlug}` : null;
@@ -212,10 +231,12 @@ export default function ProductAffiliationSection() {
           ) : (
             <table className="table w-full">
               <thead>
-                <tr><th>Afiliado</th><th>Email</th><th>Código</th><th>Status</th><th>Inscrito em</th></tr>
+                <tr><th>Afiliado</th><th>Email</th><th>Código</th><th>Status</th><th>Inscrito em</th><th>Ações</th></tr>
               </thead>
               <tbody>
-                {enrollments.map((e: any) => (
+                {enrollments.map((e: any) => {
+                  const isBlocked = e.status === 'BLOCKED';
+                  return (
                   <tr key={e.id}>
                     <td>
                       <div className="flex items-center gap-2 min-w-0">
@@ -225,10 +246,23 @@ export default function ProductAffiliationSection() {
                     </td>
                     <td className="text-text2">{e.affiliate?.user?.email || '—'}</td>
                     <td><code className="text-xs bg-bg3 px-2 py-0.5 rounded text-accent">{e.affiliate?.code}</code></td>
-                    <td><span className={e.status === 'ACTIVE' ? 'badge-green' : 'badge-gray'}>{e.status}</span></td>
+                    <td><span className={isBlocked ? 'badge-red' : e.status === 'ACTIVE' ? 'badge-green' : 'badge-gray'}>{e.status}</span></td>
                     <td><DateCell date={e.createdAt} /></td>
+                    <td>
+                      {!isBlocked && (
+                        <button
+                          onClick={() => askBlock(e)}
+                          disabled={blockAffiliate.isPending}
+                          className="btn-ghost btn-sm border border-red/40 text-red hover:bg-red/10 inline-flex items-center gap-1"
+                          title="Remover afiliado deste produto"
+                        >
+                          <UserMinus size={12} /> Remover
+                        </button>
+                      )}
+                    </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           )}
