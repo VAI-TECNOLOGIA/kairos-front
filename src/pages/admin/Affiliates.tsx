@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import api from '@/lib/api';
 import { PageHeader, Loading, EmptyState, DateCell, WhatsAppLink } from '@/components/ui';
 import type { Affiliate } from '@/types';
-import { Link2, CheckCircle, XCircle, Clock, Users } from 'lucide-react';
+import { Link2, CheckCircle, XCircle, Clock, Users, Trash2 } from 'lucide-react';
 
 export default function AffiliatesPage() {
   const qc = useQueryClient();
@@ -43,6 +43,24 @@ export default function AffiliatesPage() {
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao rejeitar'),
   });
+
+  const remove = useMutation({
+    mutationFn: (id: string) => api.delete(`/affiliates/${id}`),
+    onSuccess : () => {
+      toast.success('Afiliado excluído permanentemente');
+      qc.invalidateQueries({ queryKey: ['admin-affiliates'] });
+    },
+    onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro ao excluir'),
+  });
+
+  const askDelete = (a: any) => {
+    const ok = window.confirm(
+      `Excluir ${a.user.name} (${a.user.email}) permanentemente?\n\n` +
+      `Esta ação apaga User + Affiliate + dados vinculados.\n` +
+      `Bloqueado se houver inscrições/rastreamentos no histórico.`
+    );
+    if (ok) remove.mutate(a.id);
+  };
 
   return (
     <div>
@@ -113,6 +131,14 @@ export default function AffiliatesPage() {
                               <button className="btn-danger btn-sm" onClick={() => setRejectId(a.id)}>
                                 <XCircle size={12} /> Rejeitar
                               </button>
+                              <button
+                                className="btn-ghost btn-sm border border-red/40 text-red hover:bg-red/10"
+                                onClick={() => askDelete(a)}
+                                disabled={remove.isPending}
+                                title="Excluir permanentemente"
+                              >
+                                <Trash2 size={12} />
+                              </button>
                             </div>
                           )}
                         </td>
@@ -132,7 +158,7 @@ export default function AffiliatesPage() {
               <div className="table-wrapper">
                 <table className="table">
                   <thead>
-                    <tr><th>Nome</th><th>Email</th><th>Código</th><th>Status</th><th>Aprovado em</th></tr>
+                    <tr><th>Nome</th><th>Email</th><th>Código</th><th>Status</th><th>Aprovado em</th><th>Ações</th></tr>
                   </thead>
                   <tbody>
                     {approvedList.map((a: any) => (
@@ -147,6 +173,16 @@ export default function AffiliatesPage() {
                         <td><code className="text-xs bg-bg3 px-2 py-0.5 rounded text-accent">{a.code}</code></td>
                         <td><span className={a.isActive ? 'badge-green' : 'badge-gray'}>{a.isActive ? 'Ativo' : 'Inativo'}</span></td>
                         <td><DateCell date={a.approvedAt} /></td>
+                        <td>
+                          <button
+                            className="btn-ghost btn-sm border border-red/40 text-red hover:bg-red/10"
+                            onClick={() => askDelete(a)}
+                            disabled={remove.isPending}
+                            title="Excluir permanentemente"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -163,7 +199,7 @@ export default function AffiliatesPage() {
               <div className="table-wrapper">
                 <table className="table">
                   <thead>
-                    <tr><th>Nome</th><th>Email</th><th>Motivo</th><th>Rejeitado em</th></tr>
+                    <tr><th>Nome</th><th>Email</th><th>Motivo</th><th>Rejeitado em</th><th>Ações</th></tr>
                   </thead>
                   <tbody>
                     {rejectedList.map((a: any) => (
@@ -172,6 +208,16 @@ export default function AffiliatesPage() {
                         <td className="text-text2">{a.user.email}</td>
                         <td className="text-text3 text-xs">{a.rejectedReason || '—'}</td>
                         <td><DateCell date={a.rejectedAt} /></td>
+                        <td>
+                          <button
+                            className="btn-ghost btn-sm border border-red/40 text-red hover:bg-red/10"
+                            onClick={() => askDelete(a)}
+                            disabled={remove.isPending}
+                            title="Excluir permanentemente"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

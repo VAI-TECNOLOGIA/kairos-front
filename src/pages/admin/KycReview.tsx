@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader, Modal, EmptyState, Loading } from '@/components/ui';
 import { formatDate, kycStatusVariant } from '@/lib/utils';
-import { Shield, CheckCircle2, AlertTriangle, XCircle, RotateCcw, FileText, ExternalLink, User, Banknote, ClipboardCheck } from 'lucide-react';
+import { Shield, CheckCircle2, AlertTriangle, XCircle, RotateCcw, FileText, ExternalLink, User, Banknote, ClipboardCheck, Trash2, Ban } from 'lucide-react';
 
 type ProducerListItem = {
   id: string;
@@ -141,6 +141,10 @@ function KycDetailModal({ producerId, onClose, onChanged }: {
   const [adjustReason, setAdjustReason] = useState('');
   const [showRevoke, setShowRevoke] = useState(false);
   const [revokeReason, setRevokeReason] = useState('');
+  const [showReject, setShowReject] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
 
   const { data: kyc, isLoading } = useQuery<KycFull>({
     queryKey: ['admin-kyc-detail', producerId],
@@ -194,7 +198,33 @@ function KycDetailModal({ producerId, onClose, onChanged }: {
     onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
   });
 
+  const rejectProducer = useMutation({
+    mutationFn: (reason: string) => api.post(`/producers/${producerId}/reject`, { reason }),
+    onSuccess : () => {
+      toast.success('Produtor recusado — notificação enviada');
+      setShowReject(false); setRejectReason(''); refresh(); onClose();
+    },
+    onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro ao recusar'),
+  });
+
+  const deleteProducer = useMutation({
+    mutationFn: () => api.delete(`/producers/${producerId}`),
+    onSuccess : () => {
+      toast.success('Produtor excluído permanentemente');
+      setShowDelete(false); setDeleteConfirm(''); onChanged(); onClose();
+    },
+    onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro ao excluir'),
+  });
+
   const allDocsApproved = kyc?.documents.length ? kyc.documents.every(d => d.status === 'APPROVED') : false;
+  const hasDocs     = (kyc?.documents.length ?? 0) > 0;
+  const hasRegister = !!kyc?.registerInformation?.address?.zipCode;
+  const hasBank     = !!(kyc?.bankData?.bank && kyc?.bankData?.accountNumber);
+  const pendingItems: string[] = [];
+  if (!hasDocs)     pendingItems.push('Documentos');
+  if (!hasRegister) pendingItems.push('Dados cadastrais');
+  if (!hasBank)     pendingItems.push('Dados bancários');
+  const incomplete = pendingItems.length > 0;
 
   return (
     <Modal open onClose={onClose} title={kyc ? `${kyc.user.name} — Verificação` : 'Carregando...'}>
@@ -210,23 +240,54 @@ function KycDetailModal({ producerId, onClose, onChanged }: {
                 </span>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {kyc.kycStatus === 'APPROVED' ? (
                 <button onClick={() => setShowRevoke(true)} className="btn-danger btn-sm">
                   <RotateCcw size={13} className="mr-1" /> Cancelar aprovação
                 </button>
               ) : (
-                <button
-                  onClick={() => approveProducer.mutate()}
-                  disabled={!allDocsApproved || approveProducer.isPending}
-                  className="btn-success btn-sm"
-                  title={!allDocsApproved ? 'Aprove todos os documentos antes' : 'Criar recebedor Pagar.me'}
-                >
-                  <CheckCircle2 size={13} className="mr-1" /> Aprovar e criar recebedor
-                </button>
+                <>
+                  <button
+                    onClick={() => approveProducer.mutate()}
+                    disabled={!allDocsApproved || approveProducer.isPending}
+                    className="btn-success btn-sm"
+                    title={!allDocsApproved ? 'Aprove todos os documentos antes' : 'Criar recebedor Pagar.me'}
+                  >
+                    <CheckCircle2 size={13} className="mr-1" /> Aprovar e criar recebedor
+                  </button>
+                  {kyc.kycStatus !== 'REJECTED' && (
+                    <button
+                      onClick={() => setShowReject(true)}
+                      className="btn-danger btn-sm"
+                      title="Recusar produtor (notifica por email + sininho)"
+                    >
+                      <Ban size={13} className="mr-1" /> Recusar produtor
+                    </button>
+                  )}
+                </>
               )}
+              <button
+                onClick={() => setShowDelete(true)}
+                className="btn-ghost btn-sm border border-red/40 text-red hover:bg-red/10"
+                title="Excluir produtor permanentemente do banco"
+              >
+                <Trash2 size={13} className="mr-1" /> Excluir
+              </button>
             </div>
           </div>
+
+          {incomplete && kyc.kycStatus !== 'APPROVED' && kyc.kycStatus !== 'REJECTED' && (
+            <div className="card p-3 border border-amber/40 bg-amber/10 flex items-start gap-2">
+              <AlertTriangle size={16} className="text-amber flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-amber">Cadastro incompleto — não é possível aprovar</div>
+                <div className="text-xs text-text2 mt-1">
+                  O produtor ainda não enviou: <strong>{pendingItems.join(', ')}</strong>.
+                  Use <em>Recusar produtor</em> ou <em>Excluir</em> se ele não vai concluir o cadastro.
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="border-b border-border flex gap-4">
             {[
@@ -312,6 +373,72 @@ function KycDetailModal({ producerId, onClose, onChanged }: {
                 className="btn-danger btn-sm"
               >
                 Confirmar revogação
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal recusar produtor */}
+      {showReject && kyc && (
+        <Modal open onClose={() => { setShowReject(false); setRejectReason(''); }} title={`Recusar ${kyc.user.name}`}>
+          <div className="space-y-3">
+            <p className="text-sm text-text2">
+              O produtor será marcado como <strong>REJECTED</strong> e perde acesso às operações.
+              Ele recebe notificação no sininho e e-mail com o motivo. Pode ser reativado manualmente depois.
+            </p>
+            <div className="form-group">
+              <label className="label">Motivo da recusa (mínimo 10 caracteres) *</label>
+              <textarea
+                value={rejectReason}
+                onChange={e => setRejectReason(e.target.value)}
+                rows={3}
+                className="input"
+                placeholder="Ex: cadastro abandonado há mais de 30 dias sem envio de documentos."
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => setShowReject(false)} className="btn-ghost btn-sm">Voltar</button>
+              <button
+                onClick={() => rejectProducer.mutate(rejectReason)}
+                disabled={rejectReason.length < 10 || rejectProducer.isPending}
+                className="btn-danger btn-sm"
+              >
+                Confirmar recusa
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal excluir produtor */}
+      {showDelete && kyc && (
+        <Modal open onClose={() => { setShowDelete(false); setDeleteConfirm(''); }} title={`Excluir ${kyc.user.name} permanentemente?`}>
+          <div className="space-y-3">
+            <div className="card p-3 border border-red/40 bg-red/10 flex items-start gap-2">
+              <AlertTriangle size={16} className="text-red flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-text2">
+                <strong className="text-red">Ação irreversível.</strong> Apaga User, Producer e Affiliate vinculados,
+                além de documentos KYC. Bloqueado se houver pedidos, vendas ou produtos no histórico.
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="label">Para confirmar, digite <code className="text-accent">EXCLUIR</code> abaixo *</label>
+              <input
+                value={deleteConfirm}
+                onChange={e => setDeleteConfirm(e.target.value)}
+                className="input"
+                placeholder="EXCLUIR"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => { setShowDelete(false); setDeleteConfirm(''); }} className="btn-ghost btn-sm">Voltar</button>
+              <button
+                onClick={() => deleteProducer.mutate()}
+                disabled={deleteConfirm !== 'EXCLUIR' || deleteProducer.isPending}
+                className="btn-danger btn-sm"
+              >
+                Excluir permanentemente
               </button>
             </div>
           </div>
