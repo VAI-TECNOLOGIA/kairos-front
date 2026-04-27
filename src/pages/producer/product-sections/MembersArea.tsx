@@ -21,6 +21,8 @@ type Module = {
 type Area = {
   id: string; title: string; description: string | null;
   coverUrl: string | null; commentsEnabled: boolean;
+  primaryColor: string | null; accentColor: string | null;
+  theme: string | null; layout: string | null;
   modules: Module[];
 };
 
@@ -170,17 +172,22 @@ function PreferencesPanel({ area, onSaved }: { area: Area; onSaved: () => void }
   const [description, setDescription] = useState(area.description || '');
   const [coverUrl, setCoverUrl] = useState(area.coverUrl || '');
   const [commentsEnabled, setCommentsEnabled] = useState(area.commentsEnabled);
+  const [primaryColor, setPrimaryColor] = useState(area.primaryColor || '#0055FE');
+  const [accentColor,  setAccentColor]  = useState(area.accentColor  || '#7C3AED');
+  const [theme,        setTheme]        = useState(area.theme        || 'dark');
+  const [layout,       setLayout]       = useState(area.layout       || 'sidebar');
 
   const save = useMutation({
     mutationFn: () => api.patch(`/members-area/${area.id}`, {
       title, description: description || null, coverUrl: coverUrl || null, commentsEnabled,
+      primaryColor, accentColor, theme, layout,
     }),
     onSuccess: () => { toast.success('Preferências salvas'); onSaved(); },
     onError  : (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
   });
 
   return (
-    <div className="space-y-4 max-w-3xl">
+    <div className="space-y-5 max-w-3xl">
       <div className="form-group">
         <label className="label">Título *</label>
         <input className="input" value={title} onChange={e => setTitle(e.target.value)} />
@@ -197,6 +204,60 @@ function PreferencesPanel({ area, onSaved }: { area: Area; onSaved: () => void }
         <input type="checkbox" checked={commentsEnabled} onChange={e => setCommentsEnabled(e.target.checked)} className="w-4 h-4" />
         <span className="text-sm text-text2">Permitir comentários nas aulas</span>
       </label>
+
+      {/* Personalização visual */}
+      <div className="card p-4 space-y-4 border-accent/20">
+        <div className="flex items-center gap-2 text-sm font-semibold text-text">
+          <span className="w-2 h-2 rounded-full" style={{ background: primaryColor }} />
+          Visual do curso (o que o aluno vai ver)
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="label">Cor primária</label>
+            <div className="flex gap-2 items-center">
+              <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} className="w-10 h-10 rounded border border-border bg-transparent cursor-pointer" />
+              <input className="input flex-1" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} placeholder="#0055FE" />
+            </div>
+            <p className="text-[10px] text-text3 mt-1">Botões, links e destaques</p>
+          </div>
+          <div>
+            <label className="label">Cor secundária</label>
+            <div className="flex gap-2 items-center">
+              <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-10 h-10 rounded border border-border bg-transparent cursor-pointer" />
+              <input className="input flex-1" value={accentColor} onChange={e => setAccentColor(e.target.value)} placeholder="#7C3AED" />
+            </div>
+            <p className="text-[10px] text-text3 mt-1">Badges, hovers e progress</p>
+          </div>
+          <div>
+            <label className="label">Tema</label>
+            <select className="input" value={theme} onChange={e => setTheme(e.target.value)}>
+              <option value="dark">Escuro (recomendado)</option>
+              <option value="light">Claro</option>
+            </select>
+          </div>
+          <div>
+            <label className="label">Layout das aulas</label>
+            <select className="input" value={layout} onChange={e => setLayout(e.target.value)}>
+              <option value="sidebar">Sidebar lateral (clássico)</option>
+              <option value="stacked">Lista vertical (stack)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Preview do tema */}
+        <div className="rounded-xl p-4 border" style={{ background: theme === 'dark' ? '#0a0e1a' : '#f9fafb', borderColor: primaryColor + '40' }}>
+          <div className="text-[10px] uppercase tracking-wide mb-2" style={{ color: theme === 'dark' ? '#9ca3af' : '#6b7280' }}>preview</div>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-semibold" style={{ color: theme === 'dark' ? '#fff' : '#111' }}>{title || 'Seu Curso'}</div>
+              <div className="text-xs mt-0.5" style={{ color: theme === 'dark' ? '#9ca3af' : '#6b7280' }}>Aula 1 — Introdução</div>
+            </div>
+            <button className="px-3 py-1.5 rounded text-xs font-medium text-white" style={{ background: primaryColor }}>Continuar</button>
+          </div>
+        </div>
+      </div>
+
       <button onClick={() => save.mutate()} disabled={save.isPending} className="btn-primary">
         {save.isPending ? 'Salvando...' : 'Salvar'}
       </button>
