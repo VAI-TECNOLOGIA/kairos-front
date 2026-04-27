@@ -180,6 +180,8 @@ export default function App() {
         <Route path="vendas"        element={<MySales />} />
         <Route path="afiliados"     element={<MyAffiliates />} />
         <Route path="coprodutores"  element={<MyCoproducers />} />
+        <Route path="marketplace-afiliacao" element={<AffiliateMarketplace />} />
+        <Route path="minhas-afiliacoes"     element={<AffiliateLinks />} />
         <Route path="checkout"      element={<CheckoutConfig />} />
         <Route path="financeiro"    element={<MyFinancial />} />
         <Route path="configuracoes"        element={<ProducerSettings />} />

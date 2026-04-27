@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, Link2,
   Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity, Truck, Tv2, Plug, UserCircle,
-  Menu, X, HelpCircle, ShieldCheck,
+  Menu, X, HelpCircle, ShieldCheck, Store,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import KycBanner from '@/components/KycBanner';
@@ -28,6 +28,10 @@ const nav = [
   { group: 'Parcerias', items: [
     { to: 'afiliados',    icon: Link2,     label: 'Afiliados' },
     { to: 'coprodutores', icon: Handshake, label: 'Produtores' },
+  ]},
+  { group: 'Minhas Afiliações', items: [
+    { to: 'marketplace-afiliacao', icon: Store, label: 'Marketplace' },
+    { to: 'minhas-afiliacoes',     icon: Link2, label: 'Meus Links' },
   ]},
   { group: 'Loja', items: [
     { to: 'checkout',   icon: Monitor,   label: 'Checkout' },
