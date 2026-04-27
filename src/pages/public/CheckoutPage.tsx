@@ -282,6 +282,7 @@ export default function CheckoutPage() {
       };
       if (cardToken) {
         payload.cardToken    = cardToken;
+        payload.cardHolder   = (formData.cardHolder || '').trim();
         payload.installments = Number(formData.installments) || 1;
       }
       // Endereço obrigatório em todos os métodos — necessário para:
