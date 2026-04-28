@@ -102,9 +102,7 @@ export default function ProductCouponsSection() {
         </div>
         <button
           onClick={() => setOpen(true)}
-          disabled={!enrolled || enrolled.length === 0}
           className="btn-primary btn-sm"
-          title={!enrolled?.length ? 'Cadastre afiliados primeiro' : ''}
         >
           <Plus size={14} /> Novo cupom
         </button>
@@ -172,17 +170,19 @@ export default function ProductCouponsSection() {
       <Modal open={open} onClose={() => setOpen(false)} title="Novo cupom de afiliado"
         footer={<><button className="btn-ghost" onClick={() => setOpen(false)}>Cancelar</button><button className="btn-primary" disabled={!form.affiliateId || !form.code} onClick={() => create.mutate()}>{create.isPending ? 'Criando...' : 'Criar cupom'}</button></>}>
         <div className="space-y-4">
+          {(!enrolled || enrolled.length === 0) && (
+            <div className="bg-amber/10 border border-amber/30 rounded-md p-3 text-xs text-amber">
+              <strong>Sem afiliados ativos.</strong> Pra criar cupom, este produto precisa ter pelo menos um afiliado inscrito ativo. Vá em <strong>Afiliação</strong>, configure a comissão e compartilhe o link de convite.
+            </div>
+          )}
           <div className="form-group">
             <label className="label">Afiliado *</label>
-            <select className="input" value={form.affiliateId} onChange={e => setForm({ ...form, affiliateId: e.target.value })}>
+            <select className="input" value={form.affiliateId} onChange={e => setForm({ ...form, affiliateId: e.target.value })} disabled={!enrolled || enrolled.length === 0}>
               <option value="">Selecione um afiliado inscrito ativo...</option>
               {(enrolled || []).map(a => (
                 <option key={a.id} value={a.id}>{a.user.name} ({a.code}) — {a.user.email}</option>
               ))}
             </select>
-            {(!enrolled || enrolled.length === 0) && (
-              <p className="text-xs text-text3 mt-1">Nenhum afiliado ativo neste produto. Configure afiliação e aguarde inscrições.</p>
-            )}
           </div>
           <div className="form-group">
             <label className="label">Código do cupom *</label>

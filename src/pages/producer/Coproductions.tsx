@@ -29,8 +29,8 @@ export default function ProducerCoproductions() {
   return (
     <div>
       <PageHeader
-        title="Onde sou co-produtor"
-        sub="Ofertas de outros produtores onde você foi atribuído como co-produtor fixo — você ganha % toda venda."
+        title="Sou sócio em outros produtos"
+        sub="Ofertas de OUTROS produtores onde você foi atribuído como co-produtor fixo — você recebe % toda vez que essas ofertas vendem."
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">

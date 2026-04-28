@@ -51,7 +51,10 @@ export default function MyCoproducers() {
 
   return (
     <div>
-      <PageHeader title="Produtores" sub="Gerencie parceiros nos seus produtos" />
+      <PageHeader
+        title="Sócios dos meus produtos"
+        sub="Pessoas que você adicionou como co-produtor (sócio fixo) em alguma das suas ofertas — elas recebem % toda venda. Aqui também aprova solicitações de afiliados que querem virar produtores."
+      />
 
       <div className="flex gap-2 mb-6">
         <button

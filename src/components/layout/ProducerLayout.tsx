@@ -27,8 +27,8 @@ const nav = [
   ]},
   { group: 'Parcerias', items: [
     { to: 'afiliados',          icon: Link2,     label: 'Afiliados' },
-    { to: 'coprodutores',       icon: Handshake, label: 'Co-produtores' },
-    { to: 'minhas-coproducoes', icon: Network,   label: 'Onde sou co-produtor' },
+    { to: 'coprodutores',       icon: Handshake, label: 'Sócios dos meus produtos' },
+    { to: 'minhas-coproducoes', icon: Network,   label: 'Sou sócio em outros' },
   ]},
   { group: 'Minhas Afiliações', items: [
     { to: 'marketplace-afiliacao', icon: Store, label: 'Marketplace' },
