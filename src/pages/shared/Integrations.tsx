@@ -189,8 +189,8 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 bg-bg3 overflow-hidden">
-            <img src={meta.logo} alt={meta.name} className="w-full h-full object-contain p-0.5" />
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-bg3 overflow-hidden">
+            <img src={meta.logo} alt={meta.name} className="w-full h-full object-contain p-1" />
           </div>
           <div>
             <h3 className="font-semibold text-text flex items-center gap-2">
@@ -392,8 +392,8 @@ function UtmifyCard() {
     <div className="card space-y-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 bg-bg3 overflow-hidden">
-            <img src={utmifyLogo} alt="Utmify" className="w-full h-full object-contain p-0.5" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-bg3 overflow-hidden">
+            <img src={utmifyLogo} alt="Utmify" className="w-full h-full object-contain p-1" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
