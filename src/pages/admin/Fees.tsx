@@ -499,19 +499,19 @@ function MarginSimulation({ platform, acquirer }: {
 // ══════════════════════════════════════════════════════════════════
 
 interface CustomFeeRowData {
-  userId    : string;
-  name      : string;
-  email     : string;
-  role      : 'PRODUCER' | 'AFFILIATE';
-  customFees: Partial<Record<PlatformMethod, FeePart>> | null;
+  userId            : string;
+  name              : string;
+  email             : string;
+  role              : 'PRODUCER' | 'AFFILIATE';
+  customFees        : Partial<Record<PlatformMethod, FeePart>> | null;
+  customPlatformBps : number | null;
 }
 
-function CustomFeesSection({ platform }: { platform: Record<PlatformMethod, FeePart> | null }) {
+function CustomFeesSection({ platform: _platform }: { platform: Record<PlatformMethod, FeePart> | null }) {
   const qc = useQueryClient();
   const [query, setQuery]           = useState('');
   const [onlyCustom, setOnlyCustom] = useState(true);
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'PRODUCER' | 'AFFILIATE'>('ALL');
-  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
   const { data: usersData } = useQuery<{ data: CustomFeeRowData[] }>({
     queryKey: ['admin-fees-users', query, onlyCustom, roleFilter],
@@ -524,14 +524,14 @@ function CustomFeesSection({ platform }: { platform: Record<PlatformMethod, FeeP
     }).then(r => r.data),
   });
 
-  const saveUserFee = useMutation({
-    mutationFn: (vars: { userId: string; customFees: Record<PlatformMethod, FeePart> | null }) =>
-      api.put(`/admin/fees/users/${vars.userId}`, { customFees: vars.customFees }),
-    onSuccess: () => {
-      toast.success('Taxa personalizada salva');
+  const saveOverride = useMutation({
+    mutationFn: (vars: { userId: string; bps: number | null }) =>
+      api.put(`/admin/fees/users/${vars.userId}/platform-bps`, { bps: vars.bps }),
+    onSuccess: (res: any) => {
+      toast.success(res?.data?.message || 'Taxa personalizada salva');
       qc.invalidateQueries({ queryKey: ['admin-fees-users'] });
     },
-    onError: () => toast.error('Erro ao salvar'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao salvar'),
   });
 
   return (
@@ -540,7 +540,7 @@ function CustomFeesSection({ platform }: { platform: Record<PlatformMethod, FeeP
         <Users size={16} className="text-accent flex-shrink-0" />
         <div>
           <h3 className="font-semibold text-text">Taxas Personalizadas por Usuário</h3>
-          <p className="text-xs text-text3 mt-0.5">Por método. Campo vazio herda a taxa geral.</p>
+          <p className="text-xs text-text3 mt-0.5">% única que substitui a taxa geral da plataforma para todos os métodos.</p>
         </div>
       </div>
 
@@ -595,8 +595,8 @@ function CustomFeesSection({ platform }: { platform: Record<PlatformMethod, FeeP
             <tr>
               <th>Usuário</th>
               <th>Tipo</th>
-              <th>Resumo</th>
-              <th className="w-40"></th>
+              <th>% da plataforma</th>
+              <th className="w-40 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -608,13 +608,10 @@ function CustomFeesSection({ platform }: { platform: Record<PlatformMethod, FeeP
               </tr>
             ) : (
               (usersData?.data ?? []).map(u => (
-                <CustomFeeUserRow
+                <PlatformBpsRow
                   key={`${u.role}:${u.userId}`}
                   row={u}
-                  generalPlatform={platform}
-                  expanded={expandedUserId === u.userId}
-                  onToggle={() => setExpandedUserId(prev => prev === u.userId ? null : u.userId)}
-                  onSave={(cf) => saveUserFee.mutate({ userId: u.userId, customFees: cf })}
+                  onSave={(bps) => saveOverride.mutate({ userId: u.userId, bps })}
                 />
               ))
             )}
@@ -625,123 +622,70 @@ function CustomFeesSection({ platform }: { platform: Record<PlatformMethod, FeeP
   );
 }
 
-function CustomFeeUserRow({ row, generalPlatform, expanded, onToggle, onSave }: {
-  row            : CustomFeeRowData;
-  generalPlatform: Record<PlatformMethod, FeePart> | null;
-  expanded       : boolean;
-  onToggle       : () => void;
-  onSave         : (cf: Record<PlatformMethod, FeePart> | null) => void;
+function PlatformBpsRow({ row, onSave }: {
+  row   : CustomFeeRowData;
+  onSave: (bps: number | null) => void;
 }) {
-  const [draft, setDraft] = useState<Record<PlatformMethod, FeePart>>({} as any);
+  const initialPct = row.customPlatformBps != null ? row.customPlatformBps / 100 : '';
+  const [pct, setPct] = useState<string>(String(initialPct));
+  useEffect(() => { setPct(String(initialPct)); }, [row.customPlatformBps]);
 
-  useEffect(() => {
-    const init: Record<PlatformMethod, FeePart> = {} as any;
-    for (const m of PLATFORM_METHODS) init[m] = row.customFees?.[m] ?? EMPTY_PART;
-    setDraft(init);
-  }, [row.customFees]);
-
-  const hasAny = useMemo(() => {
-    return PLATFORM_METHODS.some(m => (row.customFees?.[m]?.bps || row.customFees?.[m]?.cents));
-  }, [row.customFees]);
-
-  const summary = useMemo(() => {
-    if (!hasAny) return <span className="text-text3 text-xs">Usa taxa geral</span>;
-    const parts = PLATFORM_METHODS
-      .filter(m => (row.customFees?.[m]?.bps || row.customFees?.[m]?.cents))
-      .map(m => `${PLATFORM_META[m].label}: ${formatPart(row.customFees![m]!)}`);
-    return <span className="text-text2 text-xs">{parts.join(' · ')}</span>;
-  }, [row.customFees, hasAny]);
-
-  const setCell = (m: PlatformMethod, p: FeePart) =>
-    setDraft(prev => ({ ...prev, [m]: p }));
-
-  const hasAnyDraft = PLATFORM_METHODS.some(m => draft[m]?.bps || draft[m]?.cents);
+  const dirty = pct !== String(initialPct);
+  const numericPct = pct.trim() === '' ? null : Number(pct);
+  const validBps   = numericPct === null ? null : Math.round(numericPct * 100);
+  const invalid    = numericPct !== null && (isNaN(numericPct) || numericPct < 0 || numericPct > 50);
 
   return (
-    <>
-      <tr>
-        <td>
-          <div className="text-text font-medium">{row.name}</div>
-          <div className="text-text3 text-xs">{row.email}</div>
-        </td>
-        <td>
-          <span className={row.role === 'PRODUCER' ? 'badge-blue' : 'badge-gray'}>
-            {row.role === 'PRODUCER' ? 'Produtor' : 'Afiliado'}
-          </span>
-        </td>
-        <td>{summary}</td>
-        <td>
-          <div className="flex gap-2 justify-end">
-            <button onClick={onToggle} className="btn-sec btn-sm">
-              {expanded ? 'Fechar' : 'Editar'}
+    <tr>
+      <td>
+        <div className="text-text font-medium">{row.name}</div>
+        <div className="text-text3 text-xs">{row.email}</div>
+      </td>
+      <td>
+        <span className={row.role === 'PRODUCER' ? 'badge-blue' : 'badge-gray'}>
+          {row.role === 'PRODUCER' ? 'Produtor' : 'Afiliado'}
+        </span>
+      </td>
+      <td>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            step="0.5"
+            min="0"
+            max="50"
+            value={pct}
+            onChange={e => setPct(e.target.value)}
+            placeholder="(usa geral)"
+            className="input h-8 w-24"
+          />
+          <span className="text-text3 text-sm">%</span>
+          {row.customPlatformBps != null && !dirty && (
+            <span className="text-[11px] text-accent">override ativo</span>
+          )}
+          {invalid && <span className="text-[11px] text-red">0–50%</span>}
+        </div>
+      </td>
+      <td>
+        <div className="flex gap-2 justify-end">
+          {row.customPlatformBps != null && (
+            <button
+              onClick={() => { if (confirm('Remover override deste usuário?')) onSave(null); }}
+              className="btn-ghost btn-sm text-text3 hover:text-red-400"
+              title="Remover override (volta a usar a taxa geral)"
+            >
+              <X size={14} />
             </button>
-            {hasAny && (
-              <button
-                onClick={() => {
-                  if (confirm('Remover todas as taxas personalizadas deste usuário?')) onSave(null);
-                }}
-                title="Resetar para taxa geral"
-                className="btn-ghost btn-sm text-text3 hover:text-red-400"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-        </td>
-      </tr>
-      {expanded && (
-        <tr>
-          <td colSpan={4} className="bg-bg3/40 !pt-4 !pb-5">
-            <div className="space-y-3">
-              <p className="text-[11px] text-text3">
-                Preencha só os métodos que precisam de taxa diferente da geral. Campos vazios herdam a taxa padrão.
-              </p>
-              <table className="table" style={{ background: 'transparent' }}>
-                <thead>
-                  <tr>
-                    <th className="w-28">Método</th>
-                    <th>Taxa geral</th>
-                    <th>Taxa personalizada</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {PLATFORM_METHODS.map(m => {
-                    const meta  = PLATFORM_META[m];
-                    const Icon  = meta.icon;
-                    const gen   = generalPlatform?.[m] ?? EMPTY_PART;
-                    return (
-                      <tr key={m}>
-                        <td>
-                          <div className="flex items-center gap-2">
-                            <Icon size={14} style={{ color: meta.color }} />
-                            <span className="font-medium text-text">{meta.label}</span>
-                          </div>
-                        </td>
-                        <td className="text-text3 text-xs">{formatPart(gen)}</td>
-                        <td className="w-64">
-                          <FeeInput
-                            part={draft[m] ?? EMPTY_PART}
-                            onChange={(p) => setCell(m, p)}
-                            compact
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <div className="flex gap-2 justify-end pt-2">
-                <button
-                  onClick={() => onSave(hasAnyDraft ? draft : null)}
-                  className="btn-primary btn-sm flex items-center gap-1.5"
-                >
-                  <Save size={13} /> Salvar
-                </button>
-              </div>
-            </div>
-          </td>
-        </tr>
-      )}
-    </>
+          )}
+          <button
+            onClick={() => onSave(validBps)}
+            disabled={!dirty || invalid}
+            className="btn-primary btn-sm flex items-center gap-1.5"
+          >
+            <Save size={13} /> Salvar
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }
+
