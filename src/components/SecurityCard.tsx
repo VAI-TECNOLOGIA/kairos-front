@@ -26,6 +26,9 @@ export default function SecurityCard() {
   const [qrCode, setQrCode]   = useState<string>('');
   const [mfaCode, setMfaCode] = useState('');
 
+  const [openDisable, setOpenDisable] = useState(false);
+  const [disablePwd, setDisablePwd]   = useState('');
+
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<PasswordForm>();
   const newPwd = watch('newPassword');
 
@@ -60,6 +63,18 @@ export default function SecurityCard() {
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Código inválido'),
   });
 
+  const disableMfa = useMutation({
+    mutationFn: () => api.post('/auth/mfa/disable', { currentPassword: disablePwd }),
+    onSuccess : () => {
+      toast.success('MFA desativado.');
+      setOpenDisable(false);
+      setDisablePwd('');
+      if (user && accessToken && refreshToken) setAuth({ ...user, mfaEnabled: false }, accessToken, refreshToken);
+      qc.invalidateQueries({ queryKey: ['me'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao desativar MFA'),
+  });
+
   const handleOpenMfa = () => { setMfaCode(''); setMfaStep('qr'); setupMfa.mutate(); };
 
   return (
@@ -87,9 +102,18 @@ export default function SecurityCard() {
               </div>
             </div>
             {user?.mfaEnabled ? (
-              <span className="badge-green flex items-center gap-1">
-                <ShieldCheck size={11} /> Habilitado
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="badge-green flex items-center gap-1">
+                  <ShieldCheck size={11} /> Habilitado
+                </span>
+                <button
+                  onClick={() => setOpenDisable(true)}
+                  className="btn-ghost btn-sm border border-red/40 text-red hover:bg-red/10"
+                  title="Desativar autenticação em dois fatores"
+                >
+                  <ShieldOff size={13} /> Desativar
+                </button>
+              </div>
             ) : (
               <button onClick={handleOpenMfa} disabled={setupMfa.isPending} className="btn-primary btn-sm">
                 <ShieldOff size={13} />
@@ -230,6 +254,43 @@ export default function SecurityCard() {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* Modal desativar MFA */}
+      <Modal
+        open={openDisable}
+        onClose={() => { setOpenDisable(false); setDisablePwd(''); }}
+        title="Desativar autenticação em dois fatores"
+        size="sm"
+        footer={
+          <div className="flex gap-2">
+            <button className="btn-ghost" onClick={() => { setOpenDisable(false); setDisablePwd(''); }}>Cancelar</button>
+            <button
+              className="btn-danger"
+              onClick={() => disableMfa.mutate()}
+              disabled={disablePwd.length < 1 || disableMfa.isPending}
+            >
+              {disableMfa.isPending ? 'Desativando...' : 'Desativar MFA'}
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-3">
+          <div className="card p-3 border border-amber/40 bg-amber/10 text-xs text-text2">
+            <strong className="text-amber">Atenção:</strong> sua conta volta a usar só a senha. Recomendamos manter o MFA ativado em produção.
+          </div>
+          <div className="form-group">
+            <label className="label">Senha atual *</label>
+            <input
+              type="password"
+              value={disablePwd}
+              onChange={e => setDisablePwd(e.target.value)}
+              className="input"
+              placeholder="••••••••••••"
+              autoFocus
+            />
+          </div>
+        </div>
       </Modal>
     </>
   );
