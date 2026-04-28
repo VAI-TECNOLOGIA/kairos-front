@@ -11,10 +11,11 @@ import { Copy, Users, Info, Lock, UserMinus } from 'lucide-react';
 type Tab = 'config' | 'affiliates';
 
 interface ConfigForm {
-  commissionPct       : number;
-  cookieDays          : number;
-  affiliateDescription: string;
-  showInMarketplace   : boolean;
+  commissionPct        : number;
+  coproducerCommissionPct: number;  // override para "co-produtor" (afiliado upline)
+  cookieDays           : number;
+  affiliateDescription : string;
+  showInMarketplace    : boolean;
 }
 
 export default function ProductAffiliationSection() {
@@ -31,30 +32,33 @@ export default function ProductAffiliationSection() {
 
   const { register, handleSubmit, reset, watch } = useForm<ConfigForm>({
     defaultValues: {
-      commissionPct       : currentConfig?.commissionBps ? currentConfig.commissionBps / 100 : 0,
-      cookieDays          : currentConfig?.cookieDays || 30,
-      affiliateDescription: product?.affiliateDescription || '',
-      showInMarketplace   : product?.showInMarketplace || false,
+      commissionPct          : currentConfig?.commissionBps ? currentConfig.commissionBps / 100 : 0,
+      coproducerCommissionPct: currentConfig?.coproducerCommissionBps ? currentConfig.coproducerCommissionBps / 100 : 0,
+      cookieDays             : currentConfig?.cookieDays || 30,
+      affiliateDescription   : product?.affiliateDescription || '',
+      showInMarketplace      : product?.showInMarketplace || false,
     },
   });
 
   useEffect(() => {
     reset({
-      commissionPct       : currentConfig?.commissionBps ? currentConfig.commissionBps / 100 : 0,
-      cookieDays          : currentConfig?.cookieDays || 30,
-      affiliateDescription: product?.affiliateDescription || '',
-      showInMarketplace   : product?.showInMarketplace || false,
+      commissionPct          : currentConfig?.commissionBps ? currentConfig.commissionBps / 100 : 0,
+      coproducerCommissionPct: currentConfig?.coproducerCommissionBps ? currentConfig.coproducerCommissionBps / 100 : 0,
+      cookieDays             : currentConfig?.cookieDays || 30,
+      affiliateDescription   : product?.affiliateDescription || '',
+      showInMarketplace      : product?.showInMarketplace || false,
     });
-  }, [currentConfig?.commissionBps, currentConfig?.cookieDays, product?.affiliateDescription, product?.showInMarketplace, reset]);
+  }, [currentConfig?.commissionBps, currentConfig?.coproducerCommissionBps, currentConfig?.cookieDays, product?.affiliateDescription, product?.showInMarketplace, reset]);
 
   const save = useMutation({
     mutationFn: async (d: ConfigForm) => {
       // Atualiza affiliate config para TODAS as ofertas (sincronizado por produto)
       await Promise.all(offers.map(o => api.post(`/affiliates/offers/${o.id}/config`, {
-        enabled      : d.commissionPct > 0,
-        commissionBps: Math.round(d.commissionPct * 100),
-        cookieDays   : d.cookieDays,
-        description  : d.affiliateDescription,
+        enabled                : d.commissionPct > 0,
+        commissionBps          : Math.round(d.commissionPct * 100),
+        coproducerCommissionBps: Math.round((d.coproducerCommissionPct || 0) * 100),
+        cookieDays             : d.cookieDays,
+        description            : d.affiliateDescription,
       })));
       // Atualiza descrição e flag marketplace no produto.
       // Vitrine força false se produto não APPROVED (backend também valida).
@@ -153,7 +157,7 @@ export default function ProductAffiliationSection() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="label">Comissão do afiliado *</label>
                     <div className="relative">
@@ -166,7 +170,21 @@ export default function ProductAffiliationSection() {
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text3 text-sm">%</span>
                     </div>
-                    <p className="text-[10px] text-text3 mt-1">Comissão padrão aplicada para novos afiliados. Use 0 para desabilitar.</p>
+                    <p className="text-[10px] text-text3 mt-1">Comissão para o afiliado direto. Use 0 para desabilitar.</p>
+                  </div>
+                  <div>
+                    <label className="label">% Co-produtor (afiliado upline)</label>
+                    <div className="relative">
+                      <input
+                        {...register('coproducerCommissionPct', { valueAsNumber: true, min: 0, max: 20 })}
+                        type="number"
+                        step="0.5"
+                        className="input pr-10"
+                        placeholder="0"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text3 text-sm">%</span>
+                    </div>
+                    <p className="text-[10px] text-text3 mt-1">Override pago ao afiliado que indicou o vendedor (pirâmide de 1 nível).</p>
                   </div>
                   <div>
                     <label className="label">Cookie (dias) *</label>

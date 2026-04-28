@@ -1,11 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader } from '@/components/ui';
-import { ShoppingBag, CheckCircle, Plus } from 'lucide-react';
+import { ShoppingBag, CheckCircle, Plus, Network } from 'lucide-react';
 
 export default function AffiliateMarketplace() {
   const qc = useQueryClient();
+  const [searchParams] = useSearchParams();
+  // Quando o usuário chega via /afiliado/marketplace?upline=CODIGO_AFILIADO, este enrollment
+  // marca o upline como referredBy — vira pirâmide quando esse afiliado vender depois.
+  const upline = searchParams.get('upline');
 
   const { data: offers, isLoading } = useQuery({
     queryKey: ['affiliate-marketplace'],
@@ -13,7 +18,10 @@ export default function AffiliateMarketplace() {
   });
 
   const enroll = useMutation({
-    mutationFn: (offerId: string) => api.post('/affiliates/enroll', { offerId }),
+    mutationFn: (offerId: string) => api.post('/affiliates/enroll', {
+      offerId,
+      ...(upline ? { referrerCode: upline } : {}),
+    }),
     onSuccess: (res: any) => {
       const created = (res?.data?.enrollments || []).filter((e: any) => e.created).length;
       const total   = (res?.data?.enrollments || []).length;
@@ -33,6 +41,13 @@ export default function AffiliateMarketplace() {
         title="Marketplace"
         sub="Escolha produtos para promover e ganhar comissões"
       />
+
+      {upline && (
+        <div className="card p-3 mb-4 bg-accent/5 border border-accent/30 flex items-center gap-2 text-sm text-text2">
+          <Network size={14} className="text-accent flex-shrink-0" />
+          <span>Você foi indicado pelo afiliado <code className="text-accent font-mono">{upline}</code>. Ao se inscrever, ele vira <strong>co-produtor</strong> e ganha % override sobre suas vendas.</span>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="text-text2 text-sm">Carregando ofertas...</div>

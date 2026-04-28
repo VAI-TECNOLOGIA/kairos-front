@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,6 +47,8 @@ export default function AffiliateInvitePage() {
   const { offerSlug } = useParams<{ offerSlug: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [searchParams] = useSearchParams();
+  const upline = searchParams.get('upline');
   const [success, setSuccess] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [docValue, setDocValue] = useState('');
@@ -68,13 +70,14 @@ export default function AffiliateInvitePage() {
       ...data,
       document: data.document?.replace(/\D/g, '') || undefined,
       phone   : data.phone?.replace(/\D/g, '') || undefined,
+      ...(upline ? { referrerCode: upline } : {}),
     }),
     onSuccess: () => setSuccess(true),
     onError  : (e: any) => toast.error(e?.response?.data?.message || 'Erro ao cadastrar'),
   });
 
   const enrollMut = useMutation({
-    mutationFn: () => api.post(`/affiliates/invite/${offerSlug}/enroll`).then(r => r.data),
+    mutationFn: () => api.post(`/affiliates/invite/${offerSlug}/enroll`, upline ? { referrerCode: upline } : {}).then(r => r.data),
     onSuccess : (data: any) => {
       if (data.alreadyEnrolled) {
         toast.success('Você já está afiliado a essa oferta!');

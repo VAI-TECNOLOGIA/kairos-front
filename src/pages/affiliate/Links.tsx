@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader } from '@/components/ui';
 import { formatBRL } from '@/lib/utils';
-import { Copy, Link2, MousePointer, ShoppingCart, TrendingUp } from 'lucide-react';
+import { Copy, Link2, MousePointer, ShoppingCart, TrendingUp, Users } from 'lucide-react';
 
 export default function AffiliateLinks() {
   const [copied, setCopied] = useState<string | null>(null);
@@ -77,20 +77,47 @@ export default function AffiliateLinks() {
               </div>
 
               {(() => {
-                // Gera link dinâmico com origin atual (corrige links legados com domínio antigo)
-                const link = e.offerSlug && e.affiliateCode
+                // Link de checkout (cliente compra)
+                const checkoutLink = e.offerSlug && e.affiliateCode
                   ? `${window.location.origin}/checkout/${e.offerSlug}?ref=${e.affiliateCode}`
                   : e.link;
+                // Link de indicação de outros afiliados (pirâmide — vira co-produtor se houver venda)
+                const inviteLink = e.offerSlug && e.affiliateCode
+                  ? `${window.location.origin}/afiliar/${e.offerSlug}?upline=${e.affiliateCode}`
+                  : null;
                 return (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-bg3 border border-border">
-                    <span className="text-xs text-text3 font-mono flex-1 truncate">{link}</span>
-                    <button
-                      className={`btn-sm ${copied === e.id ? 'btn-success' : 'btn-secondary'}`}
-                      onClick={() => copyLink(link, e.id)}
-                    >
-                      <Copy size={12} />
-                      {copied === e.id ? 'Copiado!' : 'Copiar'}
-                    </button>
+                  <div className="space-y-2">
+                    <div>
+                      <div className="text-[10px] text-text3 uppercase mb-1">Link de venda (para clientes)</div>
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-bg3 border border-border">
+                        <span className="text-xs text-text3 font-mono flex-1 truncate">{checkoutLink}</span>
+                        <button
+                          className={`btn-sm ${copied === e.id ? 'btn-success' : 'btn-secondary'}`}
+                          onClick={() => copyLink(checkoutLink, e.id)}
+                        >
+                          <Copy size={12} />
+                          {copied === e.id ? 'Copiado!' : 'Copiar'}
+                        </button>
+                      </div>
+                    </div>
+                    {inviteLink && (
+                      <div>
+                        <div className="text-[10px] text-text3 uppercase mb-1 flex items-center gap-1">
+                          <Users size={10} />
+                          Link de indicação (vira co-produtor se afiliados indicados venderem)
+                        </div>
+                        <div className="flex items-center gap-2 p-3 rounded-lg bg-bg3 border border-border">
+                          <span className="text-xs text-text3 font-mono flex-1 truncate">{inviteLink}</span>
+                          <button
+                            className={`btn-sm ${copied === e.id + '-invite' ? 'btn-success' : 'btn-secondary'}`}
+                            onClick={() => copyLink(inviteLink, e.id + '-invite')}
+                          >
+                            <Copy size={12} />
+                            {copied === e.id + '-invite' ? 'Copiado!' : 'Copiar'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })()}

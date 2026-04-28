@@ -77,6 +77,7 @@ import TVDashboard       from '@/pages/producer/TVDashboard';
 import AffiliateDashboard   from '@/pages/affiliate/Dashboard';
 import AffiliateMarketplace from '@/pages/affiliate/Marketplace';
 import AffiliateLinks       from '@/pages/affiliate/Links';
+import AffiliateCoproductions from '@/pages/affiliate/Coproductions';
 import AffiliateFinancial   from '@/pages/affiliate/Financial';
 import AffiliateRanking     from '@/pages/affiliate/Ranking';
 import AffiliateRefunds     from '@/pages/affiliate/Refunds';
@@ -204,6 +205,7 @@ export default function App() {
         <Route path="ranking"        element={<AffiliateRanking />} />
         <Route path="marketplace"    element={<AffiliateMarketplace />} />
         <Route path="links"          element={<AffiliateLinks />} />
+        <Route path="coproducoes"    element={<AffiliateCoproductions />} />
         <Route path="financeiro"     element={<AffiliateFinancial />} />
         {/* Rotas exclusivas para afiliado co-produtor */}
         <Route path="meus-produtos"        element={<MyProducts />} />
