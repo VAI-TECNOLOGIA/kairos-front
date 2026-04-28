@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Truck, FileText, Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug } from 'lucide-react';
+import { Truck, FileText, Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug, Activity } from 'lucide-react';
 
 // ══════════════════════════════════════════════════════════════════
 // PROVIDERS
@@ -103,6 +103,7 @@ export default function IntegrationsPage() {
               />
             );
           })}
+          <UtmifyCard />
         </div>
       )}
 
@@ -369,6 +370,110 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// UTMIFY CARD (token simples — não passa por /integrations genérico)
+// ══════════════════════════════════════════════════════════════════
+
+function UtmifyCard() {
+  const qc = useQueryClient();
+  const [token, setToken] = useState('');
+  const [show, setShow] = useState(false);
+
+  const { data: status, isLoading } = useQuery<{ enabled: boolean; tokenMask: string | null }>({
+    queryKey: ['utmify-status'],
+    queryFn : () => api.get('/producers/utmify').then(r => r.data),
+  });
+
+  const save = useMutation({
+    mutationFn: (t: string | null) => api.patch('/producers/utmify', { utmifyApiToken: t }),
+    onSuccess : (res: any) => {
+      toast.success(res?.data?.message || 'Salvo');
+      setToken('');
+      qc.invalidateQueries({ queryKey: ['utmify-status'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
+  });
+
+  const isConfigured = !!status?.enabled;
+
+  return (
+    <div className="card space-y-4">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#7C3AED20' }}>
+            <Activity size={18} style={{ color: '#7C3AED' }} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <strong className="text-text">Utmify</strong>
+              {isLoading ? null : isConfigured ? (
+                <span className="badge-green text-[10px]">conectado</span>
+              ) : (
+                <span className="badge-gray text-[10px]">desconectado</span>
+              )}
+            </div>
+            <p className="text-xs text-text3 mt-0.5">
+              Rastreamento avançado de campanhas e atribuição de vendas. Captura UTMs automaticamente no checkout.
+            </p>
+          </div>
+        </div>
+        <a href="https://app.utmify.com.br" target="_blank" rel="noopener noreferrer" className="text-[11px] text-accent hover:underline">
+          app.utmify.com.br ↗
+        </a>
+      </div>
+
+      {isConfigured && status?.tokenMask && (
+        <div className="text-xs text-text3 bg-bg3 rounded-md px-3 py-2 font-mono">
+          Token atual: <strong className="text-text2">{status.tokenMask}</strong>
+        </div>
+      )}
+
+      <div className="form-group">
+        <label className="label">{isConfigured ? 'Substituir token' : 'API Token Utmify *'}</label>
+        <div className="relative">
+          <input
+            type={show ? 'text' : 'password'}
+            value={token}
+            onChange={e => setToken(e.target.value)}
+            className="input pr-10"
+            placeholder="cole o token de Integrações > Webhooks > Credenciais API"
+          />
+          <button
+            type="button"
+            onClick={() => setShow(s => !s)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text3 hover:text-text2"
+          >
+            {show ? <EyeOff size={14} /> : <Eye size={14} />}
+          </button>
+        </div>
+        <p className="text-[10px] text-text3 mt-1">
+          Crie a credencial em <em>app.utmify.com.br → Integrações → Webhooks → "Adicionar Credencial"</em> e cole o token aqui.
+          Cada venda (criada/aprovada/cancelada) é reportada para a Utmify automaticamente.
+        </p>
+      </div>
+
+      <div className="flex gap-2 justify-end">
+        {isConfigured && (
+          <button
+            onClick={() => { if (window.confirm('Desativar a integração Utmify? Seu token será removido.')) save.mutate(null); }}
+            disabled={save.isPending}
+            className="btn-ghost btn-sm border border-red/40 text-red hover:bg-red/10"
+          >
+            <Trash2 size={13} /> Desativar
+          </button>
+        )}
+        <button
+          onClick={() => save.mutate(token)}
+          disabled={token.length < 8 || save.isPending}
+          className="btn-primary btn-sm"
+        >
+          <Save size={13} /> Salvar token
+        </button>
+      </div>
     </div>
   );
 }

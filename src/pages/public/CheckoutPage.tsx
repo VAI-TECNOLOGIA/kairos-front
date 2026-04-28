@@ -127,6 +127,22 @@ export default function CheckoutPage() {
   const { slug }       = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
   const affiliateRef   = searchParams.get('ref') || searchParams.get('aff') || undefined;
+
+  // Captura UTMs (Utmify + tracking pixels) — persiste entre LP e checkout via sessionStorage.
+  const utmParams = (() => {
+    const KEYS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','src','sck','fbclid','gclid','xcod'];
+    const stored = (() => { try { return JSON.parse(sessionStorage.getItem('kairos_utm') || '{}'); } catch { return {}; } })() as Record<string, string>;
+    const fromUrl: Record<string, string> = {};
+    for (const k of KEYS) {
+      const v = searchParams.get(k);
+      if (v) fromUrl[k] = v;
+    }
+    const merged = { ...stored, ...fromUrl };
+    if (Object.keys(fromUrl).length > 0) {
+      try { sessionStorage.setItem('kairos_utm', JSON.stringify(merged)); } catch {}
+    }
+    return merged;
+  })();
   const navigate       = useNavigate();
   const { isAuthenticated, user, setAuth } = useAuthStore();
   const { fire }       = useTracking(slug);
@@ -288,6 +304,9 @@ export default function CheckoutPage() {
       // Endereço obrigatório em todos os métodos — necessário para:
       // - Pagar.me validar transações de cartão/boleto
       // - NFe.io emitir nota fiscal após aprovação do pagamento
+      if (Object.keys(utmParams).length > 0) {
+        payload.utm = utmParams;
+      }
       if (formData.zipCode && formData.street) {
         payload.billingAddress = {
           street       : formData.street,
