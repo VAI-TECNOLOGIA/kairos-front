@@ -27,8 +27,8 @@ const nav = [
   ]},
   { group: 'Parcerias', items: [
     { to: 'afiliados',          icon: Link2,     label: 'Afiliados' },
-    { to: 'coprodutores',       icon: Handshake, label: 'Sócios dos meus produtos' },
-    { to: 'minhas-coproducoes', icon: Network,   label: 'Sou sócio em outros' },
+    { to: 'coprodutores',       icon: Handshake, label: 'Co-produtores',       desc: 'Co-produtores dos seus produtos' },
+    { to: 'minhas-coproducoes', icon: Network,   label: 'Minhas Co-produções', desc: 'Produtos onde você é co-produtor' },
   ]},
   { group: 'Minhas Afiliações', items: [
     { to: 'marketplace-afiliacao', icon: Store, label: 'Marketplace' },
@@ -78,14 +78,17 @@ export default function ProducerLayout() {
           {nav.map((section) => (
             <div key={section.group}>
               <div className="sidebar-group">{section.group}</div>
-              {section.items.map((item) => (
+              {section.items.map((item: any) => (
                 <NavLink
                   key={item.to}
                   to={`/produtor/${item.to}`}
-                  className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
+                  className={({ isActive }) => cn('sidebar-item', isActive && 'active', item.desc && 'items-start')}
                 >
-                  <item.icon size={16} />
-                  <span>{item.label}</span>
+                  <item.icon size={16} className={item.desc ? 'mt-0.5 flex-shrink-0' : ''} />
+                  <span className="flex-1 min-w-0">
+                    <span className="block">{item.label}</span>
+                    {item.desc && <span className="block text-[10px] text-text3 leading-tight mt-0.5">{item.desc}</span>}
+                  </span>
                 </NavLink>
               ))}
             </div>
