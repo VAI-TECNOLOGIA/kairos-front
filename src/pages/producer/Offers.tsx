@@ -9,10 +9,13 @@ import { useAuthStore } from "@/stores/auth.store";
 import { PageHeader, Modal, EmptyState, SplitBarVisual } from "@/components/ui";
 import { formatBRL } from "@/lib/utils";
 import type { Product } from "@/types";
-import { Tag, Plus, Copy, AlertCircle, Lock } from "lucide-react";
+import { Tag, Plus, Copy, AlertCircle, Lock, Pencil } from "lucide-react";
 
 const offerSchema = z.object({ productId: z.string(), name: z.string().min(3), priceCents: z.number().int().positive(), type: z.enum(["STANDARD","UPSELL","ORDERBUMP","SUBSCRIPTION"]) });
 type OfferForm = z.infer<typeof offerSchema>;
+
+const editSchema = z.object({ name: z.string().min(3), priceCents: z.number().int().positive(), type: z.enum(["STANDARD","UPSELL","ORDERBUMP","SUBSCRIPTION"]) });
+type EditForm = z.infer<typeof editSchema>;
 
 export default function OfferManager() {
   const qc = useQueryClient();
@@ -20,6 +23,7 @@ export default function OfferManager() {
   const isAffiliate = user?.role === 'AFFILIATE';
 
   const [openOffer, setOpenOffer] = useState(false);
+  const [editingOffer, setEditingOffer] = useState<any | null>(null);
 
   const { data: products } = useQuery({ queryKey:["my-products"], queryFn:()=>api.get("/products").then(r=>r.data) });
 
@@ -36,6 +40,25 @@ export default function OfferManager() {
 
   const { register: ro, handleSubmit: ho, reset: rro, watch: wo } = useForm<OfferForm>({ resolver: zodResolver(offerSchema), defaultValues:{type:"STANDARD"} });
   const watchOfferPrice = wo('priceCents');
+
+  const { register: re, handleSubmit: he, reset: rre, watch: we } = useForm<EditForm>({ resolver: zodResolver(editSchema) });
+  const watchEditPrice = we('priceCents');
+
+  const openEdit = (o: any) => {
+    setEditingOffer(o);
+    rre({ name: o.name, priceCents: o.priceCents, type: o.type });
+  };
+  const closeEdit = () => { setEditingOffer(null); rre(); };
+
+  const updateOffer = useMutation({
+    mutationFn: (d: EditForm) => api.put(`/offers/${editingOffer.id}`, { name: d.name, priceCents: d.priceCents }),
+    onSuccess : () => {
+      toast.success("Oferta atualizada!");
+      qc.invalidateQueries({ queryKey: ["my-products"] });
+      closeEdit();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao atualizar'),
+  });
 
   const saveStandardSplit = async (offerId: string) => {
     const { data: fee } = await api.get('/admin/platform-fee');
@@ -136,6 +159,9 @@ export default function OfferManager() {
                           <Lock size={11} /> Link bloqueado
                         </span>
                       )}
+                      <button onClick={()=>openEdit(o)} className="btn-ghost btn-sm p-1" title="Editar oferta">
+                        <Pencil size={13}/>
+                      </button>
                     </div>
                   </div>
 
@@ -212,6 +238,28 @@ export default function OfferManager() {
               O split será configurado automaticamente: <strong className="text-text">5% plataforma + 95% para você</strong>.
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* Modal editar oferta */}
+      <Modal open={!!editingOffer} onClose={closeEdit} title={`Editar oferta — ${editingOffer?.name || ''}`}
+        footer={<><button className="btn-ghost" onClick={closeEdit}>Cancelar</button><button className="btn-primary" onClick={he(d => updateOffer.mutate(d))}>{updateOffer.isPending ? 'Salvando...' : 'Salvar'}</button></>}>
+        <div className="space-y-4">
+          <div className="form-group"><label className="label">Nome da oferta *</label><input {...re("name")} className="input" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="form-group">
+              <label className="label">Preço (em centavos) *</label>
+              <input {...re("priceCents",{valueAsNumber:true})} type="number" className="input" />
+              <p className="text-[11px] text-text2 mt-1">Equivale a <strong className="text-accent">{formatBRL(Number(watchEditPrice) || 0)}</strong></p>
+            </div>
+            <div className="form-group">
+              <label className="label">Tipo</label>
+              <select {...re("type")} className="input" disabled>
+                <option value="STANDARD">Padrão</option><option value="UPSELL">Upsell</option><option value="ORDERBUMP">Order Bump</option><option value="SUBSCRIPTION">Assinatura</option>
+              </select>
+              <p className="text-[11px] text-text3 mt-1">Tipo não pode ser alterado.</p>
+            </div>
+          </div>
         </div>
       </Modal>
 

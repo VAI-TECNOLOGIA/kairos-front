@@ -55,7 +55,7 @@ export function ProductFilesSection() {
             <div className="flex gap-2">
               <label className="btn-secondary btn-sm cursor-pointer">
                 <Upload size={12} /> Trocar
-                <input type="file" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={uploading} />
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={uploading} />
               </label>
               <button onClick={() => confirm('Remover arquivo?') && save.mutate(null)} className="btn-danger btn-sm">Remover</button>
             </div>
@@ -64,8 +64,8 @@ export function ProductFilesSection() {
           <label className="block w-full border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-accent transition-colors">
             <Upload size={28} className="text-text3 mx-auto mb-2" />
             <div className="text-sm text-text mb-1">{uploading ? 'Enviando...' : 'Clique para enviar arquivo'}</div>
-            <div className="text-xs text-text3">PDF, ZIP, MP4, etc — máx 100MB</div>
-            <input type="file" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={uploading} />
+            <div className="text-xs text-text3">JPG, PNG, WebP ou GIF — até 10MB</div>
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={uploading} />
           </label>
         )}
       </div>

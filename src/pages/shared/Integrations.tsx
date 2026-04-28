@@ -392,8 +392,8 @@ function UtmifyCard() {
     <div className="card space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-white overflow-hidden">
-            <img src={utmifyLogo} alt="Utmify" className="w-full h-full object-contain p-1.5" />
+          <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <img src={utmifyLogo} alt="Utmify" className="w-full h-full object-contain" />
           </div>
           <div>
             <h3 className="font-semibold text-text flex items-center gap-2">
