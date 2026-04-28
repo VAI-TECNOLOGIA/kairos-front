@@ -3,7 +3,10 @@ import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Truck, FileText, Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug, Activity } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug } from 'lucide-react';
+import melhorEnvioLogo from '@/assets/melhorenvio.png';
+import nfeLogo from '@/assets/nfe.png';
+import utmifyLogo from '@/assets/utmify.png';
 
 // ══════════════════════════════════════════════════════════════════
 // PROVIDERS
@@ -22,7 +25,7 @@ interface IntegrationRow {
 const PROVIDER_META: Record<Provider, {
   name       : string;
   description: string;
-  icon       : any;
+  logo       : string;
   color      : string;
   site       : string;
   oauth?     : boolean;        // se true, renderiza botão "Conectar" em vez de form
@@ -32,7 +35,7 @@ const PROVIDER_META: Record<Provider, {
   MELHOR_ENVIO: {
     name       : 'Melhor Envio',
     description: 'Cotação, emissão de etiquetas e rastreamento de envios. Conecte sua conta via OAuth.',
-    icon       : Truck,
+    logo       : melhorEnvioLogo,
     color      : '#00A881',
     site       : 'https://melhorenvio.com.br',
     oauth      : true,
@@ -45,7 +48,7 @@ const PROVIDER_META: Record<Provider, {
   NFE_IO: {
     name       : 'NFe.io',
     description: 'Emissão automática de nota fiscal após pagamento aprovado. Cadastre sua conta pessoal.',
-    icon       : FileText,
+    logo       : nfeLogo,
     color      : '#0055FE',
     site       : 'https://nfe.io',
     fields     : [
@@ -107,17 +110,6 @@ export default function IntegrationsPage() {
         </div>
       )}
 
-      <div className="card bg-accent/5 border-accent/20">
-        <div className="flex items-start gap-2.5">
-          <CheckCircle2 size={14} className="text-accent mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-text2 leading-relaxed">
-            <strong className="text-text">Pagar.me já está configurado na plataforma.</strong>
-            {' '}Os pagamentos são recebidos na conta da Kairos Way e repassados automaticamente para você.
-            Você não precisa configurar Pagar.me.
-          </div>
-        </div>
-      </div>
-
       <div className="card bg-bg3/50 border-dashed">
         <div className="flex items-center gap-2.5">
           <Plug size={14} className="text-text3" />
@@ -138,7 +130,6 @@ export default function IntegrationsPage() {
 function IntegrationCard({ provider, row }: { provider: Provider; row: IntegrationRow }) {
   const qc   = useQueryClient();
   const meta = PROVIDER_META[provider];
-  const Icon = meta.icon;
 
   const [editing, setEditing] = useState(!row.configured);
   const [values, setValues]   = useState<Record<string, any>>({});
@@ -198,11 +189,8 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: `${meta.color}1f`, border: `1px solid ${meta.color}40` }}
-          >
-            <Icon size={20} style={{ color: meta.color }} />
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-bg3 border border-border overflow-hidden">
+            <img src={meta.logo} alt={meta.name} className="w-full h-full object-contain p-1" />
           </div>
           <div>
             <h3 className="font-semibold text-text flex items-center gap-2">
@@ -404,8 +392,8 @@ function UtmifyCard() {
     <div className="card space-y-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#7C3AED20' }}>
-            <Activity size={18} style={{ color: '#7C3AED' }} />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-bg3 border border-border overflow-hidden">
+            <img src={utmifyLogo} alt="Utmify" className="w-full h-full object-contain p-1" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
