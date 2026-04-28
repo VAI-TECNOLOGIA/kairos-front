@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader } from '@/components/ui';
-import { ShoppingBag, CheckCircle, Plus, Network } from 'lucide-react';
+import { ShoppingBag, CheckCircle, Plus, Network, Tag } from 'lucide-react';
 
 export default function AffiliateMarketplace() {
   const qc = useQueryClient();
@@ -16,6 +16,16 @@ export default function AffiliateMarketplace() {
     queryKey: ['affiliate-marketplace'],
     queryFn : () => api.get('/affiliates/marketplace').then(r => r.data),
   });
+
+  // Cupons que esse afiliado já tem (pra realçar produtos no marketplace)
+  const { data: myCoupons } = useQuery<any[]>({
+    queryKey: ['my-coupons'],
+    queryFn : () => api.get('/affiliates/my-coupons').then(r => r.data),
+  });
+  const couponByProduct = (myCoupons || []).reduce((acc: Record<string, any>, c: any) => {
+    acc[c.product?.id] = c;
+    return acc;
+  }, {});
 
   const enroll = useMutation({
     mutationFn: (offerId: string) => api.post('/affiliates/enroll', {
@@ -72,6 +82,17 @@ export default function AffiliateMarketplace() {
                 <div className="text-xs text-text3 mb-2">{offer.offerName}</div>
                 {offer.description && (
                   <p className="text-sm text-text2 mb-3">{offer.description}</p>
+                )}
+                {couponByProduct[offer.productId] && (
+                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-2 mb-2 flex items-center gap-2 text-xs">
+                    <Tag size={12} className="text-accent flex-shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-text">Você tem um cupom para este produto:</div>
+                      <div className="font-mono font-bold text-accent">
+                        {couponByProduct[offer.productId].code} ({(couponByProduct[offer.productId].discountBps / 100).toFixed(1)}% off)
+                      </div>
+                    </div>
+                  </div>
                 )}
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="badge-blue text-xs">{offer.commissionPct}% comissão</span>

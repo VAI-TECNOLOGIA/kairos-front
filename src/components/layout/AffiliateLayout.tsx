@@ -9,7 +9,7 @@ import { formatBRL } from '@/lib/utils';
 import {
   LayoutDashboard, ShoppingBag, Link2, DollarSign,
   LogOut, UserCircle, Trophy, X, Sparkles, Package, SlidersHorizontal, RotateCcw, Activity, Tv2, Plug, Truck,
-  Menu, HelpCircle, ShieldCheck, Network,
+  Menu, HelpCircle, ShieldCheck, Network, Tag,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -21,6 +21,7 @@ const nav = [
   { group: 'Promoções', items: [
     { to: 'marketplace', icon: ShoppingBag, label: 'Marketplace' },
     { to: 'links',       icon: Link2,       label: 'Meus Links'  },
+    { to: 'cupons',      icon: Tag,         label: 'Meus Cupons' },
     { to: 'coproducoes', icon: Network,     label: 'Minhas Co-produções' },
   ]},
   { group: 'Financeiro', items: [

@@ -36,6 +36,7 @@ function buildSections(productType?: string) {
     ]},
     { group: 'Parceiros', items: [
       { to: 'afiliacao',       icon: Handshake,   label: 'Afiliação' },
+      { to: 'cupons',          icon: Tag,         label: 'Cupons' },
       { to: 'coprodutores',    icon: UsersIcon,   label: 'Co produtores' },
     ]},
     { group: 'Tráfego', items: [

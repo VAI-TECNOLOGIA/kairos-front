@@ -55,6 +55,7 @@ import ProductEdit       from '@/pages/producer/ProductEdit';
 import ProductInfoSection from '@/pages/producer/product-sections/Info';
 import ProductOffersSection from '@/pages/producer/product-sections/Offers';
 import ProductAffiliationSection from '@/pages/producer/product-sections/Affiliation';
+import ProductCouponsSection from '@/pages/producer/product-sections/Coupons';
 import { ProductFilesSection, ProductMembersAreaSection } from '@/pages/producer/product-sections/Delivery';
 import { ProductCheckoutSection, ProductCoproducersSection, ProductLinksSection, ProductPixelsSection } from '@/pages/producer/product-sections/Misc';
 import OfferManager      from '@/pages/producer/Offers';
@@ -77,6 +78,7 @@ import TVDashboard       from '@/pages/producer/TVDashboard';
 import AffiliateDashboard   from '@/pages/affiliate/Dashboard';
 import AffiliateMarketplace from '@/pages/affiliate/Marketplace';
 import AffiliateLinks       from '@/pages/affiliate/Links';
+import MyCoupons            from '@/pages/affiliate/MyCoupons';
 import AffiliateCoproductions from '@/pages/affiliate/Coproductions';
 import AffiliateFinancial   from '@/pages/affiliate/Financial';
 import AffiliateRanking     from '@/pages/affiliate/Ranking';
@@ -174,6 +176,7 @@ export default function App() {
           <Route path="area-membros" element={<ProductMembersAreaSection />} />
           <Route path="checkout"  element={<ProductCheckoutSection />} />
           <Route path="afiliacao" element={<ProductAffiliationSection />} />
+          <Route path="cupons"    element={<ProductCouponsSection />} />
           <Route path="coprodutores" element={<ProductCoproducersSection />} />
           <Route path="links"     element={<ProductLinksSection />} />
           <Route path="pixels"    element={<ProductPixelsSection />} />
@@ -205,6 +208,7 @@ export default function App() {
         <Route path="ranking"        element={<AffiliateRanking />} />
         <Route path="marketplace"    element={<AffiliateMarketplace />} />
         <Route path="links"          element={<AffiliateLinks />} />
+        <Route path="cupons"         element={<MyCoupons />} />
         <Route path="coproducoes"    element={<AffiliateCoproductions />} />
         <Route path="financeiro"     element={<AffiliateFinancial />} />
         {/* Rotas exclusivas para afiliado co-produtor */}
@@ -216,6 +220,7 @@ export default function App() {
           <Route path="area-membros" element={<ProductMembersAreaSection />} />
           <Route path="checkout"  element={<ProductCheckoutSection />} />
           <Route path="afiliacao" element={<ProductAffiliationSection />} />
+          <Route path="cupons"    element={<ProductCouponsSection />} />
           <Route path="coprodutores" element={<ProductCoproducersSection />} />
           <Route path="links"     element={<ProductLinksSection />} />
           <Route path="pixels"    element={<ProductPixelsSection />} />

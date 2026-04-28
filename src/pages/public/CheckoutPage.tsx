@@ -206,6 +206,44 @@ export default function CheckoutPage() {
   const [phoneValue, setPhoneValue] = useState('');
   const [docError,   setDocError]   = useState('');
 
+  // Cupom de desconto
+  const [couponInput,    setCouponInput]    = useState('');
+  const [couponLoading,  setCouponLoading]  = useState(false);
+  const [couponApplied,  setCouponApplied]  = useState<null | { code: string; discountBps: number; discountCents: number; finalCents: number; priceCents: number }>(null);
+  const [couponError,    setCouponError]    = useState('');
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const r = await api.get(`/coupons/validate/${encodeURIComponent(code)}?offerSlug=${slug}`);
+      if (r.data.valid) {
+        setCouponApplied({
+          code,
+          discountBps  : r.data.discountBps,
+          discountCents: r.data.discountCents,
+          finalCents   : r.data.finalCents,
+          priceCents   : r.data.priceCents,
+        });
+      } else {
+        setCouponError(r.data.reason || 'Cupom inválido');
+        setCouponApplied(null);
+      }
+    } catch (e: any) {
+      setCouponError(e?.response?.data?.message || 'Erro ao validar');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponApplied(null);
+    setCouponInput('');
+    setCouponError('');
+  };
+
   // ── Formulário de pagamento (sem nome/email — vêm do auth)
   const { register, handleSubmit, watch, control, setValue, formState: { errors } } = useForm<any>({
     defaultValues: { method: 'PIX', installments: 1 },
@@ -306,6 +344,9 @@ export default function CheckoutPage() {
       // - NFe.io emitir nota fiscal após aprovação do pagamento
       if (Object.keys(utmParams).length > 0) {
         payload.utm = utmParams;
+      }
+      if (couponApplied?.code) {
+        payload.couponCode = couponApplied.code;
       }
       if (formData.zipCode && formData.street) {
         payload.billingAddress = {
@@ -613,9 +654,60 @@ export default function CheckoutPage() {
                   <p className="text-xs text-text3 mt-1.5 leading-relaxed line-clamp-2">{offer.description}</p>
                 )}
               </div>
-              <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-                <span className="text-xs text-text3">Total a pagar</span>
-                <span className="text-xl font-bold text-text">{offer && formatBRL(offer.priceCents)}</span>
+              <div className="mt-3 pt-3 border-t border-border space-y-2">
+                {couponApplied ? (
+                  <>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-text3">Subtotal</span>
+                      <span className="text-text2 line-through">{formatBRL(couponApplied.priceCents)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-accent">Cupom {couponApplied.code} ({(couponApplied.discountBps / 100).toFixed(1)}% off)</span>
+                      <span className="text-accent">- {formatBRL(couponApplied.discountCents)}</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-xs text-text3">Total a pagar</span>
+                      <span className="text-xl font-bold text-text">{formatBRL(couponApplied.finalCents)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text3">Total a pagar</span>
+                    <span className="text-xl font-bold text-text">{offer && formatBRL(offer.priceCents)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Cupom de desconto */}
+              <div className="mt-3 pt-3 border-t border-border">
+                {couponApplied ? (
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="text-text2">
+                      <strong className="text-accent">Cupom aplicado:</strong> {couponApplied.code}
+                    </span>
+                    <button type="button" onClick={removeCoupon} className="text-text3 hover:text-red underline">remover</button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Cupom de desconto (opcional)"
+                        value={couponInput}
+                        onChange={e => { setCouponInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'')); setCouponError(''); }}
+                        maxLength={20}
+                        className="input flex-1 text-sm font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={applyCoupon}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="btn-secondary btn-sm"
+                      >{couponLoading ? '...' : 'Aplicar'}</button>
+                    </div>
+                    {couponError && <p className="text-xs text-red mt-1">{couponError}</p>}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -932,7 +1024,7 @@ export default function CheckoutPage() {
                         className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text outline-none focus:border-accent transition-all">
                         {Array.from({ length: config?.maxInstallments || 12 }, (_, i) => i + 1).map(n => (
                           <option key={n} value={n}>
-                            {n}x de {formatBRL(Math.ceil((offer?.priceCents || 0) / n))}
+                            {n}x de {formatBRL(Math.ceil((couponApplied?.finalCents ?? offer?.priceCents ?? 0) / n))}
                             {n === 1 ? ' — sem juros' : ''}
                           </option>
                         ))}
@@ -963,7 +1055,7 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <Lock size={14} />
-                    <span>Pagar {offer ? formatBRL(offer.priceCents) : ''} com segurança</span>
+                    <span>Pagar {offer ? formatBRL(couponApplied?.finalCents ?? offer.priceCents) : ''} com segurança</span>
                   </>
                 )}
               </button>
