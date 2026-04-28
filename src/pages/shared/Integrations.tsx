@@ -189,8 +189,8 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-bg3 overflow-hidden">
-            <img src={meta.logo} alt={meta.name} className="w-full h-full object-contain p-1" />
+          <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-white overflow-hidden">
+            <img src={meta.logo} alt={meta.name} className="w-full h-full object-contain p-1.5" />
           </div>
           <div>
             <h3 className="font-semibold text-text flex items-center gap-2">
@@ -390,26 +390,28 @@ function UtmifyCard() {
 
   return (
     <div className="card space-y-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-bg3 overflow-hidden">
-            <img src={utmifyLogo} alt="Utmify" className="w-full h-full object-contain p-1" />
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-white overflow-hidden">
+            <img src={utmifyLogo} alt="Utmify" className="w-full h-full object-contain p-1.5" />
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <strong className="text-text">Utmify</strong>
+          <div>
+            <h3 className="font-semibold text-text flex items-center gap-2">
+              Utmify
               {!isLoading && isConfigured && (
-                <span className="badge-green text-[10px]">conectado</span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green/15 text-green border border-green/30">
+                  <CheckCircle2 size={10} /> Ativo
+                </span>
               )}
-            </div>
+            </h3>
             <p className="text-xs text-text3 mt-0.5">
               Rastreamento avançado de campanhas e atribuição de vendas. Captura UTMs automaticamente no checkout.
             </p>
+            <a href="https://app.utmify.com.br" target="_blank" rel="noreferrer" className="text-[11px] text-accent hover:underline mt-1 inline-block">
+              app.utmify.com.br →
+            </a>
           </div>
         </div>
-        <a href="https://app.utmify.com.br" target="_blank" rel="noopener noreferrer" className="text-[11px] text-accent hover:underline">
-          app.utmify.com.br ↗
-        </a>
       </div>
 
       {isConfigured && status?.tokenMask && (
