@@ -62,6 +62,7 @@ import OfferManager      from '@/pages/producer/Offers';
 import MySales           from '@/pages/producer/Sales';
 import MyAffiliates      from '@/pages/producer/Affiliates';
 import MyCoproducers     from '@/pages/producer/Coproducers';
+import ProducerCoproductions from '@/pages/producer/Coproductions';
 import CheckoutConfig    from '@/pages/producer/Checkout';
 import MyFinancial       from '@/pages/producer/Financial';
 import ProducerSettings  from '@/pages/producer/Settings';
@@ -185,6 +186,7 @@ export default function App() {
         <Route path="vendas"        element={<MySales />} />
         <Route path="afiliados"     element={<MyAffiliates />} />
         <Route path="coprodutores"  element={<MyCoproducers />} />
+        <Route path="minhas-coproducoes" element={<ProducerCoproductions />} />
         <Route path="marketplace-afiliacao" element={<AffiliateMarketplace />} />
         <Route path="minhas-afiliacoes"     element={<AffiliateLinks />} />
         <Route path="checkout"      element={<CheckoutConfig />} />

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart, Link2,
   Handshake, Monitor, DollarSign, Settings, LogOut, SlidersHorizontal, Trophy, RotateCcw, Activity, Truck, Tv2, Plug, UserCircle,
-  Menu, X, HelpCircle, ShieldCheck, Store,
+  Menu, X, HelpCircle, ShieldCheck, Store, Network,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import KycBanner from '@/components/KycBanner';
@@ -26,8 +26,9 @@ const nav = [
     { to: 'marcos',       icon: Trophy,       label: 'Marcos & Conquistas' },
   ]},
   { group: 'Parcerias', items: [
-    { to: 'afiliados',    icon: Link2,     label: 'Afiliados' },
-    { to: 'coprodutores', icon: Handshake, label: 'Produtores' },
+    { to: 'afiliados',          icon: Link2,     label: 'Afiliados' },
+    { to: 'coprodutores',       icon: Handshake, label: 'Co-produtores' },
+    { to: 'minhas-coproducoes', icon: Network,   label: 'Onde sou co-produtor' },
   ]},
   { group: 'Minhas Afiliações', items: [
     { to: 'marketplace-afiliacao', icon: Store, label: 'Marketplace' },

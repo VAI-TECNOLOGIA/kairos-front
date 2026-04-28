@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { Modal } from '@/components/ui';
 import { formatBRL, cn } from '@/lib/utils';
-import { Plus, Copy, Lock, AlertCircle, Trash2, Tag, Pencil } from 'lucide-react';
+import { Plus, Copy, Lock, AlertCircle, Trash2, Tag, Pencil, Users, X } from 'lucide-react';
 
 interface OfferForm {
   productId          : string;
@@ -22,6 +22,9 @@ export default function ProductOffersSection() {
   const qc = useQueryClient();
   const [openNew, setOpenNew] = useState(false);
   const [editingOffer, setEditingOffer] = useState<any | null>(null);
+  const [coprodOffer, setCoprodOffer] = useState<any | null>(null);
+  const [coprodEmail, setCoprodEmail] = useState('');
+  const [coprodPct, setCoprodPct]     = useState(10);
   const productApproved = product?.status === 'APPROVED';
   const productRejected = product?.status === 'REJECTED';
 
@@ -109,6 +112,30 @@ export default function ProductOffersSection() {
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
   });
 
+  const addCoprod = useMutation({
+    mutationFn: () => api.post(`/offers/${coprodOffer.id}/coproducer-splits`, {
+      email: coprodEmail.trim(),
+      basisPoints: Math.round(coprodPct * 100),
+    }),
+    onSuccess: () => {
+      toast.success('Co-produtor adicionado');
+      qc.invalidateQueries({ queryKey: ['producer-product', product.id] });
+      setCoprodEmail('');
+      setCoprodPct(10);
+      // Mantém modal aberto pra adicionar outro
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
+  });
+
+  const removeCoprod = useMutation({
+    mutationFn: ({ offerId, userId }: { offerId: string; userId: string }) => api.delete(`/offers/${offerId}/coproducer-splits/${userId}`),
+    onSuccess: () => {
+      toast.success('Co-produtor removido');
+      qc.invalidateQueries({ queryKey: ['producer-product', product.id] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
+  });
+
   const offers: any[] = product?.offers || [];
 
   return (
@@ -145,6 +172,9 @@ export default function ProductOffersSection() {
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[10px] text-text3"><Lock size={11} />bloqueado</span>
                     )}
+                    <button onClick={() => setCoprodOffer(o)} className="btn-ghost btn-sm" title="Co-produção">
+                      <Users size={13} />
+                    </button>
                     <button onClick={() => openEdit(o)} className="btn-ghost btn-sm" title="Editar oferta">
                       <Pencil size={13} />
                     </button>
@@ -299,6 +329,80 @@ export default function ProductOffersSection() {
             Tipo da oferta não pode ser alterado depois de criada — gera novo registro se precisar mudar.
           </p>
         </div>
+      </Modal>
+
+      {/* Modal: gerenciar co-produção fixa */}
+      <Modal open={!!coprodOffer} onClose={() => setCoprodOffer(null)} title={`Co-produção — ${coprodOffer?.name || ''}`}>
+        {coprodOffer && (() => {
+          const rules = (coprodOffer.splitRules || []) as any[];
+          const platform = rules.find(r => r.recipientType === 'PLATFORM');
+          const producer = rules.find(r => r.recipientType === 'PRODUCER');
+          const coprods  = rules.filter(r => r.recipientType === 'COPRODUCER');
+          const platformPct = platform ? (platform.basisPoints / 100) : 0;
+          const producerPct = producer ? (producer.basisPoints / 100) : 0;
+          const coprodTotalPct = coprods.reduce((s, r) => s + r.basisPoints, 0) / 100;
+
+          return (
+            <div className="space-y-4">
+              <div className="bg-bg3 rounded p-3 text-xs">
+                <div className="font-semibold text-text mb-2">Distribuição atual da oferta:</div>
+                <div className="space-y-1 text-text2">
+                  <div className="flex justify-between"><span>Plataforma</span><strong>{platformPct.toFixed(2)}%</strong></div>
+                  <div className="flex justify-between"><span>Produtor (você)</span><strong className="text-accent">{producerPct.toFixed(2)}%</strong></div>
+                  {coprods.length > 0 && (
+                    <div className="flex justify-between text-text3 italic"><span>Co-produtores</span><span>{coprodTotalPct.toFixed(2)}%</span></div>
+                  )}
+                </div>
+                <p className="text-[10px] text-text3 mt-2">
+                  Adicionar co-produtor reduz sua parte ({producerPct.toFixed(2)}%). A comissão de afiliado e o override de coprodutor por venda continuam saindo da sua parte.
+                </p>
+              </div>
+
+              {coprods.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-text">Co-produtores configurados:</div>
+                  {coprods.map(c => (
+                    <div key={c.id} className="flex items-center justify-between gap-2 bg-bg3 rounded px-3 py-2 text-sm">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-text truncate">{c.description || c.recipientId}</div>
+                        <code className="text-[10px] text-text3 truncate block">{c.recipientId}</code>
+                      </div>
+                      <span className="badge-blue text-xs">{(c.basisPoints / 100).toFixed(2)}%</span>
+                      <button
+                        onClick={() => confirm('Remover este co-produtor?') && removeCoprod.mutate({ offerId: coprodOffer.id, userId: c.recipientId })}
+                        className="btn-ghost btn-sm text-red"
+                        title="Remover"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="border-t border-border pt-3">
+                <div className="text-xs font-medium text-text mb-2">Adicionar co-produtor:</div>
+                <div className="form-group">
+                  <label className="label">Email do co-produtor *</label>
+                  <input className="input" type="email" placeholder="email@dominio.com" value={coprodEmail} onChange={e => setCoprodEmail(e.target.value)} />
+                  <p className="text-[11px] text-text3 mt-1">Pessoa precisa ter conta na Kairos.</p>
+                </div>
+                <div className="form-group">
+                  <label className="label">% para co-produtor *</label>
+                  <input className="input" type="number" min="1" max="50" step="0.5" value={coprodPct} onChange={e => setCoprodPct(Number(e.target.value))} />
+                  <p className="text-[11px] text-text3 mt-1">Sai da sua parte ({producerPct.toFixed(2)}%). Mínimo 1%, máximo 50%.</p>
+                </div>
+                <button
+                  className="btn-primary btn-sm w-full justify-center"
+                  disabled={addCoprod.isPending || !coprodEmail.trim() || coprodPct < 1}
+                  onClick={() => addCoprod.mutate()}
+                >
+                  {addCoprod.isPending ? 'Adicionando...' : 'Adicionar co-produtor'}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
       </Modal>
     </div>
   );
