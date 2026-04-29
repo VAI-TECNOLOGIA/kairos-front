@@ -35,11 +35,17 @@ export default function MyFinancial() {
     queryFn : () => api.get('/financial/withdrawals').then(r => r.data),
   });
 
+  const { data: wdStatus } = useQuery<{ ready: boolean; readyAt: string | null; cooldownDays: number; isCustomCooldown: boolean }>({
+    queryKey: ['withdraw-status'],
+    queryFn : () => api.get('/financial/withdraw-status').then(r => r.data),
+  });
+
   const available   = balance?.availableCents  || 0;
   const wdList: any[] = withdrawals?.data || [];
 
   // Verifica se tem saque PENDING
   const hasPending = wdList.some((w: any) => w.status === 'PENDING');
+  const cooldownReady = wdStatus?.ready ?? true;
 
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<WithdrawForm>({
     defaultValues: { amountReais: '', pixKey: '', pixKeyType: 'email', phone: '' },
@@ -50,7 +56,7 @@ export default function MyFinancial() {
   const amountCents    = Math.round(amountNum * 100);
   const aboveMin       = amountCents >= 5000;
   const aboveAvailable = amountCents <= available;
-  const canSubmit      = aboveMin && aboveAvailable && !hasPending;
+  const canSubmit      = aboveMin && aboveAvailable && !hasPending && cooldownReady;
 
   const withdraw = useMutation({
     mutationFn: (d: WithdrawForm) => api.post('/financial/withdraw', {
@@ -103,16 +109,33 @@ export default function MyFinancial() {
         actions={
           <button
             onClick={() => {
+              if (!cooldownReady) {
+                const dt = wdStatus?.readyAt ? new Date(wdStatus.readyAt).toLocaleDateString('pt-BR') : '';
+                toast.error(`Saque liberado a partir de ${dt}.`);
+                return;
+              }
               if (hasPending) { toast.error('Você já tem um saque pendente. Aguarde o processamento.'); return; }
               if (available < 5000) { toast.error('Saldo insuficiente. Mínimo para saque: R$ 50,00'); return; }
               setOpen(true);
             }}
-            className={`btn-primary btn-sm ${(hasPending || available < 5000) ? 'opacity-60 cursor-not-allowed' : ''}`}
+            className={`btn-primary btn-sm ${(!cooldownReady || hasPending || available < 5000) ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
             <ArrowDownCircle size={14} /> Solicitar saque
           </button>
         }
       />
+
+      {/* Banner cooldown — bloqueio temporário */}
+      {!cooldownReady && wdStatus?.readyAt && (
+        <div className="flex items-center gap-3 bg-amber/10 border border-amber/30 rounded-[10px] p-3 mb-4">
+          <AlertCircle size={15} className="text-amber flex-shrink-0" />
+          <div className="text-sm text-amber">
+            <strong>Saque ainda não liberado.</strong>{' '}
+            Período de carência de <strong>{wdStatus.cooldownDays} dia(s)</strong> após sua aprovação.
+            Liberado a partir de <strong>{new Date(wdStatus.readyAt).toLocaleDateString('pt-BR')}</strong>.
+          </div>
+        </div>
+      )}
 
       {/* Alerta saque pendente */}
       {hasPending && (
