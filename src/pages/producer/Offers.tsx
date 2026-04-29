@@ -184,7 +184,7 @@ export default function OfferManager() {
                       <button
                         onClick={() => {
                           setCoprodOffer(o);
-                          setCoprodPct((o.affiliateConfig?.coproducerCommissionBps || 0) / 100);
+                          setCoprodPct(((o as any).affiliateConfig?.coproducerCommissionBps || 0) / 100);
                         }}
                         className="btn-ghost btn-sm p-1"
                         title="Co-produção (% liberada)"
