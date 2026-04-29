@@ -188,6 +188,16 @@ body {
     @apply text-base font-semibold text-text mb-1;
   }
 
+  /* ── ICON BUTTON TOOLTIP ────────────────────────────────────────
+     Uso: <div class="relative group inline-flex"> + <span class="ui-tooltip"> */
+  .ui-tooltip {
+    @apply pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-1.5
+           px-2 py-0.5 rounded-[5px] text-[10px] font-medium whitespace-nowrap
+           bg-bg2 border border-border text-text3 shadow-sm
+           opacity-0 invisible group-hover:opacity-100 group-hover:visible
+           transition-all duration-150 z-[200];
+  }
+
   .modal-overlay {
     @apply fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4;
   }

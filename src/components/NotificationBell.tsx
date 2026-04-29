@@ -67,18 +67,21 @@ export default function NotificationBell() {
 
   return (
     <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="btn-ghost btn-sm relative"
-        aria-label="Notificações"
-      >
-        <Bell size={16} />
-        {unread > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red rounded-full text-white text-[10px] font-bold flex items-center justify-center">
-            {unread > 9 ? '9+' : unread}
-          </span>
-        )}
-      </button>
+      <div className="relative group inline-flex">
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="btn-ghost btn-sm relative"
+          aria-label="Notificações"
+        >
+          <Bell size={16} />
+          {unread > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red rounded-full text-white text-[10px] font-bold flex items-center justify-center">
+              {unread > 9 ? '9+' : unread}
+            </span>
+          )}
+        </button>
+        {!open && <span className="ui-tooltip">Notificações</span>}
+      </div>
 
       {open && (
         <div className="absolute right-0 top-10 w-80 bg-bg2 border border-border rounded-xl shadow-xl z-[100] flex flex-col max-h-[420px]">
@@ -95,7 +98,7 @@ export default function NotificationBell() {
                   Marcar todas
                 </button>
               )}
-              <button onClick={() => setOpen(false)} className="text-text3 hover:text-text">
+              <button onClick={() => setOpen(false)} className="text-text3 hover:text-text min-w-[32px] min-h-[32px] flex items-center justify-center" aria-label="Fechar notificações">
                 <X size={14} />
               </button>
             </div>

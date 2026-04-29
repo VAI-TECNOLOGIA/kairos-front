@@ -273,7 +273,7 @@ export default function AdminLayout() {
               <div className="text-sm font-medium text-text truncate">{user?.name}</div>
               <div className="text-xs text-text3">Super Admin</div>
             </div>
-            <button onClick={handleLogout} className="p-1 rounded text-text3 hover:text-red opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={handleLogout} className="p-1 rounded text-text3 hover:text-red opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Sair">
               <LogOut size={14} />
             </button>
           </div>
@@ -302,13 +302,16 @@ export default function AdminLayout() {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <NotificationBell />
-            <button
-              onClick={handleLogout}
-              className="btn-ghost btn-sm text-text3 hover:text-red"
-              title="Sair"
-            >
-              <LogOut size={15} />
-            </button>
+            <div className="relative group inline-flex">
+              <button
+                onClick={handleLogout}
+                className="btn-ghost btn-sm text-text3 hover:text-red"
+                aria-label="Sair"
+              >
+                <LogOut size={15} />
+              </button>
+              <span className="ui-tooltip">Sair</span>
+            </div>
           </div>
         </header>
 

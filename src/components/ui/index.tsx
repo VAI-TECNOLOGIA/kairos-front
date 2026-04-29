@@ -111,7 +111,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }: M
       <div className={cn('modal', sizeMap[size])} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <span className="font-semibold text-text">{title}</span>
-          <button onClick={onClose} className="btn-ghost btn-sm p-1"><X size={16} /></button>
+          <button onClick={onClose} className="btn-ghost btn-sm p-1 min-w-[44px] min-h-[44px]" aria-label="Fechar"><X size={16} /></button>
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-footer">{footer}</div>}

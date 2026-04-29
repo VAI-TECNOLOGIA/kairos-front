@@ -46,14 +46,14 @@ export default function AdminReceivables() {
         {/* Calendário */}
         <div className="card p-4">
           <div className="flex items-center justify-between mb-3">
-            <button onClick={() => setRefDate(addMonths(refDate, -1))} className="btn-ghost btn-sm p-1">
+            <button onClick={() => setRefDate(addMonths(refDate, -1))} className="btn-ghost btn-sm p-1 min-w-[44px] min-h-[44px]" aria-label="Mês anterior">
               <ChevronLeft size={16} />
             </button>
             <div className="flex gap-8 text-sm font-semibold text-text">
               <span>{format(refDate, 'MMMM yyyy', { locale: ptBR })}</span>
               <span>{format(addMonths(refDate, 1), 'MMMM yyyy', { locale: ptBR })}</span>
             </div>
-            <button onClick={() => setRefDate(addMonths(refDate, 1))} className="btn-ghost btn-sm p-1">
+            <button onClick={() => setRefDate(addMonths(refDate, 1))} className="btn-ghost btn-sm p-1 min-w-[44px] min-h-[44px]" aria-label="Próximo mês">
               <ChevronRight size={16} />
             </button>
           </div>

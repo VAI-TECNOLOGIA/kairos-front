@@ -538,10 +538,10 @@ function MilestoneCard({
 
           {/* Ações */}
           <div className="flex items-center gap-1 flex-shrink-0">
-            <button onClick={onEdit} className="btn-ghost btn-sm text-text3 hover:text-text">
+            <button onClick={onEdit} className="btn-ghost btn-sm text-text3 hover:text-text" aria-label="Editar marco">
               <Pencil size={14} />
             </button>
-            <button onClick={onDelete} className="btn-ghost btn-sm text-text3 hover:text-red">
+            <button onClick={onDelete} className="btn-ghost btn-sm text-text3 hover:text-red" aria-label="Excluir marco">
               <Trash2 size={14} />
             </button>
           </div>

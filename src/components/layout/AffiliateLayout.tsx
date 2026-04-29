@@ -284,9 +284,12 @@ export default function AffiliateLayout() {
             </div>
             <ThemeToggle />
             <NotificationBell />
-            <button onClick={handleLogout} className="btn-ghost btn-sm text-text3 hover:text-red" title="Sair">
-              <LogOut size={15} />
-            </button>
+            <div className="relative group inline-flex">
+              <button onClick={handleLogout} className="btn-ghost btn-sm text-text3 hover:text-red" aria-label="Sair">
+                <LogOut size={15} />
+              </button>
+              <span className="ui-tooltip">Sair</span>
+            </div>
           </div>
         </header>
 
