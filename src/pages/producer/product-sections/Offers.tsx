@@ -112,19 +112,13 @@ export default function ProductOffersSection() {
   });
 
   const saveCoprod = useMutation({
-    mutationFn: () => {
-      const cfg = coprodOffer.affiliateConfig || {};
-      return api.post(`/affiliates/offers/${coprodOffer.id}/config`, {
-        enabled                : cfg.commissionBps > 0 || coprodPct > 0,
-        commissionBps          : cfg.commissionBps          || 100,
-        coproducerCommissionBps: Math.round(coprodPct * 100),
-        cookieDays             : cfg.cookieDays             || 30,
-        description            : cfg.description            || '',
-      });
-    },
+    mutationFn: () => api.put(`/offers/${coprodOffer.id}/coproducer-pool`, {
+      basisPoints: Math.round(coprodPct * 100),
+    }),
     onSuccess: () => {
       toast.success('Co-produção atualizada');
       qc.invalidateQueries({ queryKey: ['producer-product', product.id] });
+      qc.invalidateQueries({ queryKey: ['my-products'] });
       setCoprodOffer(null);
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
@@ -169,7 +163,10 @@ export default function ProductOffersSection() {
                     <button
                       onClick={() => {
                         setCoprodOffer(o);
-                        setCoprodPct((o.affiliateConfig?.coproducerCommissionBps || 0) / 100);
+                        const poolBps = (o.splitRules || [])
+                          .filter((r: any) => r.recipientType === 'COPRODUCER' && !r.recipientId)
+                          .reduce((s: number, r: any) => s + r.basisPoints, 0);
+                        setCoprodPct(poolBps / 100);
                       }}
                       className="btn-ghost btn-sm"
                       title="Co-produção (% liberada)"

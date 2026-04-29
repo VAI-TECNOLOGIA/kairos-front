@@ -63,17 +63,11 @@ export default function OfferManager() {
   });
 
   // Salvar % de co-produção da oferta (sai da parte do produtor)
+  // Usa endpoint dedicado que reconfigura splits diretamente (PRODUCER reduzido + COPRODUCER pool)
   const saveCoprod = useMutation({
-    mutationFn: () => {
-      const cfg = coprodOffer.affiliateConfig || {};
-      return api.post(`/affiliates/offers/${coprodOffer.id}/config`, {
-        enabled                : cfg.commissionBps > 0 || coprodPct > 0,
-        commissionBps          : cfg.commissionBps          || 100,
-        coproducerCommissionBps: Math.round(coprodPct * 100),
-        cookieDays             : cfg.cookieDays             || 30,
-        description            : cfg.description            || '',
-      });
-    },
+    mutationFn: () => api.put(`/offers/${coprodOffer.id}/coproducer-pool`, {
+      basisPoints: Math.round(coprodPct * 100),
+    }),
     onSuccess: () => {
       toast.success('Co-produção atualizada');
       qc.invalidateQueries({ queryKey: ['my-products'] });
@@ -184,7 +178,11 @@ export default function OfferManager() {
                       <button
                         onClick={() => {
                           setCoprodOffer(o);
-                          setCoprodPct(((o as any).affiliateConfig?.coproducerCommissionBps || 0) / 100);
+                          // Pré-popula com a % do split rule COPRODUCER pool (recipientId null)
+                          const poolBps = ((o as any).splitRules || [])
+                            .filter((r: any) => r.recipientType === 'COPRODUCER' && !r.recipientId)
+                            .reduce((s: number, r: any) => s + r.basisPoints, 0);
+                          setCoprodPct(poolBps / 100);
                         }}
                         className="btn-ghost btn-sm p-1"
                         title="Co-produção (% liberada)"
