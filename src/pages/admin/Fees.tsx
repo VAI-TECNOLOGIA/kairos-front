@@ -537,20 +537,33 @@ function MarginSimulation({ platform, acquirer }: {
       margin  : partToCents(platform.BOLETO, SAMPLE) - partToCents(acquirer.BOLETO, SAMPLE),
     });
 
-    // Cartão (cada parcelamento)
-    const gw = acquirer.CARD_GATEWAY;
-    const af = acquirer.CARD_ANTIFRAUDE;
-    const gwAf = partToCents(gw, SAMPLE) + partToCents(af, SAMPLE);
+    // Cartão (cada parcelamento) — espelha o que o backend cobra:
+    // MDR_NX (parcela específica, com fallback no CARD genérico) + Gateway + Antifraude
+    const acqGw = acquirer.CARD_GATEWAY;
+    const acqAf = acquirer.CARD_ANTIFRAUDE;
+    const acqGwAf = partToCents(acqGw, SAMPLE) + partToCents(acqAf, SAMPLE);
+
+    const platGw = (platform as any).CARD_GATEWAY    as FeePart | undefined;
+    const platAf = (platform as any).CARD_ANTIFRAUDE as FeePart | undefined;
+    const platGwAf = partToCents(platGw || EMPTY_PART, SAMPLE) + partToCents(platAf || EMPTY_PART, SAMPLE);
+
     for (const m of CARD_INSTALLMENTS) {
       const mdr = acquirer[m];
-      const acqTotal = partToCents(mdr, SAMPLE) + gwAf;
-      const extras = gwAf > 0 ? ` + R$ ${(gwAf / 100).toFixed(2).replace('.', ',')}` : '';
+      const acqTotal = partToCents(mdr, SAMPLE) + acqGwAf;
+      const acqExtras = acqGwAf > 0 ? ` + R$ ${(acqGwAf / 100).toFixed(2).replace('.', ',')}` : '';
+
+      // Plataforma: usa CARD_NX se setado, senão cai no CARD genérico
+      const platPart = (platform as any)[m] as FeePart | undefined;
+      const platMdr = platPart && (platPart.bps || platPart.cents) ? platPart : platform.CARD;
+      const platTotal = partToCents(platMdr, SAMPLE) + platGwAf;
+      const platExtras = platGwAf > 0 ? ` + R$ ${(platGwAf / 100).toFixed(2).replace('.', ',')}` : '';
+
       r.push({
         key     : m,
         label   : CARD_INSTALLMENT_LABEL[m],
-        platform: formatPart(platform.CARD),
-        acquirer: `${formatPart(mdr)}${extras}`,
-        margin  : partToCents(platform.CARD, SAMPLE) - acqTotal,
+        platform: `${formatPart(platMdr)}${platExtras}`,
+        acquirer: `${formatPart(mdr)}${acqExtras}`,
+        margin  : platTotal - acqTotal,
       });
     }
 
