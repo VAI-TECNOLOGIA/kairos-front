@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
-import { useAuthStore } from '@/stores/auth.store';
 import { PageHeader, Modal, TabNav, EmptyState, Loading, DateCell, WhatsAppLink } from '@/components/ui';
 import { kycStatusVariant, formatDate } from '@/lib/utils';
 import type { Producer } from '@/types';
-import { Users, CheckCircle, XCircle, Eye, LogIn, Unlock, Lock } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Eye, LogIn, Unlock, Lock, Copy, ExternalLink } from 'lucide-react';
 
 // FIX F-19: mapeamento completo de tab → status
 function tabToStatus(tab: string): string | undefined {
@@ -21,20 +20,20 @@ function tabToStatus(tab: string): string | undefined {
 
 export default function ProducersPage() {
   const qc = useQueryClient();
-  const setAuth = useAuthStore(s => s.setAuth);
   const [tab, setTab] = useState('all');
   const [selected, setSelected] = useState<Producer | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [showReject, setShowReject] = useState(false);
+  const [impersonateLink, setImpersonateLink] = useState<{ url: string; target: { name: string; email: string; role: string } } | null>(null);
 
   const impersonate = useMutation({
-    mutationFn: (userId: string) => api.post(`/admin/impersonate/${userId}`).then(r => r.data),
+    mutationFn: (userId: string) => api.post(`/admin/users/${userId}/impersonate-link`).then(r => r.data),
     onSuccess: (data) => {
-      setAuth(data.user, data.accessToken, data.refreshToken);
-      toast.success(`Logado como ${data.user.name}`);
-      window.location.href = '/produtor/dashboard';
+      setImpersonateLink({ url: data.url, target: data.target });
+      navigator.clipboard.writeText(data.url).catch(() => {});
+      toast.success('Link copiado — cole em uma aba anônima');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao logar como produtor'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao gerar link'),
   });
 
   const unlockUser = useMutation({
@@ -150,6 +149,14 @@ export default function ProducersPage() {
                         title="Ver detalhes"
                       >
                         <Eye size={14} />
+                      </button>
+                      <button
+                        onClick={() => impersonate.mutate(p.user.id)}
+                        disabled={impersonate.isPending}
+                        className="btn-ghost btn-sm p-1.5"
+                        title="Acessar conta (gerar link)"
+                      >
+                        <LogIn size={14} />
                       </button>
                       {['PENDING', 'DOCUMENTS_SENT'].includes(p.kycStatus) && (
                         <>
@@ -282,6 +289,42 @@ export default function ProducersPage() {
               ))}
             </div>
           )
+        )}
+      </Modal>
+
+      {/* Modal: link de impersonate */}
+      <Modal open={!!impersonateLink} onClose={() => setImpersonateLink(null)} title="Acessar conta — link gerado">
+        {impersonateLink && (
+          <div className="space-y-4">
+            <div className="bg-amber/10 border border-amber/30 rounded p-3 text-xs text-amber">
+              <strong>Recomendado: abra em uma janela anônima.</strong> Assim você não desloga sua sessão de admin.
+              O link expira em 5 minutos.
+            </div>
+
+            <div>
+              <div className="text-xs text-text3 mb-1">Acessando como:</div>
+              <div className="text-sm font-medium text-text">{impersonateLink.target.name}</div>
+              <div className="text-xs text-text2">{impersonateLink.target.email} · <code className="text-accent">{impersonateLink.target.role}</code></div>
+            </div>
+
+            <div className="form-group">
+              <label className="label">Link</label>
+              <div className="flex gap-2">
+                <input className="input flex-1 font-mono text-xs" readOnly value={impersonateLink.url} onClick={e => (e.target as HTMLInputElement).select()} />
+                <button
+                  onClick={() => { navigator.clipboard.writeText(impersonateLink.url); toast.success('Link copiado'); }}
+                  className="btn-secondary btn-sm"
+                  title="Copiar"
+                >
+                  <Copy size={13} />
+                </button>
+                <a href={impersonateLink.url} target="_blank" rel="noopener noreferrer" className="btn-primary btn-sm" title="Abrir em nova aba">
+                  <ExternalLink size={13} />
+                </a>
+              </div>
+              <p className="text-[11px] text-text3 mt-1">Cole na barra de endereços de uma janela anônima — o login é automático.</p>
+            </div>
+          </div>
         )}
       </Modal>
     </div>
