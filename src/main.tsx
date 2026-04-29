@@ -60,14 +60,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           position="top-right"
           toastOptions={{
             style: {
-              background  : '#0D1130',
-              color       : '#E8EEFF',
-              border      : '1px solid rgba(61,69,96,0.5)',
+              background  : 'var(--bg2)',
+              color       : 'var(--text)',
+              border      : '1px solid var(--border)',
               borderRadius: '8px',
               fontSize    : '13px',
             },
-            success: { iconTheme: { primary: '#00C9A7', secondary: '#0D1130' } },
-            error  : { iconTheme: { primary: '#FF4D6D', secondary: '#0D1130' } },
+            success: { iconTheme: { primary: '#00C9A7', secondary: 'var(--bg2)' } },
+            error  : { iconTheme: { primary: '#FF4D6D', secondary: 'var(--bg2)' } },
           }}
         />
       </BrowserRouter>

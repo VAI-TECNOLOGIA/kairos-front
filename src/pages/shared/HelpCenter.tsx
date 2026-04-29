@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { PageHeader } from '@/components/ui';
-import {
-  FileText, Truck, ChevronDown, ChevronUp, ExternalLink,
-  HelpCircle, AlertTriangle, CheckCircle2, Info,
-} from 'lucide-react';
+import { ChevronDown, ChevronUp, ExternalLink, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
+import melhorEnvioLogo from '@/assets/melhorenvio.png';
+import nfeLogo         from '@/assets/nfe.png';
+import utmifyLogo      from '@/assets/utmify.png';
 
 interface StepProps {
   n       : number;
@@ -27,8 +27,7 @@ function Step({ n, title, children }: StepProps) {
 
 interface SectionProps {
   id      : string;
-  icon    : any;
-  color   : string;
+  imgSrc  : string;
   title   : string;
   subtitle: string;
   open    : boolean;
@@ -36,18 +35,15 @@ interface SectionProps {
   children: React.ReactNode;
 }
 
-function Section({ icon: Icon, color, title, subtitle, open, onToggle, children }: SectionProps) {
+function Section({ imgSrc, title, subtitle, open, onToggle, children }: SectionProps) {
   return (
     <div className="card p-0 overflow-hidden">
       <button
         onClick={onToggle}
         className="w-full flex items-center gap-3 p-4 hover:bg-bg3/30 transition-colors text-left"
       >
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: `${color}20` }}
-        >
-          <Icon size={18} style={{ color }} />
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white overflow-hidden">
+          <img src={imgSrc} alt={title} className="w-full h-full object-contain p-1" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-text text-sm">{title}</div>
@@ -67,7 +63,7 @@ function Section({ icon: Icon, color, title, subtitle, open, onToggle, children 
 }
 
 export default function HelpCenter() {
-  const [open, setOpen] = useState<'nfe' | 'me' | 'faq' | null>('nfe');
+  const [open, setOpen] = useState<'nfe' | 'me' | 'utmify' | 'faq' | null>('nfe');
 
   return (
     <div>
@@ -94,8 +90,7 @@ export default function HelpCenter() {
         {/* ─── NFe.io ──────────────────────────────────── */}
         <Section
           id="nfe"
-          icon={FileText}
-          color="#0055FE"
+          imgSrc={nfeLogo}
           title="Conectar NFe.io — emissão automática de notas fiscais"
           subtitle="Toda venda aprovada gera NFS-e automaticamente"
           open={open === 'nfe'}
@@ -143,7 +138,8 @@ export default function HelpCenter() {
             <ol className="list-decimal ml-5 space-y-1">
               <li>No menu lateral, vá em <strong>Integrações</strong></li>
               <li>Encontre o card <strong>NFe.io</strong> e clique em <strong>Configurar</strong></li>
-              <li>Cole a <strong>API Key</strong> e o <strong>Company ID</strong></li>
+              <li>Cole a <strong>API Key</strong> no campo correspondente</li>
+              <li>Cole o <strong>Company ID</strong> no campo correspondente</li>
               <li>Informe o <strong>Código de serviço</strong> (padrão <code className="bg-bg3 px-1 rounded text-[11px]">01.07</code> ou o que sua prefeitura exigir)</li>
               <li>Clique em <strong>Salvar</strong> → depois em <strong>Testar conexão</strong></li>
             </ol>
@@ -169,8 +165,7 @@ export default function HelpCenter() {
         {/* ─── Melhor Envio ─────────────────────────────── */}
         <Section
           id="me"
-          icon={Truck}
-          color="#00A881"
+          imgSrc={melhorEnvioLogo}
           title="Conectar Melhor Envio — frete e etiquetas de envio"
           subtitle="Cotação automática e despacho com 1 clique"
           open={open === 'me'}
@@ -246,67 +241,153 @@ export default function HelpCenter() {
           </Step>
         </Section>
 
-        {/* ─── FAQ ──────────────────────────────────────── */}
+        {/* ─── Utmify ───────────────────────────────────── */}
         <Section
-          id="faq"
-          icon={HelpCircle}
-          color="#F59E0B"
-          title="Problemas comuns e soluções"
-          subtitle="Mensagens de erro frequentes e como resolver"
-          open={open === 'faq'}
-          onToggle={() => setOpen(open === 'faq' ? null : 'faq')}
+          id="utmify"
+          imgSrc={utmifyLogo}
+          title="Conectar Utmify — rastreamento de campanhas e atribuição de vendas"
+          subtitle="Captura UTMs automaticamente no checkout e reporta cada venda em tempo real"
+          open={open === 'utmify'}
+          onToggle={() => setOpen(open === 'utmify' ? null : 'utmify')}
         >
-          <div className="overflow-x-auto -mx-1">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-text3 border-b border-border">
-                  <th className="p-2 font-semibold">Sintoma</th>
-                  <th className="p-2 font-semibold">Causa provável</th>
-                  <th className="p-2 font-semibold">Solução</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                <tr>
-                  <td className="p-2 text-text2">"Nenhum serviço de entrega disponível"</td>
-                  <td className="p-2 text-text3 text-xs">Conta Melhor Envio sem verificação ou sem transportadoras ativas</td>
-                  <td className="p-2 text-text3 text-xs">Conclua cadastro e ative Correios em Gerenciar → Transportadoras</td>
-                </tr>
-                <tr>
-                  <td className="p-2 text-text2">"Endereço do produtor não preenchido"</td>
-                  <td className="p-2 text-text3 text-xs">Perfil do Kairos sem CEP</td>
-                  <td className="p-2 text-text3 text-xs">Acesse Meu Perfil → Endereço → preencha e salve</td>
-                </tr>
-                <tr>
-                  <td className="p-2 text-text2">Nota fiscal fica em "processando"</td>
-                  <td className="p-2 text-text3 text-xs">Prefeitura offline ou conta em sandbox</td>
-                  <td className="p-2 text-text3 text-xs">Abra o painel NFe.io — se lá estiver "Issued", a nota foi emitida</td>
-                </tr>
-                <tr>
-                  <td className="p-2 text-text2">Erro ao conectar Melhor Envio</td>
-                  <td className="p-2 text-text3 text-xs">Sessão antiga do ME no navegador</td>
-                  <td className="p-2 text-text3 text-xs">Faça logout no melhorenvio.com.br, limpe cookies e tente novamente</td>
-                </tr>
-                <tr>
-                  <td className="p-2 text-text2">"The given data was invalid" (cotação)</td>
-                  <td className="p-2 text-text3 text-xs">CEP origem ou destino incompleto / inválido</td>
-                  <td className="p-2 text-text3 text-xs">Confira que os CEPs têm 8 dígitos sem espaços</td>
-                </tr>
-                <tr>
-                  <td className="p-2 text-text2">"API key inválida" na NFe.io</td>
-                  <td className="p-2 text-text3 text-xs">Chave copiada com espaços ou incompleta</td>
-                  <td className="p-2 text-text3 text-xs">Cole novamente direto do painel da NFe.io (sem espaços)</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <Step n={1} title="Crie sua conta na Utmify">
+            <p>
+              Acesse{' '}
+              <a href="https://app.utmify.com.br" target="_blank" rel="noopener noreferrer"
+                 className="text-accent hover:underline inline-flex items-center gap-1">
+                app.utmify.com.br <ExternalLink size={11} />
+              </a>{' '}
+              e cadastre-se. Confirme o e-mail e faça login.
+            </p>
+          </Step>
 
-          <div className="pt-2 border-t border-border text-xs text-text3">
-            Não encontrou sua dúvida? Escreva para{' '}
-            <a href="mailto:contato@kairosway.com.br" className="text-accent hover:underline">
-              contato@kairosway.com.br
-            </a>.
-          </div>
+          <Step n={2} title="Acesse Integrações → Webhooks">
+            <ol className="list-decimal ml-5 space-y-1">
+              <li>No menu lateral da Utmify, clique em <strong>Integrações</strong></li>
+              <li>Clique em <strong>Webhooks</strong></li>
+              <li>Selecione a aba <strong>Credenciais API</strong></li>
+            </ol>
+          </Step>
+
+          <Step n={3} title="Crie uma credencial de API">
+            <ol className="list-decimal ml-5 space-y-1">
+              <li>Clique em <strong>Adicionar Credencial</strong></li>
+              <li>Dê um nome descritivo, por exemplo: <code className="bg-bg3 px-1 rounded text-[11px]">Kairos Way</code></li>
+              <li>Clique em <strong>Salvar</strong></li>
+            </ol>
+          </Step>
+
+          <Step n={4} title="Copie o token gerado">
+            <p>
+              Após criar a credencial, o <strong>token</strong> aparece na lista.
+              Clique no ícone de copiar ao lado do token para copiá-lo para a área de transferência.
+            </p>
+            <div className="flex items-start gap-2 text-xs text-amber mt-2">
+              <AlertTriangle size={12} className="flex-shrink-0 mt-0.5" />
+              <span>Guarde o token em local seguro — ele não é exibido novamente na íntegra.</span>
+            </div>
+          </Step>
+
+          <Step n={5} title="Cole o token no Kairos Way">
+            <ol className="list-decimal ml-5 space-y-1">
+              <li>No menu lateral do Kairos, vá em <strong>Integrações</strong></li>
+              <li>Encontre o card <strong>Utmify</strong></li>
+              <li>Cole o token no campo <strong>API Token Utmify</strong></li>
+              <li>Clique em <strong>Salvar token</strong></li>
+            </ol>
+            <div className="flex items-center gap-2 text-xs text-green mt-2">
+              <CheckCircle2 size={12} /> Quando ativo, o badge verde "Ativo" aparece no card.
+            </div>
+          </Step>
+
+          <Step n={6} title="O que é rastreado automaticamente">
+            <ul className="list-disc ml-5 space-y-1">
+              <li>Parâmetros UTM capturados no checkout (<code className="bg-bg3 px-1 rounded text-[11px]">utm_source</code>, <code className="bg-bg3 px-1 rounded text-[11px]">utm_campaign</code> etc.)</li>
+              <li>Venda criada (pedido gerado)</li>
+              <li>Venda aprovada (pagamento confirmado)</li>
+              <li>Venda cancelada ou reembolsada</li>
+            </ul>
+            <p className="text-xs text-text3 mt-1">
+              Nenhuma configuração adicional é necessária — tudo acontece automaticamente após salvar o token.
+            </p>
+          </Step>
         </Section>
+
+        {/* ─── FAQ ──────────────────────────────────────── */}
+        <div className="card p-0 overflow-hidden">
+          <button
+            onClick={() => setOpen(open === 'faq' ? null : 'faq')}
+            className="w-full flex items-center gap-3 p-4 hover:bg-bg3/30 transition-colors text-left"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-text text-sm">Problemas comuns e soluções</div>
+              <div className="text-xs text-text3 mt-0.5">Mensagens de erro frequentes e como resolver</div>
+            </div>
+            {open === 'faq'
+              ? <ChevronUp size={16} className="text-text3 flex-shrink-0" />
+              : <ChevronDown size={16} className="text-text3 flex-shrink-0" />}
+          </button>
+          {open === 'faq' && (
+            <div className="border-t border-border p-4 sm:p-5 space-y-5 bg-bg3/20">
+              <div className="overflow-x-auto -mx-1">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-xs text-text3 border-b border-border">
+                      <th className="p-2 font-semibold">Sintoma</th>
+                      <th className="p-2 font-semibold">Causa provável</th>
+                      <th className="p-2 font-semibold">Solução</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    <tr>
+                      <td className="p-2 text-text2">"Nenhum serviço de entrega disponível"</td>
+                      <td className="p-2 text-text3 text-xs">Conta Melhor Envio sem verificação ou sem transportadoras ativas</td>
+                      <td className="p-2 text-text3 text-xs">Conclua cadastro e ative Correios em Gerenciar → Transportadoras</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 text-text2">"Endereço do produtor não preenchido"</td>
+                      <td className="p-2 text-text3 text-xs">Perfil do Kairos sem CEP</td>
+                      <td className="p-2 text-text3 text-xs">Acesse Meu Perfil → Endereço → preencha e salve</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 text-text2">Nota fiscal fica em "processando"</td>
+                      <td className="p-2 text-text3 text-xs">Prefeitura offline ou conta em sandbox</td>
+                      <td className="p-2 text-text3 text-xs">Abra o painel NFe.io — se lá estiver "Issued", a nota foi emitida</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 text-text2">Erro ao conectar Melhor Envio</td>
+                      <td className="p-2 text-text3 text-xs">Sessão antiga do ME no navegador</td>
+                      <td className="p-2 text-text3 text-xs">Faça logout no melhorenvio.com.br, limpe cookies e tente novamente</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 text-text2">"The given data was invalid" (cotação)</td>
+                      <td className="p-2 text-text3 text-xs">CEP origem ou destino incompleto / inválido</td>
+                      <td className="p-2 text-text3 text-xs">Confira que os CEPs têm 8 dígitos sem espaços</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 text-text2">"API key inválida" na NFe.io</td>
+                      <td className="p-2 text-text3 text-xs">Chave copiada com espaços ou incompleta</td>
+                      <td className="p-2 text-text3 text-xs">Cole novamente direto do painel da NFe.io (sem espaços)</td>
+                    </tr>
+                    <tr>
+                      <td className="p-2 text-text2">Utmify não registra vendas</td>
+                      <td className="p-2 text-text3 text-xs">Token inválido ou removido na Utmify</td>
+                      <td className="p-2 text-text3 text-xs">Acesse Integrações no Kairos, substitua o token por um novo gerado na Utmify</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="pt-2 border-t border-border text-xs text-text3">
+                Não encontrou sua dúvida? Escreva para{' '}
+                <a href="mailto:contato@kairosway.com.br" className="text-accent hover:underline">
+                  contato@kairosway.com.br
+                </a>.
+              </div>
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

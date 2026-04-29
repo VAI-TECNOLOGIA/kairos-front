@@ -1,44 +1,43 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 
 export type Theme = 'dark' | 'light';
 
 const STORAGE_KEY = 'kairos-theme';
 
-function readInitial(): Theme {
+// ── Module-level singleton — shared across ALL hook instances ──────────
+// Theme is stored in localStorage only. The data-theme attribute is applied
+// by each authenticated layout on its own root div — public pages (login etc.)
+// are never affected by the theme preference.
+let _theme: Theme = (() => {
   if (typeof window === 'undefined') return 'dark';
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === 'light' || saved === 'dark') return saved;
-  return 'dark';
+  return (saved === 'light' || saved === 'dark') ? saved : 'dark';
+})();
+
+const _listeners = new Set<() => void>();
+
+function _setTheme(theme: Theme) {
+  _theme = theme;
+  try { localStorage.setItem(STORAGE_KEY, theme); } catch {}
+  _listeners.forEach(fn => fn());
 }
 
-function applyTheme(theme: Theme) {
-  if (typeof document === 'undefined') return;
-  document.documentElement.setAttribute('data-theme', theme);
-}
-
-// Aplica imediatamente na primeira carga (evita flash)
-if (typeof document !== 'undefined') {
-  applyTheme(readInitial());
-}
-
+// ── Hook ───────────────────────────────────────────────────────────────
 export function useTheme(): { theme: Theme; toggle: () => void; setTheme: (t: Theme) => void } {
-  const [theme, setThemeState] = useState<Theme>(readInitial);
+  const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
   useEffect(() => {
-    applyTheme(theme);
-    try { localStorage.setItem(STORAGE_KEY, theme); } catch {}
-  }, [theme]);
+    _listeners.add(forceUpdate);
+    return () => { _listeners.delete(forceUpdate); };
+  }, []);
 
   return {
-    theme,
-    setTheme: setThemeState,
-    toggle  : () => setThemeState(t => (t === 'dark' ? 'light' : 'dark')),
+    theme   : _theme,
+    toggle  : () => _setTheme(_theme === 'dark' ? 'light' : 'dark'),
+    setTheme: _setTheme,
   };
 }
 
-/** Path da logo correta de acordo com o tema atual.
- *  Tema escuro (default) usa kairosLogo.png (logo branca).
- *  Tema claro usa kairosLogo2.png (logo escura — pra contraste). */
 export function logoForTheme(theme: Theme): string {
   return theme === 'light' ? '/kairosLogo2.png' : '/kairosLogo.png';
 }

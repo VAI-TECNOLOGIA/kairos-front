@@ -22,9 +22,7 @@ type NavItem = {
   icon  : any;
   label : string;
   badge?: string;
-  /** Counter de notificação (sobrepõe o badge string) */
   count?: number;
-  /** Link externo (ex: abre em nova aba) */
   external?: boolean;
 };
 
@@ -32,7 +30,6 @@ type NavSection = {
   group     : string;
   icon      : any;
   items     : NavItem[];
-  /** Se true, sempre aberto (para grupos com 1 item como "Visão Geral") */
   alwaysOpen?: boolean;
 };
 
@@ -55,32 +52,32 @@ const buildNav = (counts: { producers: number; pendingProducts: number; pendingK
     { to: 'receitas',     icon: BarChart3,     label: 'Receitas e Taxas' },
   ]},
   { group: 'Relatórios', icon: BarChart3, items: [
-    { to: 'relatorios',         icon: BarChart3,     label: 'Geral' },
-    { to: 'saldo-global',       icon: Wallet,        label: 'Saldo Global' },
-    { to: 'risco-produtos',     icon: AlertTriangle, label: 'Risco (Produtos)' },
+    { to: 'relatorios',     icon: BarChart3,     label: 'Geral' },
+    { to: 'saldo-global',   icon: Wallet,        label: 'Saldo Global' },
+    { to: 'risco-produtos', icon: AlertTriangle, label: 'Risco (Produtos)' },
   ]},
   { group: 'Parcerias', icon: Handshake, items: [
-    { to: 'afiliados',    icon: Link2,      label: 'Afiliados' },
-    { to: 'coprodutores', icon: Handshake,  label: 'Produtores' },
+    { to: 'afiliados',    icon: Link2,     label: 'Afiliados' },
+    { to: 'coprodutores', icon: Handshake, label: 'Produtores' },
   ]},
   { group: 'Marketing', icon: Megaphone, items: [
-    { to: 'tracking',    icon: Activity, label: 'Pixels de Rastreamento' },
+    { to: 'tracking', icon: Activity, label: 'Pixels de Rastreamento' },
   ]},
   { group: 'Ferramentas', icon: Wrench, items: [
     { to: 'calculadora', icon: Calculator, label: 'Calculadora de taxas' },
   ]},
   { group: 'Segurança', icon: Lock, items: [
-    { to: 'audit-log',    icon: Activity, label: 'Audit Log' },
-    { to: 'seguranca',    icon: Shield,   label: 'PCI & Segurança' },
+    { to: 'audit-log', icon: Activity, label: 'Audit Log' },
+    { to: 'seguranca', icon: Shield,   label: 'PCI & Segurança' },
   ]},
   { group: 'Sistema', icon: Settings, items: [
-    { to: 'perfil',               icon: UserCircle,        label: 'Perfil' },
-    { to: 'configurar-dashboard', icon: SlidersHorizontal, label: 'Dashboard' },
-    { to: 'taxas',                icon: Percent,           label: 'Taxas' },
-    { to: 'prazos-liberacao',     icon: Clock,             label: 'Prazos de Liberação' },
+    { to: 'perfil',               icon: UserCircle,         label: 'Perfil' },
+    { to: 'configurar-dashboard', icon: SlidersHorizontal,  label: 'Dashboard' },
+    { to: 'taxas',                icon: Percent,            label: 'Taxas' },
+    { to: 'prazos-liberacao',     icon: Clock,              label: 'Prazos de Liberação' },
     { to: 'mensagens',            icon: MessageSquareHeart, label: 'Mensagens' },
-    { to: 'integracoes',          icon: Plug,              label: 'Integrações' },
-    { to: 'ambiente-de-teste',    icon: FlaskConical,      label: 'Ambiente de Teste', badge: 'beta' },
+    { to: 'integracoes',          icon: Plug,               label: 'Integrações' },
+    { to: 'ambiente-de-teste',    icon: FlaskConical,       label: 'Ambiente de Teste', badge: 'beta' },
   ]},
 ];
 
@@ -90,10 +87,11 @@ export default function AdminLayout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const session  = useSessionTimeout();
   const { theme } = useTheme();
 
-  // Counts ao vivo pra badges no sidebar
+  // Auto-logout após 15 min de inatividade (PCI REQ-8) — sem UI
+  useSessionTimeout();
+
   const { data: counts } = useQuery({
     queryKey: ['admin-sidebar-counts'],
     queryFn : async () => {
@@ -116,14 +114,11 @@ export default function AdminLayout() {
   });
   const nav = buildNav(counts || { producers: 0, pendingKyc: 0, pendingProducts: 0 });
 
-  // Expandido por padrão: apenas o grupo cujo item está ativo na rota atual
   const getInitialExpanded = (): Record<string, boolean> => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) return JSON.parse(saved);
     } catch { /* ignore */ }
-
-    // Fallback: abre "Visão Geral" + grupo da rota atual
     const next: Record<string, boolean> = {};
     for (const section of nav) {
       if (section.alwaysOpen || section.group === 'Visão Geral') {
@@ -138,10 +133,8 @@ export default function AdminLayout() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>(getInitialExpanded);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Fecha a sidebar mobile ao trocar de rota
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
-  // Sempre que a rota mudar, garante que o grupo da rota atual esteja aberto
   useEffect(() => {
     setExpanded(prev => {
       const next = { ...prev };
@@ -155,7 +148,6 @@ export default function AdminLayout() {
     });
   }, [location.pathname]);
 
-  // Persiste no localStorage
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(expanded)); } catch { /* ignore */ }
   }, [expanded]);
@@ -170,9 +162,8 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg">
+    <div data-theme={theme} className="flex h-screen overflow-hidden bg-bg">
 
-      {/* Backdrop mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
@@ -185,7 +176,6 @@ export default function AdminLayout() {
         "fixed md:static inset-y-0 left-0 z-40 w-60 flex-shrink-0 flex flex-col bg-bg2 border-r border-border overflow-y-auto transform transition-transform md:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
       )}>
-        {/* Logo */}
         <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
           <img src={logoForTheme(theme)} alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
           <div>
@@ -194,7 +184,6 @@ export default function AdminLayout() {
           </div>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 px-3 py-3 space-y-0.5">
           {nav.map((section) => {
             const isOpen    = section.alwaysOpen || !!expanded[section.group];
@@ -271,7 +260,6 @@ export default function AdminLayout() {
           })}
         </nav>
 
-        {/* User */}
         <div className="border-t border-border p-3">
           <div className="flex items-center gap-3 p-2 rounded-[7px] hover:bg-bg3 cursor-pointer group">
             {(user as any)?.avatarUrl ? (
@@ -294,18 +282,6 @@ export default function AdminLayout() {
 
       {/* ── MAIN ────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Session bar */}
-        <div className="session-bar-container">
-          <div
-            className="session-bar-fill"
-            style={{
-              width: `${session.pct}%`,
-              background: session.danger ? '#FF4D6D' : session.warning ? '#F59E0B' : '#0055FE',
-            }}
-          />
-        </div>
-
-        {/* Topbar */}
         <header className="flex items-center justify-between px-4 md:px-6 py-3 bg-bg2 border-b border-border">
           <div className="flex items-center gap-2">
             <button
@@ -324,19 +300,8 @@ export default function AdminLayout() {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span
-              title="Sessão expira em (PCI REQ-8)"
-              className={cn(
-                'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
-                session.danger  ? 'bg-red/10 text-red border-red/20' :
-                session.warning ? 'bg-amber/10 text-amber border-amber/20' :
-                'bg-amber/10 text-amber border-amber/20'
-              )}
-            >
-              ⏱ {session.label}
-            </span>
-            <NotificationBell />
             <ThemeToggle />
+            <NotificationBell />
             <button
               onClick={handleLogout}
               className="btn-ghost btn-sm text-text3 hover:text-red"
@@ -347,7 +312,6 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 animate-fade-in">
           <Outlet />
         </main>

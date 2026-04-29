@@ -59,8 +59,10 @@ const TIER_BG: Record<string, string> = {
 export default function AffiliateLayout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
-  const session  = useSessionTimeout();
   const { theme } = useTheme();
+
+  // Auto-logout após 15 min de inatividade (PCI REQ-8) — sem UI
+  useSessionTimeout();
 
   const { data: stats } = useQuery({
     queryKey: ['affiliate-stats'],
@@ -112,7 +114,7 @@ export default function AffiliateLayout() {
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg">
+    <div data-theme={theme} className="flex h-screen overflow-hidden bg-bg">
 
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />
@@ -238,16 +240,6 @@ export default function AffiliateLayout() {
 
       {/* ── MAIN ────────────────────────────────── */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="session-bar-container">
-          <div
-            className="session-bar-fill"
-            style={{
-              width     : `${session.pct}%`,
-              background: session.danger ? '#FF4D6D' : session.warning ? '#F59E0B' : '#0055FE',
-            }}
-          />
-        </div>
-
         <header className="flex items-center justify-between px-4 md:px-6 py-3 bg-bg2 border-b border-border">
           <div className="flex items-center gap-3 flex-1 min-w-0 mr-2 md:mr-6">
             <button
@@ -290,16 +282,8 @@ export default function AffiliateLayout() {
                 <div className="text-[10px] text-text3">Afiliado</div>
               </div>
             </div>
-            <span className={cn(
-              'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
-              session.danger  ? 'bg-red/10 text-red border-red/20' :
-              session.warning ? 'bg-amber/10 text-amber border-amber/20' :
-              'bg-amber/10 text-amber border-amber/20'
-            )}>
-              ⏱ {session.label}
-            </span>
-            <NotificationBell />
             <ThemeToggle />
+            <NotificationBell />
             <button onClick={handleLogout} className="btn-ghost btn-sm text-text3 hover:text-red" title="Sair">
               <LogOut size={15} />
             </button>

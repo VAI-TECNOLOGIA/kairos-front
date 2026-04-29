@@ -17,7 +17,7 @@ export default function CustomerLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col">
+    <div data-theme={theme} className="min-h-screen bg-bg flex flex-col">
 
       {/* Topbar */}
       <header className="bg-bg2 border-b border-border sticky top-0 z-40">

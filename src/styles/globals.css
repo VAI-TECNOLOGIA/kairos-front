@@ -3,6 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── DARK THEME (default) ────────────────────────── */
 :root {
   --navy:   #02030B;
   --accent: #0055FE;
@@ -10,31 +11,62 @@
   --amber:  #F59E0B;
   --red:    #FF4D6D;
   --purple: #7C3AED;
-  --bg:     #060714;
-  --bg2:    #0D1130;
-  --bg3:    #131640;
-  --border: rgba(61,69,96,0.5);
-  --text:   #E8EEFF;
-  --text2:  #8B9AB8;
-  --text3:  #4A5568;
   --font:   'Inter', system-ui, sans-serif;
   --mono:   'JetBrains Mono', monospace;
   --r:      10px;
   --rsm:    7px;
   color-scheme: dark;
+
+  /* RGB triplets for Tailwind opacity-modifier support (e.g. bg-bg3/30) */
+  --bg-rgb:     6 7 20;
+  --bg2-rgb:    13 17 48;
+  --bg3-rgb:    19 22 64;
+  --text-rgb:   232 238 255;
+  --text2-rgb:  139 154 184;
+  --text3-rgb:  74 85 104;
+  --border-rgb: 61 69 96;
+
+  /* Full color values used in direct CSS (body bg, borders, etc.) */
+  --bg:     #060714;
+  --bg2:    #0D1130;
+  --bg3:    #131640;
+  --border: rgba(61, 69, 96, 0.5);
+  --text:   #E8EEFF;
+  --text2:  #8B9AB8;
+  --text3:  #4A5568;
 }
 
 /* ── LIGHT THEME ────────────────────────────────── */
-:root[data-theme="light"] {
+/* Selector is [data-theme="light"] (not :root) so it only applies
+   when an authenticated layout div carries the attribute.
+   Public pages (login, register) are never wrapped by a layout,
+   so they always use the :root dark defaults above.            */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-rgb:     247 248 251;
+  --bg2-rgb:    255 255 255;
+  --bg3-rgb:    238 241 247;
+  --text-rgb:   15 23 42;
+  --text2-rgb:  51 65 85;
+  --text3-rgb:  148 163 184;
+  --border-rgb: 15 23 42;
+
   --bg:     #F7F8FB;
   --bg2:    #FFFFFF;
   --bg3:    #EEF1F7;
-  --border: rgba(15,23,42,0.10);
+  --border: rgba(15, 23, 42, 0.10);
   --text:   #0F172A;
   --text2:  #334155;
   --text3:  #94A3B8;
-  color-scheme: light;
 }
+
+/* ── BORDER OPACITY OVERRIDES FOR LIGHT MODE ─────
+   border-border (no modifier) → 0.5 alpha in dark, but border-rgb/0.5 still gives
+   a neutral tone. For /50 /60 /80 variants used in table rows, we correct them.    */
+[data-theme="light"] .border-border\/50 { border-color: rgba(15, 23, 42, 0.05); }
+[data-theme="light"] .border-border\/60 { border-color: rgba(15, 23, 42, 0.06); }
+[data-theme="light"] .border-border\/80 { border-color: rgba(15, 23, 42, 0.08); }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -182,19 +214,6 @@ body {
   .tab-btn.active {
     @apply bg-bg2 text-text shadow-sm;
   }
-}
-
-/* ── SESSION TIMER BAR ────────────────────────── */
-.session-bar-container {
-  height: 2px;
-  background: var(--bg3);
-  position: relative;
-  overflow: hidden;
-}
-.session-bar-fill {
-  height: 100%;
-  background: var(--accent);
-  transition: width 1s linear, background 0.3s;
 }
 
 /* ── CHART TOOLTIP ────────────────────────────── */

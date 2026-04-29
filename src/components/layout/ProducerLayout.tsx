@@ -55,13 +55,15 @@ export default function ProducerLayout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const session = useSessionTimeout();
   const { theme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
+  // Auto-logout após 15 min de inatividade (PCI REQ-8) — sem UI
+  useSessionTimeout();
+
   return (
-    <div className="flex h-screen overflow-hidden bg-bg">
+    <div data-theme={theme} className="flex h-screen overflow-hidden bg-bg">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -113,16 +115,6 @@ export default function ProducerLayout() {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="session-bar-container">
-          <div
-            className="session-bar-fill"
-            style={{
-              width: `${session.pct}%`,
-              background: session.danger ? '#FF4D6D' : session.warning ? '#F59E0B' : '#00C9A7',
-            }}
-          />
-        </div>
-
         <header className="flex items-center justify-between px-4 md:px-6 py-3 bg-bg2 border-b border-border">
           <div className="flex items-center gap-2.5">
             <button
@@ -146,11 +138,8 @@ export default function ProducerLayout() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full border',
-              session.warning ? 'bg-amber/10 text-amber border-amber/20' : 'bg-bg3 text-text3 border-border'
-            )}>⏱ {session.label}</span>
-            <NotificationBell />
             <ThemeToggle />
+            <NotificationBell />
             <button onClick={() => { logout(); navigate('/login'); }} className="btn-ghost btn-sm text-text3 hover:text-red">
               <LogOut size={15} />
             </button>
