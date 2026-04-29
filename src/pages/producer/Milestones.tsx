@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { formatBRL } from '@/lib/utils';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import toast from 'react-hot-toast';
 import {
   Trophy, Plus, Pencil, Trash2, X, Check,
@@ -21,6 +22,7 @@ interface Milestone {
   id                : string;
   name              : string;
   color             : string;
+  imageUrl          : string | null;
   targetType        : 'VALUE' | 'UNITS';
   targetValue       : number;
   reward            : string;
@@ -34,6 +36,7 @@ interface Milestone {
 interface MilestoneForm {
   name              : string;
   color             : string;       // vazio = automático
+  imageUrl          : string;       // imagem opcional do marco
   targetType        : 'VALUE' | 'UNITS';
   targetValue       : string;       // string para o input
   reward            : string;
@@ -46,6 +49,7 @@ interface MilestoneForm {
 const EMPTY_FORM: MilestoneForm = {
   name              : '',
   color             : '',
+  imageUrl          : '',
   targetType        : 'VALUE',
   targetValue       : '',
   reward            : '',
@@ -309,6 +313,7 @@ export default function Milestones() {
     setForm({
       name       : m.name,
       color      : m.color,
+      imageUrl   : m.imageUrl ?? '',
       targetType : m.targetType,
       targetValue: m.targetType === 'VALUE'
         ? (m.targetValue / 100).toFixed(2)
@@ -360,6 +365,7 @@ export default function Milestones() {
     saveMutation.mutate({
       name              : form.name.trim(),
       color             : form.color || undefined,
+      imageUrl          : form.imageUrl || null,
       targetType        : form.targetType,
       targetValue,
       reward            : form.reward.trim(),
@@ -492,13 +498,19 @@ function MilestoneCard({
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            {/* Ícone com cor do marco */}
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: `${m.color}20` }}
-            >
-              <Trophy size={18} style={{ color: m.color }} />
-            </div>
+            {/* Imagem custom OU ícone padrão com cor */}
+            {m.imageUrl ? (
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex-shrink-0 overflow-hidden border border-border bg-bg3">
+                <img src={m.imageUrl} alt={m.name} className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: `${m.color}20` }}
+              >
+                <Trophy size={18} style={{ color: m.color }} />
+              </div>
+            )}
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <p className="font-semibold text-text text-sm truncate">{m.name}</p>
@@ -755,6 +767,21 @@ function MilestoneModal({
                 maxLength={7}
               />
             </div>
+          </div>
+
+          {/* Imagem do marco — opcional */}
+          <div>
+            <label className="block text-xs font-medium text-text2 mb-1.5">
+              Imagem do marco
+              <span className="text-text3 font-normal ml-1">(opcional)</span>
+            </label>
+            <ImageUpload
+              folder="milestones"
+              value={form.imageUrl}
+              onChange={(url) => field('imageUrl', url)}
+              label=""
+            />
+            <p className="text-[11px] text-text3 mt-1">Aparece como badge no card do marco. Responsivo.</p>
           </div>
 
           {/* MANTIDO: campo Premiação preservado integralmente */}

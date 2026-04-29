@@ -21,6 +21,19 @@
   --mono:   'JetBrains Mono', monospace;
   --r:      10px;
   --rsm:    7px;
+  color-scheme: dark;
+}
+
+/* ── LIGHT THEME ────────────────────────────────── */
+:root[data-theme="light"] {
+  --bg:     #F7F8FB;
+  --bg2:    #FFFFFF;
+  --bg3:    #EEF1F7;
+  --border: rgba(15,23,42,0.10);
+  --text:   #0F172A;
+  --text2:  #334155;
+  --text3:  #94A3B8;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

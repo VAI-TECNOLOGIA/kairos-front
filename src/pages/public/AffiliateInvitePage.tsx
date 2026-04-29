@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTheme, logoForTheme } from '@/hooks/useTheme';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,6 +47,7 @@ interface InviteData {
 export default function AffiliateInvitePage() {
   const { offerSlug } = useParams<{ offerSlug: string }>();
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const { user } = useAuthStore();
   const [searchParams] = useSearchParams();
   const upline = searchParams.get('upline');
@@ -186,7 +188,7 @@ export default function AffiliateInvitePage() {
     return wrap(
       <>
         <div className="text-center mb-6">
-          <img src="/kairosLogo.png" alt="Kairos Way" className="w-14 h-14 object-contain mx-auto mb-3" />
+          <img src={logoForTheme(theme)} alt="Kairos Way" className="w-14 h-14 object-contain mx-auto mb-3" />
           <h1 className="text-xl font-bold text-text">KAIROS WAY</h1>
         </div>
         {inviteCard}
@@ -209,7 +211,7 @@ export default function AffiliateInvitePage() {
   return wrap(
     <>
       <div className="text-center mb-6">
-        <img src="/kairosLogo.png" alt="Kairos Way" className="w-14 h-14 object-contain mx-auto mb-3" />
+        <img src={logoForTheme(theme)} alt="Kairos Way" className="w-14 h-14 object-contain mx-auto mb-3" />
         <h1 className="text-xl font-bold text-text">KAIROS WAY</h1>
       </div>
       {inviteCard}

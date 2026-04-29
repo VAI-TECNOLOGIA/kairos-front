@@ -3,10 +3,13 @@ import { useAuthStore } from '@/stores/auth.store';
 import { ShoppingBag, Store, LogOut, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import NotificationBell from '@/components/NotificationBell';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme, logoForTheme } from '@/hooks/useTheme';
 
 export default function CustomerLayout() {
   const { user, logout, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -22,7 +25,7 @@ export default function CustomerLayout() {
 
           {/* Logo */}
           <NavLink to="/cliente/marketplace" className="flex items-center gap-2.5 flex-shrink-0">
-            <img src="/kairosLogo.png" alt="Kairos Way" className="w-7 h-7 rounded-md object-contain" />
+            <img src={logoForTheme(theme)} alt="Kairos Way" className="w-7 h-7 rounded-md object-contain" />
             <span className="text-sm font-bold text-text">KAIROS WAY</span>
           </NavLink>
 
@@ -55,6 +58,7 @@ export default function CustomerLayout() {
 
           {/* Usuário / Login */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            <ThemeToggle />
             {isAuthenticated() ? (
               <>
                 <NotificationBell />

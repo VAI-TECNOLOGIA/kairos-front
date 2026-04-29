@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui';
 import { RichTextEditor, sanitizeHtml } from '@/components/RichTextEditor';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import {
   ICON_MAP, ICON_OPTIONS, COLOR_OPTIONS,
   DEFAULT_SUCCESS_MESSAGE, DEFAULT_SUCCESS_ICON, DEFAULT_SUCCESS_COLOR,
@@ -25,6 +26,7 @@ export default function AdminMessages() {
 
   // ── Estado: Mensagem de Parabéns (Afiliado → Produtor) ────────
   const [promotedMsg, setPromotedMsg]         = useState(DEFAULT_PROMOTED_MESSAGE);
+  const [promotedImageUrl, setPromotedImageUrl] = useState<string>('');
   const [promotedPreview, setPromotedPreview] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
@@ -41,6 +43,7 @@ export default function AdminMessages() {
 
     const promoted = settings.affiliate_promoted_message ?? {};
     if (promoted.html !== undefined) setPromotedMsg(promoted.html);
+    if (promoted.imageUrl !== undefined) setPromotedImageUrl(promoted.imageUrl || '');
   }, [settings]);
 
   const savePurchase = useMutation({
@@ -53,7 +56,7 @@ export default function AdminMessages() {
 
   const savePromoted = useMutation({
     mutationFn: () => api.patch('/admin/settings', {
-      affiliate_promoted_message: { html: promotedMsg },
+      affiliate_promoted_message: { html: promotedMsg, imageUrl: promotedImageUrl || null },
     }),
     onSuccess: () => { toast.success('Mensagem de promoção salva!'); qc.invalidateQueries({ queryKey: ['admin-settings'] }); },
     onError  : () => toast.error('Erro ao salvar'),
@@ -241,6 +244,18 @@ export default function AdminMessages() {
                   minHeight={140}
                 />
               )}
+            </div>
+
+            {/* Imagem opcional pra mostrar no modal de parabéns */}
+            <div>
+              <label className="label mb-1.5 block">Imagem de destaque <span className="text-text3 font-normal">(opcional)</span></label>
+              <ImageUpload
+                folder="settings"
+                value={promotedImageUrl}
+                onChange={setPromotedImageUrl}
+                label=""
+              />
+              <p className="text-[11px] text-text3 mt-1">Substitui o ícone padrão no modal. Responsivo (centralizada, máx 200×200).</p>
             </div>
 
             <div className="flex justify-end pt-2 border-t border-border">

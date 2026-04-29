@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { BadgeCount } from '@/components/ui';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme, logoForTheme } from '@/hooks/useTheme';
 
 type NavItem = {
   to    : string;
@@ -89,6 +91,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const session  = useSessionTimeout();
+  const { theme } = useTheme();
 
   // Counts ao vivo pra badges no sidebar
   const { data: counts } = useQuery({
@@ -184,7 +187,7 @@ export default function AdminLayout() {
       )}>
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
-          <img src="/kairosLogo.png" alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
+          <img src={logoForTheme(theme)} alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
           <div>
             <div className="text-sm font-bold text-text">KAIROS WAY</div>
             <div className="text-[10px] text-text3">Painel Admin</div>
@@ -333,6 +336,7 @@ export default function AdminLayout() {
               ⏱ {session.label}
             </span>
             <NotificationBell />
+            <ThemeToggle />
             <button
               onClick={handleLogout}
               className="btn-ghost btn-sm text-text3 hover:text-red"

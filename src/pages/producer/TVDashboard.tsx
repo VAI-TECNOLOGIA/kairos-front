@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import DateFilter, { getDefaultRange, type DateRange } from '@/components/DateFilter';
 import { Eye, EyeOff, Wifi, TrendingUp, DollarSign, Package, ShoppingCart, Users, RefreshCw, MousePointerClick } from 'lucide-react';
 import { usePlatformFee, feeMultiplier } from '@/hooks/usePlatformFee';
+import { useTheme, logoForTheme } from '@/hooks/useTheme';
 
 const REFETCH_MS   = 10_000;
 const COLORS       = ['#00C9A7', '#0055FE', '#7C3AED', '#F59E0B', '#FF4D6D'];
@@ -77,6 +78,7 @@ function buildRevenueChart(orders: any[], dateRange: DateRange) {
 
 // ── Main ──────────────────────────────────────────────────────────
 export default function TVDashboard() {
+  const { theme } = useTheme();
   const { user }  = useAuthStore();
   const role      = (user as any)?.role as string | undefined;
 
@@ -198,7 +200,7 @@ export default function TVDashboard() {
       {/* ── Cabeçalho ─────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <img src="/kairosLogo.png" alt="" className="w-7 h-7 rounded-lg object-contain opacity-60" />
+          <img src={logoForTheme(theme)} alt="" className="w-7 h-7 rounded-lg object-contain opacity-60" />
           <span className="text-xs font-bold text-text3 tracking-widest uppercase">Kairos Way</span>
           {role && (
             <span className="text-[10px] text-text3 bg-bg2 border border-border px-2 py-0.5 rounded-full">

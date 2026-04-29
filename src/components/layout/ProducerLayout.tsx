@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import KycBanner from '@/components/KycBanner';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme, logoForTheme } from '@/hooks/useTheme';
 
 const nav = [
   { group: 'Início', items: [
@@ -54,6 +56,7 @@ export default function ProducerLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const session = useSessionTimeout();
+  const { theme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   useEffect(() => { setSidebarOpen(false); }, [location.pathname]);
 
@@ -67,7 +70,7 @@ export default function ProducerLayout() {
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
       )}>
         <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
-          <img src="/kairosLogo.png" alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
+          <img src={logoForTheme(theme)} alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
           <div>
             <div className="text-sm font-bold text-text">KAIROS WAY</div>
             <div className="text-[10px] text-text3">Painel Produtor</div>
@@ -147,6 +150,7 @@ export default function ProducerLayout() {
               session.warning ? 'bg-amber/10 text-amber border-amber/20' : 'bg-bg3 text-text3 border-border'
             )}>⏱ {session.label}</span>
             <NotificationBell />
+            <ThemeToggle />
             <button onClick={() => { logout(); navigate('/login'); }} className="btn-ghost btn-sm text-text3 hover:text-red">
               <LogOut size={15} />
             </button>

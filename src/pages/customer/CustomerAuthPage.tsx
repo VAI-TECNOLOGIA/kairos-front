@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useTheme, logoForTheme } from '@/hooks/useTheme';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -36,6 +37,7 @@ const inputFocus = 'focus:!border-white/20 focus:!ring-0';
 
 export default function CustomerAuthPage() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const [searchParams] = useSearchParams();
   const { setAuth }    = useAuthStore();
 
@@ -128,7 +130,7 @@ export default function CustomerAuthPage() {
       <div className="w-full max-w-sm relative z-10 animate-slide-up">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/kairosLogo.png" alt="Kairos Way" className="w-16 h-16 object-contain mx-auto mb-4" />
+          <img src={logoForTheme(theme)} alt="Kairos Way" className="w-16 h-16 object-contain mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-text">KAIROS WAY</h1>
           <p className="text-sm text-text2 mt-1">Acompanhe seus pedidos</p>
         </div>

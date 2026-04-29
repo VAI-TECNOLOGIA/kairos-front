@@ -12,6 +12,8 @@ import {
   Menu, HelpCircle, ShieldCheck, Network, Tag,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme, logoForTheme } from '@/hooks/useTheme';
 
 const nav = [
   { group: 'Início', items: [
@@ -58,6 +60,7 @@ export default function AffiliateLayout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const session  = useSessionTimeout();
+  const { theme } = useTheme();
 
   const { data: stats } = useQuery({
     queryKey: ['affiliate-stats'],
@@ -77,6 +80,15 @@ export default function AffiliateLayout() {
   });
 
   const showWelcome = me?.showCoproducerWelcome === true;
+
+  // Config admin do modal (HTML + imagem opcional)
+  const { data: settings } = useQuery({
+    queryKey: ['public-settings-promoted'],
+    queryFn : () => api.get('/admin/settings').then(r => r.data).catch(() => ({})),
+    enabled : showWelcome,
+  });
+  const promotedHtml     = settings?.affiliate_promoted_message?.html;
+  const promotedImageUrl = settings?.affiliate_promoted_message?.imageUrl;
 
   const handleDismissWelcome = () => {
     dismissWelcome.mutate();
@@ -112,7 +124,7 @@ export default function AffiliateLayout() {
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
       )}>
         <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
-          <img src="/kairosLogo.png" alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
+          <img src={logoForTheme(theme)} alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
           <div>
             <div className="text-sm font-bold text-text">KAIROS WAY</div>
             <div className="text-[10px] text-text3">Painel Afiliado</div>
@@ -287,6 +299,7 @@ export default function AffiliateLayout() {
               ⏱ {session.label}
             </span>
             <NotificationBell />
+            <ThemeToggle />
             <button onClick={handleLogout} className="btn-ghost btn-sm text-text3 hover:text-red" title="Sair">
               <LogOut size={15} />
             </button>
@@ -300,28 +313,47 @@ export default function AffiliateLayout() {
       {/* Modal de boas-vindas co-produtor */}
       {showWelcome && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-bg2 border border-border rounded-2xl w-full max-w-md p-8 shadow-2xl text-center animate-slide-up">
-            <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-5">
-              <Sparkles size={32} className="text-accent" />
-            </div>
-            <h2 className="text-xl font-bold text-text mb-2">Parabéns! 🎉</h2>
-            <p className="text-text2 text-sm mb-4">
-              Agora você é oficialmente um <strong className="text-text">Produtor</strong> na plataforma Kairos Way.
-            </p>
-            <div className="bg-bg3 rounded-[10px] p-4 mb-6 space-y-2 text-left">
-              <div className="flex items-start gap-2 text-sm text-text2">
-                <span className="text-accent mt-0.5">✓</span>
-                <span>Você já pode cadastrar e gerenciar seus próprios produtos</span>
+          <div className="bg-bg2 border border-border rounded-2xl w-full max-w-md p-6 sm:p-8 shadow-2xl text-center animate-slide-up max-h-[90vh] overflow-y-auto">
+            {promotedImageUrl ? (
+              <img
+                src={promotedImageUrl}
+                alt="Parabéns"
+                className="w-full max-w-[200px] max-h-[200px] mx-auto mb-5 object-contain rounded-xl"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-5">
+                <Sparkles size={32} className="text-accent" />
               </div>
-              <div className="flex items-start gap-2 text-sm text-text2">
-                <span className="text-accent mt-0.5">✓</span>
-                <span>Configure splits e comissões para seus afiliados</span>
-              </div>
-              <div className="flex items-start gap-2 text-sm text-text2">
-                <span className="text-accent mt-0.5">✓</span>
-                <span>Acesse o painel de produtor para começar a vender</span>
-              </div>
-            </div>
+            )}
+
+            {promotedHtml ? (
+              <div
+                className="rich-content text-sm leading-relaxed text-text2 mb-6 [&_strong]:text-text"
+                dangerouslySetInnerHTML={{ __html: promotedHtml }}
+              />
+            ) : (
+              <>
+                <h2 className="text-xl font-bold text-text mb-2">Parabéns! 🎉</h2>
+                <p className="text-text2 text-sm mb-4">
+                  Agora você é oficialmente um <strong className="text-text">Produtor</strong> na plataforma Kairos Way.
+                </p>
+                <div className="bg-bg3 rounded-[10px] p-4 mb-6 space-y-2 text-left">
+                  <div className="flex items-start gap-2 text-sm text-text2">
+                    <span className="text-accent mt-0.5">✓</span>
+                    <span>Você já pode cadastrar e gerenciar seus próprios produtos</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-sm text-text2">
+                    <span className="text-accent mt-0.5">✓</span>
+                    <span>Configure splits e comissões para seus afiliados</span>
+                  </div>
+                  <div className="flex items-start gap-2 text-sm text-text2">
+                    <span className="text-accent mt-0.5">✓</span>
+                    <span>Acesse o painel de produtor para começar a vender</span>
+                  </div>
+                </div>
+              </>
+            )}
+
             <button
               className="btn-primary w-full justify-center"
               onClick={handleDismissWelcome}
