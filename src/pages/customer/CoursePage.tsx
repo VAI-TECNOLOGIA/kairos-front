@@ -19,7 +19,7 @@ type Module = {
 };
 type Course = {
   id: string; title: string; description: string | null;
-  coverUrl: string | null; commentsEnabled: boolean;
+  coverUrl: string | null; logoUrl: string | null; commentsEnabled: boolean;
   primaryColor: string | null; accentColor: string | null;
   theme: string | null; layout: string | null;
   modules: Module[];
@@ -126,8 +126,14 @@ export default function CoursePage() {
           <button onClick={() => navigate('/cliente/compras')} className="crs-btn-ghost text-sm">
             <ArrowLeft size={14} /> Minhas compras
           </button>
-          <div className="hidden md:block flex-1 text-center text-sm font-medium truncate" style={{ color: 'var(--c-text)' }}>
-            {course.title}
+          <div className="hidden md:flex flex-1 items-center justify-center min-w-0">
+            {course.logoUrl ? (
+              <img src={course.logoUrl} alt={course.title} className="h-8 max-w-[180px] object-contain" />
+            ) : (
+              <span className="text-sm font-medium truncate" style={{ color: 'var(--c-text)' }}>
+                {course.title}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {user && (

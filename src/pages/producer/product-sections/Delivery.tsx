@@ -1,76 +1,47 @@
-import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import api from '@/lib/api';
-import { Upload, FileText, ExternalLink } from 'lucide-react';
+import { Info, ExternalLink, ShoppingBag } from 'lucide-react';
 
 export { ProductMembersAreaSection } from './MembersArea';
 
 export function ProductFilesSection() {
   const { product } = useOutletContext<{ product: any }>();
-  const qc = useQueryClient();
-  const [uploading, setUploading] = useState(false);
-
-  const save = useMutation({
-    mutationFn: (digitalUrl: string | null) => api.patch(`/products/${product.id}`, { digitalUrl }),
-    onSuccess : () => {
-      toast.success('Arquivo salvo!');
-      qc.invalidateQueries({ queryKey: ['producer-product', product.id] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
-  });
-
-  const handleFile = async (file: File) => {
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const r = await api.post('/upload/image?folder=products-digital', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-      save.mutate(r.data.url);
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Erro no upload');
-    } finally {
-      setUploading(false);
-    }
-  };
+  const purchasesUrl = `${window.location.origin}/cliente/compras`;
 
   return (
     <div className="space-y-3">
-      <h2 className="text-base font-semibold text-text">Arquivo digital de entrega</h2>
-      <div className="card p-4">
-        {product.digitalUrl ? (
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center text-accent flex-shrink-0">
-                <FileText size={18} />
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm font-medium text-text">Arquivo enviado</div>
-                <a href={product.digitalUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-accent hover:underline truncate flex items-center gap-1">
-                  <span className="truncate">{product.digitalUrl}</span> <ExternalLink size={10} />
-                </a>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <label className="btn-secondary btn-sm cursor-pointer">
-                <Upload size={12} /> Trocar
-                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={uploading} />
-              </label>
-              <button onClick={() => confirm('Remover arquivo?') && save.mutate(null)} className="btn-danger btn-sm">Remover</button>
+      <h2 className="text-base font-semibold text-text">Entrega do conteúdo</h2>
+
+      <div className="card p-5 space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center text-accent flex-shrink-0">
+            <ShoppingBag size={18} />
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-text">Acesso via "Minhas Compras"</div>
+            <p className="text-xs text-text3 mt-1 leading-relaxed">
+              Após o pagamento, o cliente recebe um link automático que cai em <strong className="text-text">Minhas Compras</strong>.
+              De lá ele acessa o curso/área de membros do produto. Você não precisa configurar URL.
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-bg3 rounded-md px-3 py-2 flex items-center justify-between gap-2 text-xs">
+          <code className="text-text2 truncate">{purchasesUrl}</code>
+          <a href={purchasesUrl} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline inline-flex items-center gap-1 flex-shrink-0">
+            ver <ExternalLink size={10} />
+          </a>
+        </div>
+
+        {(product?.type === 'DIGITAL' || product?.type === 'COURSE') && (
+          <div className="bg-accent/5 border border-accent/20 rounded-md p-3 text-xs flex items-start gap-2">
+            <Info size={14} className="text-accent flex-shrink-0 mt-0.5" />
+            <div className="text-text2">
+              Configure o conteúdo do curso na aba <strong className="text-text">Área de membros</strong>: módulos,
+              aulas, vídeos. O cliente vê tudo isso após o login.
             </div>
           </div>
-        ) : (
-          <label className="block w-full border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-accent transition-colors">
-            <Upload size={28} className="text-text3 mx-auto mb-2" />
-            <div className="text-sm text-text mb-1">{uploading ? 'Enviando...' : 'Clique para enviar arquivo'}</div>
-            <div className="text-xs text-text3">JPG, PNG, WebP ou GIF — até 10MB</div>
-            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} disabled={uploading} />
-          </label>
         )}
       </div>
-      <p className="text-xs text-text3">Esse arquivo será enviado automaticamente ao cliente após a aprovação do pagamento.</p>
     </div>
   );
 }
-

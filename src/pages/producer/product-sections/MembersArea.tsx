@@ -20,7 +20,7 @@ type Module = {
 };
 type Area = {
   id: string; title: string; description: string | null;
-  coverUrl: string | null; commentsEnabled: boolean;
+  coverUrl: string | null; logoUrl: string | null; commentsEnabled: boolean;
   primaryColor: string | null; accentColor: string | null;
   theme: string | null; layout: string | null;
   modules: Module[];
@@ -182,6 +182,7 @@ function PreferencesPanel({ area, onSaved }: { area: Area; onSaved: () => void }
   const [title, setTitle] = useState(area.title);
   const [description, setDescription] = useState(area.description || '');
   const [coverUrl, setCoverUrl] = useState(area.coverUrl || '');
+  const [logoUrl,  setLogoUrl]  = useState(area.logoUrl  || '');
   const [commentsEnabled, setCommentsEnabled] = useState(area.commentsEnabled);
   const [primaryColor, setPrimaryColor] = useState(area.primaryColor || '#0055FE');
   const [accentColor,  setAccentColor]  = useState(area.accentColor  || '#7C3AED');
@@ -190,7 +191,9 @@ function PreferencesPanel({ area, onSaved }: { area: Area; onSaved: () => void }
 
   const save = useMutation({
     mutationFn: () => api.patch(`/members-area/${area.id}`, {
-      title, description: description || null, coverUrl: coverUrl || null, commentsEnabled,
+      title, description: description || null,
+      coverUrl: coverUrl || null, logoUrl: logoUrl || null,
+      commentsEnabled,
       primaryColor, accentColor, theme, layout,
     }),
     onSuccess: () => { toast.success('Preferências salvas'); onSaved(); },
@@ -210,6 +213,11 @@ function PreferencesPanel({ area, onSaved }: { area: Area; onSaved: () => void }
       <div className="form-group">
         <label className="label">Foto de capa</label>
         <ImageUpload folder="members-area" value={coverUrl} onChange={setCoverUrl} />
+      </div>
+      <div className="form-group">
+        <label className="label">Logo do curso</label>
+        <ImageUpload folder="members-area" value={logoUrl} onChange={setLogoUrl} />
+        <p className="text-[11px] text-text3 mt-1">Aparece na barra superior do curso. Sem logo, exibe o título.</p>
       </div>
       <label className="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" checked={commentsEnabled} onChange={e => setCommentsEnabled(e.target.checked)} className="w-4 h-4" />
