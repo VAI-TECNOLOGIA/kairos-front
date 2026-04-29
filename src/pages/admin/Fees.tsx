@@ -10,11 +10,17 @@ import pagarmeLogo from '@/assets/pagarme.png';
 // TIPOS
 // ══════════════════════════════════════════════════════════════════
 
-const PLATFORM_METHODS = ['PIX', 'BOLETO', 'CARD', 'WITHDRAWAL'] as const;
-type PlatformMethod = typeof PLATFORM_METHODS[number];
-
 const CARD_INSTALLMENTS = Array.from({ length: 12 }, (_, i) => `CARD_${i + 1}X` as const);
 type CardInstallment = typeof CARD_INSTALLMENTS[number];
+
+const PLATFORM_METHODS = [
+  'PIX', 'BOLETO',
+  ...CARD_INSTALLMENTS,
+  'CARD_GATEWAY', 'CARD_ANTIFRAUDE',
+  'CARD',
+  'WITHDRAWAL',
+] as const;
+type PlatformMethod = typeof PLATFORM_METHODS[number];
 
 const ACQUIRER_METHODS = [
   'PIX', 'BOLETO',
@@ -36,7 +42,7 @@ interface FeesData {
 
 const EMPTY_PART: FeePart = {};
 
-const PLATFORM_META: Record<PlatformMethod, { label: string; icon: any; color: string }> = {
+const PLATFORM_META: Record<'PIX' | 'BOLETO' | 'CARD' | 'WITHDRAWAL', { label: string; icon: any; color: string }> = {
   PIX       : { label: 'Pix',    icon: Zap,          color: '#00C9A7' },
   BOLETO    : { label: 'Boleto', icon: FileText,     color: '#F59E0B' },
   CARD      : { label: 'Cartão', icon: CreditCard,   color: '#0055FE' },
@@ -204,43 +210,149 @@ export default function AdminFees() {
           <PercentIcon size={16} className="text-accent flex-shrink-0" />
           <div>
             <h3 className="font-semibold text-text">Taxa Geral da Plataforma</h3>
-            <p className="text-xs text-text3 mt-0.5">Taxa cobrada do produtor/afiliado quando não há taxa personalizada.</p>
+            <p className="text-xs text-text3 mt-0.5">
+              Taxa cobrada do produtor/afiliado quando não há taxa personalizada.
+              Configure por parcela igual o adquirente — assim você não fica no prejuízo nas vendas parceladas.
+            </p>
           </div>
         </div>
 
-        {isLoading || !platform ? <div className="h-40 bg-bg3 rounded-xl animate-pulse" /> : (
-          <div className="overflow-x-auto">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th className="w-40">Método</th>
-                  <th>Taxa</th>
-                </tr>
-              </thead>
-              <tbody>
-                {PLATFORM_METHODS.map(m => {
-                  const meta = PLATFORM_META[m];
-                  const Icon = meta.icon;
-                  return (
-                    <tr key={m}>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <Icon size={14} style={{ color: meta.color }} />
-                          <span className="font-medium text-text">{meta.label}</span>
-                        </div>
-                      </td>
+        {isLoading || !platform ? <div className="h-80 bg-bg3 rounded-xl animate-pulse" /> : (
+          <>
+            {/* PIX / BOLETO / SAQUE */}
+            <div className="overflow-x-auto">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th className="w-40">Método</th>
+                    <th>Taxa da plataforma</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(['PIX', 'BOLETO', 'WITHDRAWAL'] as const).map(m => {
+                    const meta = PLATFORM_META[m];
+                    const Icon = meta.icon;
+                    return (
+                      <tr key={m}>
+                        <td>
+                          <div className="flex items-center gap-2">
+                            <Icon size={14} style={{ color: meta.color }} />
+                            <span className="font-medium text-text">{meta.label}</span>
+                          </div>
+                        </td>
+                        <td className="w-64">
+                          <FeeInput
+                            part={platform[m] ?? EMPTY_PART}
+                            onChange={(p) => setPlatformMethod(m, p)}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* MDRs do cartão */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <CreditCard size={14} style={{ color: PLATFORM_META.CARD.color }} />
+                <h4 className="font-semibold text-text text-sm">Cartão por parcelamento</h4>
+                <span className="text-[11px] text-text3">(% que a plataforma cobra do produtor em cada parcela)</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th className="w-40">Parcelamento</th>
+                      <th>Taxa</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {CARD_INSTALLMENTS.map(m => (
+                      <tr key={m}>
+                        <td className="font-medium text-text">{CARD_INSTALLMENT_LABEL[m]}</td>
+                        <td className="w-64">
+                          <FeeInput
+                            part={platform[m] ?? EMPTY_PART}
+                            onChange={(p) => setPlatformMethod(m, p)}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-[11px] text-text3 mt-1">
+                Se uma parcela ficar em branco, a plataforma cai na taxa "Cartão (geral)" abaixo.
+              </p>
+            </div>
+
+            {/* Cartão genérico — fallback legado */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <CreditCard size={14} style={{ color: PLATFORM_META.CARD.color }} />
+                <h4 className="font-semibold text-text text-sm">Cartão (geral) — fallback</h4>
+                <span className="text-[11px] text-text3">(usado quando a parcela específica não está configurada)</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <tbody>
+                    <tr>
+                      <td className="font-medium text-text w-40">Cartão</td>
                       <td className="w-64">
                         <FeeInput
-                          part={platform[m] ?? EMPTY_PART}
-                          onChange={(p) => setPlatformMethod(m, p)}
+                          part={platform.CARD ?? EMPTY_PART}
+                          onChange={(p) => setPlatformMethod('CARD', p)}
                         />
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Custos fixos do cartão — Gateway e Antifraude */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldCheck size={14} className="text-accent" />
+                <h4 className="font-semibold text-text text-sm">Custos fixos do cartão</h4>
+                <span className="text-[11px] text-text3">(somados a toda venda no cartão)</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th className="w-40">Item</th>
+                      <th>Valor fixo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="font-medium text-text">Gateway</td>
+                      <td className="w-64">
+                        <FeeInput
+                          part={platform.CARD_GATEWAY ?? EMPTY_PART}
+                          onChange={(p) => setPlatformMethod('CARD_GATEWAY', p)}
+                          onlyFixed
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="font-medium text-text">Antifraude</td>
+                      <td className="w-64">
+                        <FeeInput
+                          part={platform.CARD_ANTIFRAUDE ?? EMPTY_PART}
+                          onChange={(p) => setPlatformMethod('CARD_ANTIFRAUDE', p)}
+                          onlyFixed
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
