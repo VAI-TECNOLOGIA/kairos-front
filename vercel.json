@@ -1,14 +1,14 @@
 {
   "rewrites": [
     { "source": "/.well-known/:path*", "destination": "/.well-known/:path*" },
-    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/api/:path*",         "destination": "/api/:path*" },
     { "source": "/((?!api|\\.well-known).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
       "source": "/.well-known/assetlinks.json",
       "headers": [
-        { "key": "Content-Type", "value": "application/json" },
+        { "key": "Content-Type",                "value": "application/json" },
         { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
