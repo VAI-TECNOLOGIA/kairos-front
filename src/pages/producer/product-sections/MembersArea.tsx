@@ -212,11 +212,12 @@ function PreferencesPanel({ area, onSaved }: { area: Area; onSaved: () => void }
       </div>
       <div className="form-group">
         <label className="label">Foto de capa</label>
-        <ImageUpload folder="members-area" value={coverUrl} onChange={setCoverUrl} />
+        <ImageUpload folder="members-area" value={coverUrl} onChange={setCoverUrl} label="" />
+        <p className="text-[11px] text-text3 mt-1">Aparece como banner na página inicial do curso.</p>
       </div>
       <div className="form-group">
         <label className="label">Logo do curso</label>
-        <ImageUpload folder="members-area" value={logoUrl} onChange={setLogoUrl} />
+        <ImageUpload folder="members-area" value={logoUrl} onChange={setLogoUrl} label="" />
         <p className="text-[11px] text-text3 mt-1">Aparece na barra superior do curso. Sem logo, exibe o título.</p>
       </div>
       <label className="flex items-center gap-2 cursor-pointer">
