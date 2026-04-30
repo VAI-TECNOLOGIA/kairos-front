@@ -18,6 +18,8 @@ const ImpersonatePage       = lazy(() => import('@/pages/public/ImpersonatePage'
 const RegisterPage          = lazy(() => import('@/pages/public/RegisterPage'));
 const CheckoutPage          = lazy(() => import('@/pages/public/CheckoutPage'));
 const SecurityPolicyPage    = lazy(() => import('@/pages/public/SecurityPolicy'));
+const DeleteAccountPage     = lazy(() => import('@/pages/public/DeleteAccountPage'));
+const DeleteDataPage        = lazy(() => import('@/pages/public/DeleteDataPage'));
 
 // ── LAZY: Customer pages ──
 const CustomerAuthPage     = lazy(() => import('@/pages/customer/CustomerAuthPage'));
@@ -165,6 +167,8 @@ export default function App() {
         <Route path="/seja-afiliado"      element={<AffiliateRegisterPage />} />
         <Route path="/afiliar/:offerSlug"        element={<AffiliateInvitePage />} />
         <Route path="/politica-de-seguranca"    element={<SecurityPolicyPage />} />
+        <Route path="/excluir-conta"            element={<DeleteAccountPage />} />
+        <Route path="/excluir-dados"            element={<DeleteDataPage />} />
 
         {/* ── ADMIN ── */}
         <Route path="/admin" element={<ProtectedRoute role={['ADMIN','STAFF']}><AdminLayout /></ProtectedRoute>}>
