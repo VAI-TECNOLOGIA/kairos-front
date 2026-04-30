@@ -4,14 +4,11 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader, StatCard, Modal } from '@/components/ui';
-import { formatBRL, formatDateTime } from '@/lib/utils';
-import { DollarSign, ArrowDownCircle, Eye, EyeOff, Trash2, AlertCircle } from 'lucide-react';
+import { formatBRL, formatDateTime, bankLabel, withdrawalBankDisplay } from '@/lib/utils';
+import { DollarSign, ArrowDownCircle, Eye, EyeOff, Trash2, AlertCircle, Building2 } from 'lucide-react';
 
 interface WithdrawForm {
   amountReais: string;
-  pixKey     : string;
-  pixKeyType : string;
-  phone      : string;
 }
 
 export default function MyFinancial() {
@@ -47,8 +44,14 @@ export default function MyFinancial() {
   const hasPending = wdList.some((w: any) => w.status === 'PENDING');
   const cooldownReady = wdStatus?.ready ?? true;
 
+  const { data: producerMe } = useQuery({
+    queryKey: ['producer-me-bank'],
+    queryFn : () => api.get('/producers/me').then(r => r.data),
+  });
+  const bankData = (producerMe?.bankData as any) || null;
+
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<WithdrawForm>({
-    defaultValues: { amountReais: '', pixKey: '', pixKeyType: 'email', phone: '' },
+    defaultValues: { amountReais: '' },
   });
 
   const amountReais    = watch('amountReais');
@@ -56,14 +59,11 @@ export default function MyFinancial() {
   const amountCents    = Math.round(amountNum * 100);
   const aboveMin       = amountCents >= 5000;
   const aboveAvailable = amountCents <= available;
-  const canSubmit      = aboveMin && aboveAvailable && !hasPending && cooldownReady;
+  const canSubmit      = aboveMin && aboveAvailable && !hasPending && cooldownReady && !!bankData;
 
   const withdraw = useMutation({
     mutationFn: (d: WithdrawForm) => api.post('/financial/withdraw', {
       amountCents: Math.round(parseFloat(d.amountReais.replace(',', '.')) * 100),
-      pixKey     : d.pixKey,
-      pixKeyType : d.pixKeyType,
-      phone      : d.phone,
     }),
     onSuccess: () => {
       toast.success('Saque solicitado! Você receberá uma notificação quando for processado.');
@@ -116,6 +116,7 @@ export default function MyFinancial() {
               }
               if (hasPending) { toast.error('Você já tem um saque pendente. Aguarde o processamento.'); return; }
               if (available < 5000) { toast.error('Saldo insuficiente. Mínimo para saque: R$ 50,00'); return; }
+              if (!bankData) { toast.error('Cadastre seus dados bancários em "Verificação" antes de solicitar saque.'); return; }
               setOpen(true);
             }}
             className={`btn-primary btn-sm ${(!cooldownReady || hasPending || available < 5000) ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -209,7 +210,7 @@ export default function MyFinancial() {
                 <div key={w.id} className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-text">{formatBRL(w.amountCents)}</div>
-                    <div className="text-[10px] text-text3">{w.pixKey} · {formatDateTime(w.createdAt)}</div>
+                    <div className="text-[10px] text-text3">{withdrawalBankDisplay(w)} · {formatDateTime(w.createdAt)}</div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className={statusVariant(w.status)}>{statusLabel(w.status)}</span>
@@ -279,50 +280,30 @@ export default function MyFinancial() {
             {errors.amountReais ? (
               <span className="text-xs text-red flex items-center gap-1 mt-1">⚠ {errors.amountReais.message}</span>
             ) : amountNum > 0 && aboveMin && aboveAvailable ? (
-              <span className="text-xs text-green mt-1 block">✓ {formatBRL(amountCents)} será transferido para sua chave Pix</span>
+              <span className="text-xs text-green mt-1 block">✓ {formatBRL(amountCents)} serão transferidos para sua conta bancária cadastrada</span>
             ) : null}
           </div>
 
-          {/* Tipo de chave */}
-          <div className="form-group">
-            <label className="label">Tipo de chave Pix</label>
-            <select {...register('pixKeyType')} className="input">
-              <option value="email">E-mail</option>
-              <option value="cpf">CPF</option>
-              <option value="cnpj">CNPJ</option>
-              <option value="phone">Telefone</option>
-              <option value="random">Chave aleatória</option>
-            </select>
-          </div>
-
-          {/* Chave Pix */}
-          <div className="form-group">
-            <label className="label">Chave Pix</label>
-            <input
-              {...register('pixKey', { required: 'Obrigatório' })}
-              className="input"
-              placeholder="email, CPF ou chave aleatória"
-            />
-            {errors.pixKey && <span className="text-xs text-red">{errors.pixKey.message}</span>}
-            <p className="text-xs text-amber/80 flex items-center gap-1 mt-1.5">
-              ⚠ Confira se a chave Pix está correta. Transferências para chaves erradas não podem ser revertidas.
-            </p>
-          </div>
-
-          {/* WhatsApp */}
-          <div className="form-group">
-            <label className="label">WhatsApp para notificação</label>
-            <input
-              {...register('phone', { required: 'Obrigatório para receber confirmação' })}
-              className="input"
-              placeholder="(47) 99999-9999"
-              inputMode="tel"
-            />
-            <p className="text-xs text-text3 mt-1">
-              Você receberá uma mensagem quando o saque for processado
-            </p>
-            {errors.phone && <span className="text-xs text-red">{errors.phone.message}</span>}
-          </div>
+          {/* Conta bancária cadastrada */}
+          {bankData ? (
+            <div className="flex items-start gap-3 p-3 rounded-[8px] border border-border bg-bg3">
+              <Building2 size={15} className="text-accent flex-shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-text">{bankData.holderName}</div>
+                <div className="text-[11px] text-text3 mt-0.5">
+                  {bankLabel(bankData.bank)} · Ag. {bankData.branchNumber} / Cc. {bankData.accountNumber}
+                </div>
+                <div className="text-[10px] text-text3 mt-0.5 capitalize">{bankData.type === 'checking' ? 'Conta corrente' : 'Conta poupança'}</div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 p-3 rounded-[8px] bg-amber/8 border border-amber/20">
+              <AlertCircle size={14} className="text-amber flex-shrink-0" />
+              <p className="text-xs text-amber">
+                Dados bancários não cadastrados. Acesse <strong>Verificação</strong> para completar seu cadastro.
+              </p>
+            </div>
+          )}
         </div>
       </Modal>
 

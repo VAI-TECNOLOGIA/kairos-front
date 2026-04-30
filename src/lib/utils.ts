@@ -112,3 +112,33 @@ export const RECIPIENT_COLOR: Record<string, string> = {
   COPRODUCER: 'bg-green',
   AFFILIATE:  'bg-amber',
 };
+
+export const BANK_NAMES: Record<string, string> = {
+  '001': 'Banco do Brasil',
+  '033': 'Santander',
+  '077': 'Inter',
+  '104': 'Caixa Econômica',
+  '208': 'BTG Pactual',
+  '212': 'Banco Original',
+  '237': 'Bradesco',
+  '260': 'Nubank',
+  '290': 'PagBank',
+  '323': 'Mercado Pago',
+  '336': 'C6 Bank',
+  '341': 'Itaú',
+  '380': 'PicPay',
+  '422': 'Safra',
+  '655': 'Votorantim',
+  '748': 'Sicredi',
+  '756': 'Sicoob',
+};
+
+export function bankLabel(bankCode: string): string {
+  return BANK_NAMES[bankCode] || `Banco ${bankCode}`;
+}
+
+export function withdrawalBankDisplay(w: any): string {
+  const b = w?.metadata?.bankInfo;
+  if (b) return `${b.holderName} · ${bankLabel(b.bankCode)}`;
+  return w?.pixKey || '—';
+}

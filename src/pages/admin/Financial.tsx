@@ -3,7 +3,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader, Loading, StatCard, TabNav, ConfirmDialog } from '@/components/ui';
-import { formatBRL, formatDateTime } from '@/lib/utils';
+import { formatBRL, formatDateTime, withdrawalBankDisplay } from '@/lib/utils';
 import type { Withdrawal } from '@/types';
 import { DollarSign, RefreshCw, ArrowDownCircle, Play } from 'lucide-react';
 
@@ -112,14 +112,14 @@ export default function FinancialPage() {
             <div className="table-wrapper">
               <table className="table">
                 <thead>
-                  <tr><th>Produtor</th><th>Valor</th><th>Chave Pix</th><th>Status</th><th>Data</th><th>Ação</th></tr>
+                  <tr><th>Produtor</th><th>Valor</th><th>Conta Bancária</th><th>Status</th><th>Data</th><th>Ação</th></tr>
                 </thead>
                 <tbody>
                   {(withdrawals.data as Withdrawal[]).map((w) => (
                     <tr key={w.id}>
-                      <td className="font-mono text-xs text-text2">{w.userId.slice(-8)}</td>
+                      <td className="text-xs text-text2">{(w as any).user?.name ?? w.userId.slice(-8)}</td>
                       <td className="font-semibold text-text">{formatBRL(w.amountCents)}</td>
-                      <td className="text-xs text-text2 max-w-[150px] truncate">{w.pixKey}</td>
+                      <td className="text-xs text-text2 max-w-[180px] truncate">{withdrawalBankDisplay(w)}</td>
                       <td>
                         <span className={
                           w.status === 'PAID'       ? 'badge-green' :

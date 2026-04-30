@@ -78,15 +78,15 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // 403
+    // 403 — usa mensagem do backend se houver
     if (status === 403) {
-      toast.error('Acesso não autorizado para esta ação');
+      toast.error(error.response?.data?.message || 'Acesso não autorizado para esta ação');
       return Promise.reject(error);
     }
 
     // 500
     if (status >= 500) {
-      toast.error('Erro interno do servidor. Tente novamente.');
+      toast.error(error.response?.data?.message || 'Erro interno do servidor. Tente novamente.');
     }
 
     return Promise.reject(error);
