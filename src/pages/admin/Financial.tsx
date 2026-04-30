@@ -43,6 +43,20 @@ export default function FinancialPage() {
     onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
   });
 
+  const markPaidManual = useMutation({
+    mutationFn: ({ id, note }: { id: string; note: string }) =>
+      api.post(`/financial/withdrawals/${id}/mark-paid-manual`, { note }),
+    onSuccess : () => { toast.success('Saque marcado como pago manualmente.'); qc.invalidateQueries({ queryKey: ['admin-withdrawals'] }); },
+    onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
+  });
+
+  const handleMarkPaidManual = (id: string) => {
+    const note = window.prompt('Confirmação de TED externa.\nDescreva (banco origem, comprovante, etc.):');
+    if (note === null) return;
+    if (!confirm(`Marcar saque ${id.slice(-8).toUpperCase()} como PAGO manualmente?\n\nIsso NÃO chama a Pagar.me — usar apenas se você fez TED por fora.`)) return;
+    markPaidManual.mutate({ id, note: note || 'TED externa (saldo legado)' });
+  };
+
   return (
     <div>
       <PageHeader
@@ -132,13 +146,24 @@ export default function FinancialPage() {
                       <td className="text-text3">{formatDateTime(w.createdAt)}</td>
                       <td>
                         {w.status === 'PENDING' && (
-                          <button
-                            onClick={() => approveWithdrawal.mutate(w.id)}
-                            disabled={approveWithdrawal.isPending}
-                            className="btn-success btn-sm"
-                          >
-                            Processar
-                          </button>
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => approveWithdrawal.mutate(w.id)}
+                              disabled={approveWithdrawal.isPending}
+                              className="btn-success btn-sm"
+                              title="Processa via Pagar.me (saldo do recipient)"
+                            >
+                              Processar
+                            </button>
+                            <button
+                              onClick={() => handleMarkPaidManual(w.id)}
+                              disabled={markPaidManual.isPending}
+                              className="btn-ghost btn-sm text-text3 hover:text-amber"
+                              title="Para saldo legado: marca como PAID após TED externa (não chama Pagar.me)"
+                            >
+                              TED manual
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
