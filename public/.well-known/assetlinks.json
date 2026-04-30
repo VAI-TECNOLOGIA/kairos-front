@@ -1,8 +1,11 @@
 [{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "br.com.kairosway",
-        "sha256_cert_fingerprints": ["3F:74:C8:F4:FC:BD:6E:9E:92:8F:8F:0C:3A:38:94:24:59:CC:B5:B3:FC:1E:29:7D:36:6D:4A:DE:34:C7:19:08"]
-      }
-    }]
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "br.com.kairosway",
+    "sha256_cert_fingerprints": [
+      "3F:74:C8:F4:FC:BD:6E:9E:92:8F:8F:0C:3A:38:94:24:59:CC:B5:B3:FC:1E:29:7D:36:6D:4A:DE:34:C7:19:08",
+      "9F:0A:BF:B4:67:92:1F:23:AE:B4:6E:0E:1B:CC:22:8E:CB:0F:93:93:BA:E0:6E:F7:43:77:6A:AC:B2:5E:33:0C"
+    ]
+  }
+}]
