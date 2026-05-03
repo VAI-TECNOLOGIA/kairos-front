@@ -1,6 +1,9 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth.store';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 // ── EAGER (carregam junto com o app — não vira chunk lazy) ──
 import LoginPage       from '@/pages/public/LoginPage';
@@ -52,6 +55,7 @@ const AdminBalances       = lazy(() => import('@/pages/admin/Balances'));
 const AdminReceivables    = lazy(() => import('@/pages/admin/Receivables'));
 const AdminFeesRevenue    = lazy(() => import('@/pages/admin/FeesRevenue'));
 const AdminRiskProducts   = lazy(() => import('@/pages/admin/RiskProducts'));
+const AdminVai            = lazy(() => import('@/pages/admin/Vai'));
 
 // ── LAZY: Producer pages ──
 const ProducerDashboard      = lazy(() => import('@/pages/producer/Dashboard'));
@@ -154,6 +158,25 @@ function getDefaultPath(role?: string) {
 export default function App() {
   const { user, isAuthenticated } = useAuthStore();
 
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    StatusBar.setBackgroundColor({ color: '#09131D' }).catch(() => {});
+    StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+
+    const handlePromise = CapApp.addListener('backButton', ({ canGoBack }) => {
+      if (canGoBack) {
+        window.history.back();
+      } else {
+        CapApp.exitApp();
+      }
+    });
+
+    return () => {
+      handlePromise.then(h => h.remove()).catch(() => {});
+    };
+  }, []);
+
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
@@ -198,6 +221,7 @@ export default function App() {
           <Route path="receitas"           element={<AdminFeesRevenue />} />
           <Route path="risco-produtos"     element={<AdminRiskProducts />} />
           <Route path="ambiente-de-teste"  element={<TestEnvironmentPage />} />
+          <Route path="vai"                element={<AdminVai />} />
           <Route path="perfil"             element={<ProfilePage />} />
           <Route path="integracoes"        element={<IntegrationsPage />} />
           <Route path="configurar-dashboard" element={<DashboardSettings />} />

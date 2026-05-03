@@ -77,9 +77,23 @@ const buildNav = (counts: { producers: number; pendingProducts: number; pendingK
     { to: 'prazos-liberacao',     icon: Clock,              label: 'Prazos de Liberação' },
     { to: 'mensagens',            icon: MessageSquareHeart, label: 'Mensagens' },
     { to: 'integracoes',          icon: Plug,               label: 'Integrações' },
+    { to: 'vai',                  icon: VaiIcon,            label: 'Disparos' },
     { to: 'ambiente-de-teste',    icon: FlaskConical,       label: 'Ambiente de Teste', badge: 'beta' },
   ]},
 ];
+
+// Ícone VAI no item de menu "Disparos":
+//   estado normal → /assets/v.png
+//   hover         → /assets/v2.png  (cross-fade absoluto pra manter mesmo box)
+// Tamanho compacto e quadrado, alinhado com os ícones lucide do resto do menu.
+function VaiIcon() {
+  return (
+    <span className="vai-icon relative inline-block w-5 h-5 flex-shrink-0">
+      <img src="/assets/v.png"  alt=""    className="vai-icon-base  absolute inset-0 w-full h-full object-contain transition-opacity duration-150" />
+      <img src="/assets/v2.png" alt="VAI" className="vai-icon-hover absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-150" />
+    </span>
+  );
+}
 
 const STORAGE_KEY = 'admin.sidebar.expanded';
 

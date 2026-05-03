@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { Capacitor } from '@capacitor/core';
 
 export interface AuthUser {
   id: string;
@@ -45,19 +46,36 @@ export const useAuthStore = create<AuthState>()(
         // Limpa todo o cache do React Query ao trocar de usuário
         _queryClient?.clear();
         set({ user, accessToken, refreshToken, sessionStart: Date.now() });
+        if (Capacitor.isNativePlatform()) {
+          import('@/lib/push-notifications')
+            .then(m => m.setupPushNotifications(accessToken))
+            .catch(err => console.error('[push] setup failed', err));
+        }
       },
 
       setTokens: (accessToken, refreshToken) =>
         set({ accessToken, refreshToken, sessionStart: Date.now() }),
 
       logout: () => {
+        const prevToken = get().accessToken;
         _queryClient?.clear();
         set({ user: null, accessToken: null, refreshToken: null, sessionStart: null });
+        if (Capacitor.isNativePlatform() && prevToken) {
+          import('@/lib/push-notifications')
+            .then(m => m.unsubscribePushNotifications(prevToken))
+            .catch(err => console.error('[push] unsubscribe failed', err));
+        }
       },
 
       clearAuth: () => {
+        const prevToken = get().accessToken;
         _queryClient?.clear();
         set({ user: null, accessToken: null, refreshToken: null, sessionStart: null });
+        if (Capacitor.isNativePlatform() && prevToken) {
+          import('@/lib/push-notifications')
+            .then(m => m.unsubscribePushNotifications(prevToken))
+            .catch(err => console.error('[push] unsubscribe failed', err));
+        }
       },
 
       isAuthenticated: () => !!get().accessToken && !!get().user,
