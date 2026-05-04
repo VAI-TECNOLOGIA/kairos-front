@@ -179,6 +179,9 @@ body {
   .sidebar-item.active .vai-icon-base { opacity: 0; }
   .sidebar-item:hover .vai-icon-hover,
   .sidebar-item.active .vai-icon-hover { opacity: 1; }
+  /* No modo claro, o texto do item VAI acompanha o laranja do logo no hover/active */
+  [data-theme="light"] .sidebar-item.vai-link:hover,
+  [data-theme="light"] .sidebar-item.vai-link.active { color: #F97316; background-color: rgba(249, 115, 22, 0.10); }
   .sidebar-group {
     @apply text-[10px] font-bold text-text3 uppercase tracking-widest px-3 mb-1 mt-5 first:mt-0;
   }

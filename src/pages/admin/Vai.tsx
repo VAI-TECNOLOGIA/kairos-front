@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader, Loading, TabNav } from '@/components/ui';
 import { CheckCircle2, AlertCircle, Save, Send, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 
 type Profile = 'producer' | 'affiliate';
 
@@ -54,6 +55,7 @@ function loadFromConfig(c: ProfileConfig): Form {
 
 export default function AdminVai() {
   const qc = useQueryClient();
+  const { theme } = useTheme();
   const [tab, setTab] = useState<Profile>('producer');
   const [form, setForm] = useState<Form>(EMPTY);
   const [showPwd, setShowPwd] = useState(false);
@@ -111,7 +113,11 @@ export default function AdminVai() {
   return (
     <div>
       <div className="flex flex-col items-center text-center gap-3 mb-6 py-6 border-b border-border">
-        <img src="/assets/vaiBranco.png" alt="VAI" className="h-24 w-auto object-contain" />
+        <img
+          src={theme === 'light' ? '/assets/vaiLaranja.png' : '/assets/vaiBranco.png'}
+          alt="VAI"
+          className="h-24 w-auto object-contain"
+        />
         <p className="text-sm text-text2 max-w-xl">
           Configure os números WhatsApp do seu CRM VAI por audiência. <strong className="text-text">PRODUTOR</strong> atende
           clientes finais e produtores; <strong className="text-text">AFILIADO</strong> fala com afiliados.

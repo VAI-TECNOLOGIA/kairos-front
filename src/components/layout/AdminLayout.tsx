@@ -84,13 +84,15 @@ const buildNav = (counts: { producers: number; pendingProducts: number; pendingK
 
 // Ícone VAI no item de menu "Disparos":
 //   estado normal → /assets/v.png
-//   hover         → /assets/v2.png  (cross-fade absoluto pra manter mesmo box)
-// Tamanho compacto e quadrado, alinhado com os ícones lucide do resto do menu.
+//   hover (dark)  → /assets/v2.png
+//   hover (light) → /assets/vLaranja.png
 function VaiIcon() {
+  const { theme } = useTheme();
+  const hoverSrc = theme === 'light' ? '/assets/vLaranja.png' : '/assets/v2.png';
   return (
     <span className="vai-icon relative inline-block w-5 h-5 flex-shrink-0">
-      <img src="/assets/v.png"  alt=""    className="vai-icon-base  absolute inset-0 w-full h-full object-contain transition-opacity duration-150" />
-      <img src="/assets/v2.png" alt="VAI" className="vai-icon-hover absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-150" />
+      <img src="/assets/v.png" alt=""    className="vai-icon-base  absolute inset-0 w-full h-full object-contain transition-opacity duration-150" />
+      <img src={hoverSrc}      alt="VAI" className="vai-icon-hover absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-150" />
     </span>
   );
 }
@@ -227,7 +229,7 @@ export default function AdminLayout() {
                 <NavLink
                   key={item.to}
                   to={`/admin/${item.to}`}
-                  className={({ isActive }) => cn('sidebar-item', isActive && 'active')}
+                  className={({ isActive }) => cn('sidebar-item', isActive && 'active', item.to === 'vai' && 'vai-link')}
                 >
                   <item.icon size={16} />
                   <span className="flex-1">{item.label}</span>
