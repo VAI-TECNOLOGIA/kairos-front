@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader, Loading, TabNav } from '@/components/ui';
-import { CheckCircle2, AlertCircle, Save, Send, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Save, Send, RefreshCw, Eye, EyeOff, Webhook, ChevronDown } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 
 type Profile = 'producer' | 'affiliate';
@@ -59,6 +59,7 @@ export default function AdminVai() {
   const [tab, setTab] = useState<Profile>('producer');
   const [form, setForm] = useState<Form>(EMPTY);
   const [showPwd, setShowPwd] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [testPhone, setTestPhone] = useState('');
   const [testText, setTestText] = useState('Teste de integração VAI · Kairos Way 🚀');
 
@@ -241,29 +242,50 @@ export default function AdminVai() {
               </div>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-text2">Webhook Secret (HMAC)</label>
-              <input
-                className="input mt-1 w-full"
-                name={`vai-webhook-${tab}`}
-                autoComplete="off"
-                value={form.webhookSecret}
-                onChange={e => setForm(f => ({ ...f, webhookSecret: e.target.value }))}
-                placeholder={currentConfig?.webhookSecret ? `••••${currentConfig.webhookSecret.slice(-4) || ''}` : 'secret p/ x-vai-signature'}
-              />
-            </div>
+          </div>
 
-            <div>
-              <label className="text-xs font-semibold text-text2">Flow Secret</label>
-              <input
-                className="input mt-1 w-full"
-                name={`vai-flow-${tab}`}
-                autoComplete="off"
-                value={form.flowSecret}
-                onChange={e => setForm(f => ({ ...f, flowSecret: e.target.value }))}
-                placeholder={currentConfig?.flowSecret ? `••••${currentConfig.flowSecret.slice(-4) || ''}` : 'secret p/ x-flow-secret (opcional)'}
-              />
-            </div>
+          {/* Avançado: webhook + flow secrets — recolhido por padrão (são opcionais) */}
+          <div className="border border-border rounded-[7px] overflow-hidden bg-bg3/40">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(v => !v)}
+              className="w-full px-3 py-2.5 flex items-center gap-2 text-xs font-semibold text-text2 hover:bg-bg3/60 transition-colors"
+              aria-expanded={showAdvanced}
+            >
+              <Webhook size={14} className="text-text3" />
+              <span>Webhook & Flow secrets</span>
+              <span className="text-[10px] text-text3 font-normal">opcional</span>
+              {(currentConfig?.webhookSecret || currentConfig?.flowSecret) && (
+                <span className="text-[10px] text-green font-medium">· configurado</span>
+              )}
+              <ChevronDown size={14} className={`ml-auto text-text3 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+            </button>
+            {showAdvanced && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 border-t border-border animate-fade-in">
+                <div>
+                  <label className="text-xs font-semibold text-text2">Webhook Secret (HMAC)</label>
+                  <input
+                    className="input mt-1 w-full"
+                    name={`vai-webhook-${tab}`}
+                    autoComplete="off"
+                    value={form.webhookSecret}
+                    onChange={e => setForm(f => ({ ...f, webhookSecret: e.target.value }))}
+                    placeholder={currentConfig?.webhookSecret ? `••••${currentConfig.webhookSecret.slice(-4) || ''}` : 'secret p/ x-vai-signature'}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-text2">Flow Secret</label>
+                  <input
+                    className="input mt-1 w-full"
+                    name={`vai-flow-${tab}`}
+                    autoComplete="off"
+                    value={form.flowSecret}
+                    onChange={e => setForm(f => ({ ...f, flowSecret: e.target.value }))}
+                    placeholder={currentConfig?.flowSecret ? `••••${currentConfig.flowSecret.slice(-4) || ''}` : 'secret p/ x-flow-secret (opcional)'}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Ações primárias */}
