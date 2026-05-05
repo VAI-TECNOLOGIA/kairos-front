@@ -60,16 +60,17 @@ const PROVIDER_META: Record<Provider, {
   },
   BLING: {
     name       : 'Bling',
-    description: 'Sincroniza pedidos e contas a receber com seu ERP Bling após aprovação de pagamento.',
+    description: 'ERP completo: pedidos, contas a receber e emissão de NF-e/NFC-e. Alternativa ao NFe.io para emissão fiscal.',
     logo       : blingLogo,
     color      : '#0066FF',
     site       : 'https://bling.com.br',
     oauth      : true,
     oauthPath  : '/integrations/bling/authorize',
     fields     : [
-      { key: 'syncOrders',       label: 'Sincronizar pedidos no Bling',         type: 'checkbox' },
-      { key: 'createReceivable', label: 'Criar conta a receber por pedido',     type: 'checkbox' },
-      { key: 'autoSettle',       label: 'Dar baixa automática após aprovação',  type: 'checkbox' },
+      { key: 'syncOrders',       label: 'Sincronizar pedidos no Bling',          type: 'checkbox' },
+      { key: 'createReceivable', label: 'Criar conta a receber por pedido',      type: 'checkbox' },
+      { key: 'autoSettle',       label: 'Dar baixa automática após aprovação',   type: 'checkbox' },
+      { key: 'issueNfe',         label: 'Emitir NF-e via Bling (em vez do NFe.io)', type: 'checkbox', hint: 'Quando ativo, NFe.io fica desabilitado pra esse produtor — o Bling assume a emissão.' },
     ],
   },
 };
