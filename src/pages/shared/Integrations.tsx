@@ -7,12 +7,13 @@ import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug } from 
 import melhorEnvioLogo from '@/assets/melhorenvio.png';
 import nfeLogo from '@/assets/nfe.png';
 import utmifyLogo from '@/assets/utmify.png';
+import blingLogo from '@/assets/bling.png';
 
 // ══════════════════════════════════════════════════════════════════
 // PROVIDERS
 // ══════════════════════════════════════════════════════════════════
 
-type Provider = 'MELHOR_ENVIO' | 'NFE_IO';
+type Provider = 'MELHOR_ENVIO' | 'NFE_IO' | 'BLING';
 
 interface IntegrationRow {
   provider  : Provider;
@@ -57,6 +58,20 @@ const PROVIDER_META: Record<Provider, {
       { key: 'cityServiceCode', label: 'Código de serviço municipal', type: 'text', placeholder: '01.07', hint: 'Código fiscal da sua prefeitura. Padrão: 01.07 (desenvolvimento/software).' },
     ],
   },
+  BLING: {
+    name       : 'Bling',
+    description: 'Sincroniza pedidos e contas a receber com seu ERP Bling após aprovação de pagamento.',
+    logo       : blingLogo,
+    color      : '#0066FF',
+    site       : 'https://bling.com.br',
+    oauth      : true,
+    oauthPath  : '/integrations/bling/authorize',
+    fields     : [
+      { key: 'syncOrders',       label: 'Sincronizar pedidos no Bling',         type: 'checkbox' },
+      { key: 'createReceivable', label: 'Criar conta a receber por pedido',     type: 'checkbox' },
+      { key: 'autoSettle',       label: 'Dar baixa automática após aprovação',  type: 'checkbox' },
+    ],
+  },
 };
 
 // ══════════════════════════════════════════════════════════════════
@@ -69,15 +84,23 @@ export default function IntegrationsPage() {
     queryFn : () => api.get('/integrations').then(r => r.data),
   });
 
-  // Callback do OAuth Melhor Envio — mostra toast e limpa query
+  // Callback do OAuth (Melhor Envio + Bling) — mostra toast e limpa query
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const me = params.get('me');
+    const bling = params.get('bling');
     if (me === 'ok') {
       toast.success('Melhor Envio conectado!');
       window.history.replaceState({}, '', window.location.pathname);
     } else if (me === 'error') {
       toast.error(`Falha ao conectar Melhor Envio: ${params.get('reason') || 'erro desconhecido'}`);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    if (bling === 'ok') {
+      toast.success('Bling conectado!');
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (bling === 'error') {
+      toast.error(`Falha ao conectar Bling: ${params.get('reason') || 'erro desconhecido'}`);
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
@@ -96,7 +119,7 @@ export default function IntegrationsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {(['NFE_IO', 'MELHOR_ENVIO'] as Provider[]).map(p => {
+          {(['NFE_IO', 'MELHOR_ENVIO', 'BLING'] as Provider[]).map(p => {
             const row = data?.data.find(d => d.provider === p);
             return (
               <IntegrationCard
