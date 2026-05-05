@@ -60,13 +60,30 @@ const PROVIDER_META: Record<Provider, {
   },
   BLING: {
     name       : 'Bling',
-    description: 'ERP completo: pedidos, contas a receber, baixa automática e emissão de NF-e. Quando conectado, o Bling assume tudo (incluindo NF-e — substitui o NFe.io).',
+    description: 'ERP completo: pedidos, contas a receber, baixa automática e emissão de NF-e. Quando conectado, o Bling assume tudo (substitui o NFe.io).',
     logo       : blingLogo,
     color      : '#0066FF',
     site       : 'https://bling.com.br',
     oauth      : true,
     oauthPath  : '/integrations/bling/authorize',
-    fields     : [],
+    fields     : [
+      {
+        key         : 'clientId',
+        label       : 'Client ID do seu app Bling',
+        type        : 'text',
+        placeholder : 'ex: 7dd10da80ded0491669ded1e242afbbcad58bc5c',
+        hint        : 'Cada produtor cria um app PRIVADO em developer.bling.com.br/applications. Use redirect: https://kairos-way-production.up.railway.app/integrations/bling/callback. Salve o client_id aqui antes de clicar em Conectar.',
+        required    : true,
+      },
+      {
+        key         : 'clientSecret',
+        label       : 'Client Secret',
+        type        : 'password',
+        placeholder : 'cole o secret do app Bling',
+        hint        : 'Mesmo lugar do Client ID. Vai ficar mascarado depois de salvar.',
+        required    : true,
+      },
+    ],
   },
 };
 
@@ -172,9 +189,15 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
       isActive: true,
     }),
     onSuccess: () => {
-      toast.success('Integração salva!');
+      const hasToken = !!(row.config as any)?.accessToken;
+      if (meta.oauth && !hasToken) {
+        toast.success('Credenciais salvas. Agora clique em Conectar pra autorizar.');
+      } else {
+        toast.success('Integração salva!');
+      }
       qc.invalidateQueries({ queryKey: ['user-integrations'] });
-      setEditing(false);
+      // Mantém editando pra OAuth sem token (pra mostrar botão Conectar)
+      if (!meta.oauth || hasToken) setEditing(false);
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao salvar'),
   });
@@ -228,12 +251,11 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
         </div>
       </div>
 
-      {/* OAuth: botão "Conectar" quando não configurado */}
-      {meta.oauth && !row.configured && editing ? (
+      {/* OAuth-only sem campos: botão "Conectar" direto (Melhor Envio sem creds próprias) */}
+      {meta.oauth && !row.configured && editing && meta.fields.length === 0 ? (
         <div className="space-y-3 pt-2 border-t border-border">
           <p className="text-xs text-text3">
-            Você vai ser redirecionado para autorizar o Kairos no Melhor Envio.
-            Depois de autorizar, volta pra cá com a conexão pronta.
+            Você vai ser redirecionado para autorizar o Kairos. Depois de autorizar, volta pra cá com a conexão pronta.
           </p>
           <button
             onClick={async () => {
@@ -252,7 +274,7 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
             Conectar {meta.name}
           </button>
         </div>
-      ) : /* Form tradicional ou campos adicionais para OAuth já conectado */
+      ) : /* Form tradicional ou OAuth com credenciais por produtor (Bling) */
       editing ? (
         <div className="space-y-3 pt-2 border-t border-border">
           {meta.fields.map(f => {
@@ -300,7 +322,7 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
             );
           })}
 
-          <div className="flex items-center gap-2 pt-2">
+          <div className="flex items-center gap-2 pt-2 flex-wrap">
             <button
               onClick={() => save.mutate()}
               disabled={save.isPending}
@@ -309,6 +331,27 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
               <Save size={13} />
               {save.isPending ? 'Salvando...' : 'Salvar'}
             </button>
+
+            {/* OAuth para providers com credenciais salvas mas ainda sem token */}
+            {meta.oauth && row.configured && !row.config?.accessToken && (
+              <button
+                onClick={async () => {
+                  try {
+                    const { data } = await api.get(meta.oauthPath!);
+                    if (data?.url) window.location.href = data.url;
+                    else toast.error('Não foi possível iniciar a conexão');
+                  } catch (e: any) {
+                    toast.error(e?.response?.data?.message || 'Erro ao iniciar OAuth');
+                  }
+                }}
+                className="btn-sm inline-flex items-center gap-1.5 text-white"
+                style={{ background: meta.color, borderColor: meta.color }}
+              >
+                <Plug size={13} />
+                Conectar {meta.name}
+              </button>
+            )}
+
             {row.configured && (
               <button
                 onClick={() => { setEditing(false); setTestResult(null); }}
