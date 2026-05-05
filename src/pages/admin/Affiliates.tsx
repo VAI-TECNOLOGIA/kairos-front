@@ -5,13 +5,50 @@ import { useForm } from 'react-hook-form';
 import api from '@/lib/api';
 import { PageHeader, Loading, EmptyState, DateCell, WhatsAppLink } from '@/components/ui';
 import type { Affiliate } from '@/types';
-import { Link2, CheckCircle, XCircle, Clock, Users, Trash2 } from 'lucide-react';
+import { Link2, CheckCircle, XCircle, Clock, Users, Trash2, Search, UserPlus, ChevronDown } from 'lucide-react';
+
+type LookupUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'PRODUCER' | 'AFFILIATE' | 'CUSTOMER' | 'STAFF' | 'USER';
+  isActive: boolean;
+  createdAt: string;
+  lastLoginAt: string | null;
+  affiliate: { id: string; code: string; status: string; isActive: boolean } | null;
+  producer : { id: string; kycStatus: string } | null;
+};
 
 export default function AffiliatesPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [rejectId, setRejectId] = useState<string | null>(null);
   const { register: regReject, handleSubmit: handleReject, reset: resetReject } = useForm();
+  const [showPromote, setShowPromote] = useState(false);
+  const [promoteEmail, setPromoteEmail] = useState('');
+  const [foundUser, setFoundUser] = useState<LookupUser | null>(null);
+  const [lookupErr, setLookupErr] = useState<string | null>(null);
+
+  const lookup = useMutation({
+    mutationFn: (email: string) => api.get(`/admin/users/lookup?email=${encodeURIComponent(email)}`).then(r => r.data as LookupUser),
+    onSuccess : (u) => { setFoundUser(u); setLookupErr(null); },
+    onError   : (e: any) => {
+      setFoundUser(null);
+      setLookupErr(e?.response?.data?.message || 'Usuário não encontrado');
+    },
+  });
+
+  const promote = useMutation({
+    mutationFn: (userId: string) => api.post(`/admin/users/${userId}/promote-affiliate`).then(r => r.data),
+    onSuccess : (data) => {
+      toast.success(data?.message || 'Cliente promovido a afiliado!');
+      setFoundUser(null);
+      setPromoteEmail('');
+      setShowPromote(false);
+      qc.invalidateQueries({ queryKey: ['admin-affiliates'] });
+    },
+    onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro ao promover'),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-affiliates'],
@@ -68,6 +105,105 @@ export default function AffiliatesPage() {
         title="Afiliados"
         sub={`${pendingList.length} aguardando análise · ${approvedList.length} ativos · ${all.length} total`}
       />
+
+      {/* Promover cliente existente para afiliado — útil quando alguém já comprou
+          como customer e depois quer virar afiliado (não pode usar /seja-afiliado pq
+          o email já existe no banco). */}
+      <div className="mb-6 border border-border rounded-[7px] overflow-hidden bg-bg3/40">
+        <button
+          type="button"
+          onClick={() => setShowPromote(v => !v)}
+          className="w-full px-4 py-3 flex items-center gap-2 text-sm font-semibold text-text2 hover:bg-bg3/60 transition-colors"
+          aria-expanded={showPromote}
+        >
+          <UserPlus size={15} className="text-accent" />
+          <span>Promover cliente para afiliado</span>
+          <span className="text-[11px] text-text3 font-normal">— quando o email já existe como CUSTOMER</span>
+          <ChevronDown size={15} className={`ml-auto text-text3 transition-transform ${showPromote ? 'rotate-180' : ''}`} />
+        </button>
+
+        {showPromote && (
+          <div className="p-4 border-t border-border space-y-3 animate-fade-in">
+            <div className="flex gap-2 items-stretch">
+              <input
+                type="email"
+                inputMode="email"
+                className="input flex-1"
+                placeholder="email@cliente.com"
+                value={promoteEmail}
+                onChange={(e) => { setPromoteEmail(e.target.value); setFoundUser(null); setLookupErr(null); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' && promoteEmail) lookup.mutate(promoteEmail.trim()); }}
+                autoComplete="off"
+              />
+              <button
+                type="button"
+                className="btn-secondary btn-sm"
+                onClick={() => promoteEmail && lookup.mutate(promoteEmail.trim())}
+                disabled={!promoteEmail || lookup.isPending}
+              >
+                <Search size={14} /> {lookup.isPending ? 'Buscando…' : 'Buscar'}
+              </button>
+            </div>
+
+            {lookupErr && (
+              <div className="text-sm text-amber bg-amber/10 border border-amber/30 rounded-md px-3 py-2">
+                {lookupErr}
+              </div>
+            )}
+
+            {foundUser && (
+              <div className="border border-border rounded-md p-3 bg-bg2 space-y-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="font-medium text-text">{foundUser.name}</div>
+                  <span className="text-xs text-text3">{foundUser.email}</span>
+                  <span className={
+                    foundUser.role === 'CUSTOMER' ? 'badge-blue' :
+                    foundUser.role === 'AFFILIATE' ? 'badge-green' :
+                    foundUser.role === 'PRODUCER'  ? 'badge-purple' :
+                    'badge-gray'
+                  }>{foundUser.role}</span>
+                  {!foundUser.isActive && <span className="badge-gray">inativo</span>}
+                </div>
+                <div className="text-xs text-text3">
+                  Criado em {new Date(foundUser.createdAt).toLocaleDateString('pt-BR')}
+                  {foundUser.lastLoginAt && ` · último login ${new Date(foundUser.lastLoginAt).toLocaleDateString('pt-BR')}`}
+                </div>
+
+                {foundUser.affiliate && (
+                  <div className="text-sm text-amber bg-amber/10 border border-amber/30 rounded px-3 py-2">
+                    Já é afiliado · código <code>{foundUser.affiliate.code}</code> · status {foundUser.affiliate.status}
+                  </div>
+                )}
+                {foundUser.producer && (
+                  <div className="text-sm text-amber bg-amber/10 border border-amber/30 rounded px-3 py-2">
+                    Usuário é produtor (KYC {foundUser.producer.kycStatus}) — não é possível promover a afiliado.
+                  </div>
+                )}
+                {(foundUser.role === 'ADMIN' || foundUser.role === 'STAFF') && (
+                  <div className="text-sm text-red bg-red/10 border border-red/30 rounded px-3 py-2">
+                    Admin/Staff não pode ser promovido a afiliado.
+                  </div>
+                )}
+                {!foundUser.affiliate && !foundUser.producer && foundUser.role !== 'ADMIN' && foundUser.role !== 'STAFF' && (
+                  <button
+                    type="button"
+                    className="btn-success btn-sm"
+                    onClick={() => promote.mutate(foundUser.id)}
+                    disabled={promote.isPending}
+                  >
+                    <UserPlus size={14} /> {promote.isPending ? 'Promovendo…' : `Promover ${foundUser.name} a afiliado`}
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="text-[11px] text-text3">
+              Cria registro Affiliate APROVADO (status=APPROVED, isActive=true) e muda role do User para AFFILIATE.
+              Notifica via WhatsApp pelo canal AFILIADO da VAI.
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="flex gap-2 mb-6 flex-wrap">
         {[
