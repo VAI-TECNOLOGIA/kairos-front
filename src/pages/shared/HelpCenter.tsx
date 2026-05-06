@@ -339,16 +339,19 @@ export default function HelpCenter() {
           id="bling"
           imgSrc={blingLogo}
           title="Conectar Bling — ERP completo (pedidos, financeiro e NF-e)"
-          subtitle="Quando conectado, o Bling assume tudo: pedidos de venda, contas a receber, baixa automática e emissão de NF-e (substitui o NFe.io)."
+          subtitle="Conexão simplificada via OAuth: cada venda aprovada vira pedido + conta a receber + baixa automática no seu Bling."
           open={open === 'bling'}
           onToggle={() => setOpen(open === 'bling' ? null : 'bling')}
         >
           <div className="flex items-start gap-2 text-xs text-text2 bg-green/5 border border-green/20 rounded-lg p-3">
             <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5 text-green" />
             <div>
-              Conexão simplificada via OAuth — não precisa criar nenhum aplicativo. Você só clica em <strong>Conectar Bling</strong>, autoriza com a sua conta Bling e pronto.
+              <strong>Tempo de configuração:</strong> ~2 minutos. Não precisa criar nenhum aplicativo no Bling — só clicar <strong>Conectar Bling</strong>, autorizar com sua conta e pronto.
             </div>
           </div>
+
+          {/* ─── COMO CONECTAR ─── */}
+          <h5 className="text-sm font-bold text-text mt-4 mb-2">📋 Como conectar (3 passos)</h5>
 
           <Step n={1} title="Tenha uma conta ativa no Bling">
             <p>
@@ -361,44 +364,149 @@ export default function HelpCenter() {
             </p>
           </Step>
 
-          <Step n={2} title="Vá em Integrações no Kairos">
+          <Step n={2} title="No Kairos, clique 'Conectar Bling'">
             <ol className="list-decimal ml-5 space-y-1">
-              <li>No menu lateral, abra <strong>Integrações</strong></li>
-              <li>Encontre o card <strong>Bling</strong></li>
-              <li>Clique em <strong>Conectar Bling</strong></li>
+              <li>Menu lateral → <strong>Integrações</strong></li>
+              <li>Card <strong>Bling</strong> → botão <strong>Conectar Bling</strong></li>
             </ol>
           </Step>
 
           <Step n={3} title="Autorize com sua conta Bling">
             <ol className="list-decimal ml-5 space-y-1">
-              <li>Você é redirecionado pra tela de autorização do Bling</li>
-              <li>Se ainda não estiver logado, faça login com sua conta Bling</li>
-              <li>Revise a lista de permissões que o Kairos vai usar (pedidos, contas a receber, NF-e etc.)</li>
-              <li>Clique em <strong>Autorizar</strong></li>
+              <li>Bling abre uma tela mostrando as permissões que o Kairos vai usar (pedidos, contas a receber, NF-e, contatos, produtos)</li>
+              <li>Se ainda não está logado, faça login com sua conta Bling</li>
+              <li>Clique <strong>Autorizar</strong></li>
+              <li>Você volta automaticamente pro Kairos com a conexão pronta</li>
             </ol>
             <div className="flex items-center gap-2 text-xs text-green mt-2">
-              <CheckCircle2 size={12} /> Você volta pra <strong>/integracoes</strong> com a conexão pronta. Card mostra badge <strong>Ativo</strong>.
+              <CheckCircle2 size={12} /> Card mostra badge <strong>Ativo</strong> — pronto pra receber sincronização das próximas vendas.
             </div>
           </Step>
 
-          <Step n={4} title="O que é sincronizado automaticamente">
-            <ul className="list-disc ml-5 space-y-1">
-              <li>Cada venda aprovada vira um <strong>pedido de venda</strong> no Bling</li>
-              <li>É criada uma <strong>conta a receber</strong> vinculada ao pedido</li>
-              <li>Após confirmação do pagamento, a conta recebe <strong>baixa automática</strong></li>
-              <li>O Bling assume a emissão de <strong>NF-e</strong> (substitui o NFe.io quando conectado)</li>
-              <li>Reembolsos cancelam o pedido e estornam a conta a receber</li>
-            </ul>
-            <p className="text-xs text-text3 mt-2">
-              Nenhuma configuração extra é necessária — quando conectado, o Bling já recebe todas as vendas a partir desse momento.
-            </p>
-          </Step>
+          {/* ─── O QUE ACONTECE NA PRÁTICA ─── */}
+          <h5 className="text-sm font-bold text-text mt-6 mb-2">⚙️ O que acontece automaticamente em cada venda</h5>
 
-          <Step n={5} title="Desconectar (se precisar)">
-            <p>
-              No card Bling em <strong>Integrações</strong>, clique em <strong>Remover</strong>. Isso revoga o token e o Kairos para de sincronizar pro Bling. Suas vendas continuam normalmente — só param de espelhar.
+          <div className="bg-bg3/40 border border-border rounded-lg p-4 space-y-3 text-sm">
+            <div className="font-semibold text-text">Quando o cliente paga e o pedido vira <span className="text-green">APPROVED</span> no Kairos:</div>
+            <ol className="list-decimal ml-5 space-y-2 text-text2">
+              <li>
+                <strong>Cria/reusa o contato do comprador</strong> no seu Bling (busca por CPF/CNPJ — se já comprou antes, reutiliza)
+              </li>
+              <li>
+                <strong>Cria um pedido de venda</strong> no Bling com o produto, quantidade 1, valor da venda, e código <code className="bg-bg3 px-1 rounded text-[11px]">PEDIDO #XXXXXXXX</code> nas observações
+              </li>
+              <li>
+                <strong>Cria uma conta a receber</strong> vinculada ao pedido, com vencimento na data de hoje
+              </li>
+              <li>
+                <strong>Dá baixa automática</strong> na conta (o pagamento já foi confirmado pelo Kairos)
+              </li>
+            </ol>
+            <p className="text-xs text-text3 mt-2">
+              ⏱️ <strong>Tempo:</strong> ~5 segundos após APPROVED. Se o Bling estiver instável, retenta até 4 vezes (30s → 1min → 2min → 4min).
             </p>
-          </Step>
+          </div>
+
+          <h5 className="text-sm font-bold text-text mt-6 mb-2">↩️ E quando há reembolso ou chargeback?</h5>
+
+          <div className="bg-bg3/40 border border-border rounded-lg p-4 space-y-2 text-sm text-text2">
+            <p>
+              Quando o Pagar.me notifica <strong>refunded</strong> / <strong>chargedback</strong> / <strong>canceled</strong> no Kairos:
+            </p>
+            <ul className="list-disc ml-5 space-y-1">
+              <li><strong>Cancela o pedido</strong> de venda no Bling (situação muda pra "Cancelado")</li>
+              <li><strong>Estorna a conta a receber</strong> (remove a baixa)</li>
+              <li>O metadata do pedido no Kairos guarda timestamps do cancelamento</li>
+            </ul>
+          </div>
+
+          <h5 className="text-sm font-bold text-text mt-6 mb-2">📄 NF-e: Bling vs NFe.io</h5>
+
+          <div className="bg-amber/5 border border-amber/30 rounded-lg p-4 space-y-2 text-sm text-text2">
+            <div className="flex items-start gap-2">
+              <Info size={14} className="flex-shrink-0 mt-0.5 text-amber" />
+              <div>
+                <p className="font-semibold text-text">Hoje a emissão de NF-e continua pelo NFe.io.</p>
+                <p className="mt-1">
+                  Mesmo com Bling conectado, a NF-e continua sendo emitida pelo NFe.io (se você o tiver configurado). Não há duplicação. O Bling cuida só do espelhamento financeiro nesse cenário.
+                </p>
+                <p className="mt-1 text-xs">
+                  Em uma próxima versão, vamos liberar a opção de migrar a emissão de NF-e pro Bling — útil pra quem prefere ter NF-e + financeiro no mesmo ERP.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── O QUE VOCÊ VAI VER ─── */}
+          <h5 className="text-sm font-bold text-text mt-6 mb-2">👀 O que aparece no seu Bling após uma venda</h5>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div className="bg-bg3/40 border border-border rounded-lg p-3">
+              <div className="font-semibold text-text mb-1">📦 Vendas → Pedidos de venda</div>
+              <p className="text-xs text-text2">Cada venda aprovada aparece com o nome do produto, valor e referência ao código do Kairos.</p>
+            </div>
+            <div className="bg-bg3/40 border border-border rounded-lg p-3">
+              <div className="font-semibold text-text mb-1">💰 Financeiro → Contas a receber</div>
+              <p className="text-xs text-text2">Conta a receber vinculada ao pedido, já com baixa marcada (saldo zerado).</p>
+            </div>
+            <div className="bg-bg3/40 border border-border rounded-lg p-3">
+              <div className="font-semibold text-text mb-1">👥 Cadastros → Clientes</div>
+              <p className="text-xs text-text2">Contato do comprador (nome, CPF/CNPJ, email, telefone) — sem duplicar se ele comprar de novo.</p>
+            </div>
+            <div className="bg-bg3/40 border border-border rounded-lg p-3">
+              <div className="font-semibold text-text mb-1">🔄 Eventos do app</div>
+              <p className="text-xs text-text2">Bling registra cada chamada do Kairos pra auditoria — visível no painel do app.</p>
+            </div>
+          </div>
+
+          {/* ─── TROUBLESHOOTING ─── */}
+          <h5 className="text-sm font-bold text-text mt-6 mb-2">🔧 Problemas comuns</h5>
+
+          <details className="bg-bg3/40 border border-border rounded-lg p-3 text-sm group">
+            <summary className="cursor-pointer font-semibold text-text">A venda foi aprovada mas não apareceu no Bling</summary>
+            <div className="mt-2 text-text2 space-y-2">
+              <p><strong>Verifique:</strong></p>
+              <ul className="list-disc ml-5 space-y-1">
+                <li>Card Bling em <strong>Integrações</strong> mostra "Ativo"? Se não, reconecte.</li>
+                <li>Aguardou pelo menos <strong>30 segundos</strong> após o APPROVED? O sync é assíncrono.</li>
+                <li>Em <strong>caso de instabilidade Bling</strong>, ainda há até 4 retentativas em até 7 minutos. Aguarde.</li>
+                <li>O pedido tinha CPF/CNPJ válido do comprador? Bling rejeita contatos sem documento.</li>
+              </ul>
+            </div>
+          </details>
+
+          <details className="bg-bg3/40 border border-border rounded-lg p-3 text-sm group mt-2">
+            <summary className="cursor-pointer font-semibold text-text">Conta a receber duplicou no Bling</summary>
+            <div className="mt-2 text-text2 space-y-2">
+              <p>Não deveria — o Kairos guarda o ID da conta a receber em cada pedido (Order.metadata.blingReceivableId) pra evitar duplicação. Se aconteceu, é provável que:</p>
+              <ul className="list-disc ml-5 space-y-1">
+                <li>Você criou a conta manualmente no Bling antes do sync rodar</li>
+                <li>Ou re-conectou Bling no meio de um sync</li>
+              </ul>
+              <p>Cancele a duplicada manualmente no Bling — o Kairos não vai criar de novo.</p>
+            </div>
+          </details>
+
+          <details className="bg-bg3/40 border border-border rounded-lg p-3 text-sm group mt-2">
+            <summary className="cursor-pointer font-semibold text-text">Erro "invalid_client" ao conectar</summary>
+            <div className="mt-2 text-text2 space-y-2">
+              <p>Esse erro significa que as credenciais OAuth do Kairos no Bling estão erradas. Não é problema do produtor — fale com o suporte Kairos.</p>
+            </div>
+          </details>
+
+          <details className="bg-bg3/40 border border-border rounded-lg p-3 text-sm group mt-2">
+            <summary className="cursor-pointer font-semibold text-text">Tela do Bling diz "aplicativo não verificado"</summary>
+            <div className="mt-2 text-text2 space-y-2">
+              <p>Se aparecer um aviso amarelo "Este aplicativo ainda não foi aprovado por nossa equipe técnica", é porque o Kairos está em homologação no Bling. <strong>É seguro autorizar</strong> — quando o Bling concluir a revisão (1-3 dias úteis), o aviso some. Sua integração funciona normalmente nesse período.</p>
+            </div>
+          </details>
+
+          {/* ─── DESCONECTAR ─── */}
+          <h5 className="text-sm font-bold text-text mt-6 mb-2">🔌 Desconectar</h5>
+
+          <div className="bg-bg3/40 border border-border rounded-lg p-3 text-sm text-text2">
+            No card Bling em <strong>Integrações</strong>, clique <strong>Remover</strong>. O token é revogado e o Kairos para de sincronizar pro Bling. Vendas anteriores que já foram sincronizadas <strong>permanecem no seu Bling</strong> — só as próximas deixam de espelhar. Pra reativar, é só clicar Conectar Bling de novo.
+          </div>
         </Section>
 
         {/* ─── FAQ ──────────────────────────────────────── */}
