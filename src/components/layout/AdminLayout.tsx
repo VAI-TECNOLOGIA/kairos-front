@@ -78,6 +78,7 @@ const buildNav = (counts: { producers: number; pendingProducts: number; pendingK
     { to: 'mensagens',            icon: MessageSquareHeart, label: 'Mensagens' },
     { to: 'integracoes',          icon: Plug,               label: 'Integrações' },
     { to: 'vai',                  icon: VaiIcon,            label: 'Disparos' },
+    { to: 'bling-resync',         icon: RefreshCw,          label: 'Resync Bling' },
     { to: 'ambiente-de-teste',    icon: FlaskConical,       label: 'Ambiente de Teste', badge: 'beta' },
   ]},
 ];

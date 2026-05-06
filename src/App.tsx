@@ -56,6 +56,7 @@ const AdminReceivables    = lazy(() => import('@/pages/admin/Receivables'));
 const AdminFeesRevenue    = lazy(() => import('@/pages/admin/FeesRevenue'));
 const AdminRiskProducts   = lazy(() => import('@/pages/admin/RiskProducts'));
 const AdminVai            = lazy(() => import('@/pages/admin/Vai'));
+const AdminBlingResync    = lazy(() => import('@/pages/admin/BlingResync'));
 
 // ── LAZY: Producer pages ──
 const ProducerDashboard      = lazy(() => import('@/pages/producer/Dashboard'));
@@ -222,6 +223,7 @@ export default function App() {
           <Route path="risco-produtos"     element={<AdminRiskProducts />} />
           <Route path="ambiente-de-teste"  element={<TestEnvironmentPage />} />
           <Route path="vai"                element={<AdminVai />} />
+          <Route path="bling-resync"       element={<AdminBlingResync />} />
           <Route path="perfil"             element={<ProfilePage />} />
           <Route path="integracoes"        element={<IntegrationsPage />} />
           <Route path="configurar-dashboard" element={<DashboardSettings />} />
