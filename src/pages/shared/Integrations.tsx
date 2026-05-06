@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug, HelpCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import melhorEnvioLogo from '@/assets/melhorenvio.png';
 import nfeLogo from '@/assets/nfe.png';
 import utmifyLogo from '@/assets/utmify.png';
@@ -66,24 +67,7 @@ const PROVIDER_META: Record<Provider, {
     site       : 'https://bling.com.br',
     oauth      : true,
     oauthPath  : '/integrations/bling/authorize',
-    fields     : [
-      {
-        key         : 'clientId',
-        label       : 'Client ID do seu app Bling',
-        type        : 'text',
-        placeholder : 'ex: 7dd10da80ded0491669ded1e242afbbcad58bc5c',
-        hint        : 'Cada produtor cria um app PRIVADO em developer.bling.com.br/applications. Use redirect: https://kairos-way-production.up.railway.app/integrations/bling/callback. Salve o client_id aqui antes de clicar em Conectar.',
-        required    : true,
-      },
-      {
-        key         : 'clientSecret',
-        label       : 'Client Secret',
-        type        : 'password',
-        placeholder : 'cole o secret do app Bling',
-        hint        : 'Mesmo lugar do Client ID. Vai ficar mascarado depois de salvar.',
-        required    : true,
-      },
-    ],
+    fields     : [],
   },
 };
 
@@ -244,9 +228,18 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
               )}
             </h3>
             <p className="text-xs text-text3 mt-0.5">{meta.description}</p>
-            <a href={meta.site} target="_blank" rel="noreferrer" className="text-[11px] text-accent hover:underline mt-1 inline-block">
-              {meta.site.replace(/^https?:\/\//, '')} →
-            </a>
+            <div className="flex items-center gap-3 mt-1">
+              <a href={meta.site} target="_blank" rel="noreferrer" className="text-[11px] text-accent hover:underline inline-block">
+                {meta.site.replace(/^https?:\/\//, '')} →
+              </a>
+              <Link
+                to={`../ajuda#help-${provider === 'NFE_IO' ? 'nfe' : provider === 'MELHOR_ENVIO' ? 'me' : provider.toLowerCase()}`}
+                className="text-[11px] text-text3 hover:text-accent hover:underline inline-flex items-center gap-1"
+              >
+                <HelpCircle size={11} />
+                Veja como integrar
+              </Link>
+            </div>
           </div>
         </div>
       </div>

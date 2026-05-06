@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui';
 import { ChevronDown, ChevronUp, ExternalLink, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 import melhorEnvioLogo from '@/assets/melhorenvio.png';
 import nfeLogo         from '@/assets/nfe.png';
 import utmifyLogo      from '@/assets/utmify.png';
+import blingLogo       from '@/assets/bling.png';
 
 interface StepProps {
   n       : number;
@@ -35,14 +36,16 @@ interface SectionProps {
   children: React.ReactNode;
 }
 
-function Section({ imgSrc, title, subtitle, open, onToggle, children }: SectionProps) {
+function Section({ id, imgSrc, title, subtitle, open, onToggle, children }: SectionProps) {
+  // Bling tem favicon com fundo branco — usa bg-bg3 pra não criar borda visual
+  const isBling = imgSrc === blingLogo;
   return (
-    <div className="card p-0 overflow-hidden">
+    <div className="card p-0 overflow-hidden" id={`help-${id}`}>
       <button
         onClick={onToggle}
         className="w-full flex items-center gap-3 p-4 hover:bg-bg3/30 transition-colors text-left"
       >
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white overflow-hidden">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden ${isBling ? 'bg-bg3' : 'bg-white'}`}>
           <img src={imgSrc} alt={title} className="w-full h-full object-contain p-1" />
         </div>
         <div className="flex-1 min-w-0">
@@ -63,7 +66,25 @@ function Section({ imgSrc, title, subtitle, open, onToggle, children }: SectionP
 }
 
 export default function HelpCenter() {
-  const [open, setOpen] = useState<'nfe' | 'me' | 'utmify' | 'faq' | null>('nfe');
+  const [open, setOpen] = useState<'nfe' | 'me' | 'utmify' | 'bling' | 'faq' | null>('nfe');
+
+  // Quando a URL tem #help-bling, abre a section correspondente e rola até ela
+  useEffect(() => {
+    const hash = window.location.hash.replace(/^#/, '');
+    if (!hash) return;
+    const map: Record<string, typeof open> = {
+      'help-nfe'   : 'nfe',
+      'help-me'    : 'me',
+      'help-utmify': 'utmify',
+      'help-bling' : 'bling',
+    };
+    const target = map[hash];
+    if (target) {
+      setOpen(target);
+      // Aguarda o accordion expandir antes de scrollar
+      setTimeout(() => document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+  }, []);
 
   return (
     <div>
@@ -309,6 +330,73 @@ export default function HelpCenter() {
             </ul>
             <p className="text-xs text-text3 mt-1">
               Nenhuma configuração adicional é necessária — tudo acontece automaticamente após salvar o token.
+            </p>
+          </Step>
+        </Section>
+
+        {/* ─── Bling ────────────────────────────────────── */}
+        <Section
+          id="bling"
+          imgSrc={blingLogo}
+          title="Conectar Bling — ERP completo (pedidos, financeiro e NF-e)"
+          subtitle="Quando conectado, o Bling assume tudo: pedidos de venda, contas a receber, baixa automática e emissão de NF-e (substitui o NFe.io)."
+          open={open === 'bling'}
+          onToggle={() => setOpen(open === 'bling' ? null : 'bling')}
+        >
+          <div className="flex items-start gap-2 text-xs text-text2 bg-green/5 border border-green/20 rounded-lg p-3">
+            <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5 text-green" />
+            <div>
+              Conexão simplificada via OAuth — não precisa criar nenhum aplicativo. Você só clica em <strong>Conectar Bling</strong>, autoriza com a sua conta Bling e pronto.
+            </div>
+          </div>
+
+          <Step n={1} title="Tenha uma conta ativa no Bling">
+            <p>
+              Acesse{' '}
+              <a href="https://bling.com.br" target="_blank" rel="noopener noreferrer"
+                 className="text-accent hover:underline inline-flex items-center gap-1">
+                bling.com.br <ExternalLink size={11} />
+              </a>{' '}
+              e contrate um plano que inclua API v3 (qualquer plano pago atende). Trial de 30 dias também funciona pra testar.
+            </p>
+          </Step>
+
+          <Step n={2} title="Vá em Integrações no Kairos">
+            <ol className="list-decimal ml-5 space-y-1">
+              <li>No menu lateral, abra <strong>Integrações</strong></li>
+              <li>Encontre o card <strong>Bling</strong></li>
+              <li>Clique em <strong>Conectar Bling</strong></li>
+            </ol>
+          </Step>
+
+          <Step n={3} title="Autorize com sua conta Bling">
+            <ol className="list-decimal ml-5 space-y-1">
+              <li>Você é redirecionado pra tela de autorização do Bling</li>
+              <li>Se ainda não estiver logado, faça login com sua conta Bling</li>
+              <li>Revise a lista de permissões que o Kairos vai usar (pedidos, contas a receber, NF-e etc.)</li>
+              <li>Clique em <strong>Autorizar</strong></li>
+            </ol>
+            <div className="flex items-center gap-2 text-xs text-green mt-2">
+              <CheckCircle2 size={12} /> Você volta pra <strong>/integracoes</strong> com a conexão pronta. Card mostra badge <strong>Ativo</strong>.
+            </div>
+          </Step>
+
+          <Step n={4} title="O que é sincronizado automaticamente">
+            <ul className="list-disc ml-5 space-y-1">
+              <li>Cada venda aprovada vira um <strong>pedido de venda</strong> no Bling</li>
+              <li>É criada uma <strong>conta a receber</strong> vinculada ao pedido</li>
+              <li>Após confirmação do pagamento, a conta recebe <strong>baixa automática</strong></li>
+              <li>O Bling assume a emissão de <strong>NF-e</strong> (substitui o NFe.io quando conectado)</li>
+              <li>Reembolsos cancelam o pedido e estornam a conta a receber</li>
+            </ul>
+            <p className="text-xs text-text3 mt-2">
+              Nenhuma configuração extra é necessária — quando conectado, o Bling já recebe todas as vendas a partir desse momento.
+            </p>
+          </Step>
+
+          <Step n={5} title="Desconectar (se precisar)">
+            <p>
+              No card Bling em <strong>Integrações</strong>, clique em <strong>Remover</strong>. Isso revoga o token e o Kairos para de sincronizar pro Bling. Suas vendas continuam normalmente — só param de espelhar.
             </p>
           </Step>
         </Section>
