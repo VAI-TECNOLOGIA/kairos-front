@@ -350,6 +350,13 @@ export default function HelpCenter() {
             </div>
           </div>
 
+          <div className="flex items-start gap-2 text-xs text-text2 bg-amber/5 border border-amber/30 rounded-lg p-3 mt-2">
+            <AlertTriangle size={14} className="flex-shrink-0 mt-0.5 text-amber" />
+            <div>
+              <strong>App em revisão pelo Bling (1-3 dias úteis):</strong> durante esse período você pode <strong>conectar normalmente</strong>, mas a sincronização de pedidos/contas a receber só vai começar a salvar dados no seu Bling após o Bling aprovar nossa integração. Enquanto isso, o Kairos guarda as vendas internamente e sincroniza tudo automaticamente assim que liberar — sem perda. Se você fizer uma venda e ela não aparecer no Bling em até 5 minutos depois da aprovação, fale com o suporte.
+            </div>
+          </div>
+
           {/* ─── COMO CONECTAR ─── */}
           <h5 className="text-sm font-bold text-text mt-4 mb-2">📋 Como conectar (3 passos)</h5>
 
