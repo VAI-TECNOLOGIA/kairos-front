@@ -2,7 +2,7 @@
   "rewrites": [
     { "source": "/.well-known/:path*", "destination": "/.well-known/:path*" },
     { "source": "/api/:path*",         "destination": "/api/:path*" },
-    { "source": "/((?!api|\\.well-known).*)", "destination": "/index.html" }
+    { "source": "/((?!api|\\.well-known|manual-bling\\.html).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
