@@ -57,6 +57,7 @@ const AdminFeesRevenue    = lazy(() => import('@/pages/admin/FeesRevenue'));
 const AdminRiskProducts   = lazy(() => import('@/pages/admin/RiskProducts'));
 const AdminVai            = lazy(() => import('@/pages/admin/Vai'));
 const AdminBlingResync    = lazy(() => import('@/pages/admin/BlingResync'));
+const IntegracaoBlingPublic = lazy(() => import('@/pages/public/IntegracaoBling'));
 
 // ── LAZY: Producer pages ──
 const ProducerDashboard      = lazy(() => import('@/pages/producer/Dashboard'));
@@ -193,6 +194,7 @@ export default function App() {
         <Route path="/politica-de-seguranca"    element={<SecurityPolicyPage />} />
         <Route path="/excluir-conta"            element={<DeleteAccountPage />} />
         <Route path="/excluir-dados"            element={<DeleteDataPage />} />
+        <Route path="/integracao-bling"         element={<IntegracaoBlingPublic />} />
 
         {/* ── ADMIN ── */}
         <Route path="/admin" element={<ProtectedRoute role={['ADMIN','STAFF']}><AdminLayout /></ProtectedRoute>}>
