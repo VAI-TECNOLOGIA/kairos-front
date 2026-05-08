@@ -129,7 +129,7 @@ export default function AffiliateLayout() {
           <img src={logoForTheme(theme)} alt="Kairos Way" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
           <div>
             <div className="text-sm font-bold text-text">KAIROS WAY</div>
-            <div className="text-[10px] text-text3">Painel Afiliado</div>
+            <div className="text-[10px] text-text3">{canCreate ? 'Painel Produtor' : 'Painel Afiliado'}</div>
           </div>
         </div>
 
@@ -279,7 +279,7 @@ export default function AffiliateLayout() {
               )}
               <div className="hidden sm:block">
                 <div className="text-sm font-medium text-text leading-tight">{user?.name}</div>
-                <div className="text-[10px] text-text3">Afiliado</div>
+                <div className="text-[10px] text-text3">{canCreate ? 'Produtor' : 'Afiliado'}</div>
               </div>
             </div>
             <ThemeToggle />
