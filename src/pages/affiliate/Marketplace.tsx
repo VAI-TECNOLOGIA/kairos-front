@@ -27,6 +27,37 @@ export default function AffiliateMarketplace() {
     return acc;
   }, {});
 
+  // Agrupa as ofertas por produto — 1 card por produto, não por oferta.
+  // Backend (enrollAffiliateInAllProductOffers) inscreve em todas as ofertas válidas
+  // do produto a partir de qualquer offerId, então mandamos a primeira como referência.
+  // commissionPct: maior comissão entre as ofertas; myStatus: ACTIVE se alguma já estiver inscrita.
+  type Offer = {
+    offerId: string; offerName: string;
+    productId: string; productName: string; productImage?: string;
+    commissionBps: number; commissionPct: number;
+    cookieDays: number; description?: string;
+    myStatus: 'ACTIVE' | 'BLOCKED' | null;
+  };
+  type ProductCard = Offer & { offerCount: number };
+
+  const productCards: ProductCard[] = Object.values(
+    (offers || []).reduce((acc: Record<string, ProductCard>, o: Offer) => {
+      const cur = acc[o.productId];
+      if (!cur) {
+        acc[o.productId] = { ...o, offerCount: 1 };
+      } else {
+        cur.offerCount += 1;
+        if (o.commissionPct > cur.commissionPct) {
+          cur.commissionBps = o.commissionBps;
+          cur.commissionPct = o.commissionPct;
+          cur.cookieDays    = o.cookieDays;
+        }
+        if (o.myStatus === 'ACTIVE') cur.myStatus = 'ACTIVE';
+      }
+      return acc;
+    }, {}),
+  );
+
   const enroll = useMutation({
     mutationFn: (offerId: string) => api.post('/affiliates/enroll', {
       offerId,
@@ -61,46 +92,45 @@ export default function AffiliateMarketplace() {
 
       {isLoading ? (
         <div className="text-text2 text-sm">Carregando ofertas...</div>
-      ) : (offers || []).length === 0 ? (
+      ) : productCards.length === 0 ? (
         <div className="card flex flex-col items-center py-12 gap-3 text-center">
           <ShoppingBag size={32} className="text-text2" />
           <p className="text-text2">Nenhuma oferta disponível para afiliação ainda.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {(offers || []).map((offer: any) => (
-            <div key={offer.offerId} className="card flex flex-col gap-3">
-              {offer.productImage && (
+          {productCards.map((p) => (
+            <div key={p.productId} className="card flex flex-col gap-3">
+              {p.productImage && (
                 <img
-                  src={offer.productImage}
-                  alt={offer.productName}
+                  src={p.productImage}
+                  alt={p.productName}
                   className="w-full h-36 object-cover rounded-lg"
                 />
               )}
               <div className="flex-1">
-                <div className="font-semibold text-text">{offer.productName}</div>
-                <div className="text-xs text-text3 mb-2">{offer.offerName}</div>
-                {offer.description && (
-                  <p className="text-sm text-text2 mb-3">{offer.description}</p>
+                <div className="font-semibold text-text">{p.productName}</div>
+                {p.description && (
+                  <p className="text-sm text-text2 mb-3">{p.description}</p>
                 )}
-                {couponByProduct[offer.productId] && (
+                {couponByProduct[p.productId] && (
                   <div className="bg-accent/10 border border-accent/30 rounded-lg p-2 mb-2 flex items-center gap-2 text-xs">
                     <Tag size={12} className="text-accent flex-shrink-0" />
                     <div className="min-w-0">
                       <div className="text-text">Você tem um cupom para este produto:</div>
                       <div className="font-mono font-bold text-accent">
-                        {couponByProduct[offer.productId].code} ({(couponByProduct[offer.productId].discountBps / 100).toFixed(1)}% off)
+                        {couponByProduct[p.productId].code} ({(couponByProduct[p.productId].discountBps / 100).toFixed(1)}% off)
                       </div>
                     </div>
                   </div>
                 )}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="badge-blue text-xs">{offer.commissionPct}% comissão</span>
-                  <span className="badge text-xs">{offer.cookieDays} dias de cookie</span>
+                  <span className="badge-blue text-xs">{p.commissionPct}% comissão</span>
+                  <span className="badge text-xs">{p.cookieDays} dias de cookie</span>
                 </div>
               </div>
 
-              {offer.myStatus === 'ACTIVE' ? (
+              {p.myStatus === 'ACTIVE' ? (
                 <div className="flex items-center gap-2 text-success text-sm font-medium">
                   <CheckCircle size={14} />
                   Inscrito
@@ -108,7 +138,7 @@ export default function AffiliateMarketplace() {
               ) : (
                 <button
                   className="btn-primary btn-sm w-full"
-                  onClick={() => enroll.mutate(offer.offerId)}
+                  onClick={() => enroll.mutate(p.offerId)}
                   disabled={enroll.isPending}
                 >
                   <Plus size={14} />
