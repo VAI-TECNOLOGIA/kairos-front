@@ -33,7 +33,7 @@ const PROVIDERS = [
   { value: 'FACEBOOK',   label: 'Meta (Facebook)',  color: '#1877F2' },
   { value: 'GA4',        label: 'Google Analytics', color: '#E37400' },
   { value: 'GOOGLE_ADS', label: 'Google Ads',       color: '#34A853' },
-  { value: 'TIKTOK',     label: 'TikTok',           color: '#ffffff' },
+  { value: 'TIKTOK',     label: 'TikTok',           color: '#FE2C55' },
   { value: 'KWAI',       label: 'Kwai',             color: '#FF6600' },
   { value: 'CUSTOM',     label: 'Personalizado',    color: '#6366F1' },
 ] as const;
