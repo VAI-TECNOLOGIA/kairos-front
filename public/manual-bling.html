@@ -98,14 +98,27 @@
       display: inline-flex; align-items: center; gap: 4px;
       color: var(--green); font-size: .8rem; margin-top: .25em;
     }
+    .public-banner {
+      background: rgba(0, 201, 167, 0.1);
+      border-bottom: 1px solid rgba(0, 201, 167, 0.3);
+      padding: .75rem 1rem;
+      text-align: center;
+      font-size: .9rem;
+      color: var(--green);
+    }
+    .public-banner strong { color: var(--green); }
   </style>
 </head>
 <body>
+  <div class="public-banner">
+    📖 <strong>Manual público</strong> · Nenhum login necessário · Esta página descreve a integração Kairos Way × Bling para qualquer interessado
+  </div>
+
   <header class="site">
     <div class="container head-row">
       <img src="/kairosLogo.png" alt="Kairos Way" class="logo" />
       <div>
-        <div class="label-small">Manual da integração</div>
+        <div class="label-small">Manual da integração (público)</div>
         <h1>Kairos Way × Bling</h1>
       </div>
       <div style="margin-left: auto;">
