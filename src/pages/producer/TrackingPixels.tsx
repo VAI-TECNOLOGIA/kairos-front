@@ -236,7 +236,10 @@ export default function TrackingPixels() {
                       >
                         <ProviderIcon provider={p.value} size={20} />
                       </span>
-                      <span className="text-[11px] font-medium text-center leading-tight" style={{ color: active ? p.color : undefined }}>
+                      <span
+                        className={`text-[11px] font-medium text-center leading-tight ${active ? '' : 'text-text'}`}
+                        style={active ? { color: p.color } : undefined}
+                      >
                         {p.label}
                       </span>
                     </label>
