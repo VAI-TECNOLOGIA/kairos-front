@@ -55,6 +55,24 @@ export default function AffiliatesPage() {
     queryFn : () => api.get('/affiliates/pending').then(r => r.data),
   });
 
+  // Toggle global: aprovação automática de novos cadastros via /seja-afiliado
+  const { data: settings } = useQuery<Record<string, any>>({
+    queryKey: ['admin-settings'],
+    queryFn : () => api.get('/admin/settings').then(r => r.data),
+  });
+  const autoApprove = settings?.['affiliate.auto_approve'] === true ||
+                      settings?.['affiliate.auto_approve']?.enabled === true;
+
+  const setAutoApprove = useMutation({
+    mutationFn: (enabled: boolean) =>
+      api.patch('/admin/settings', { 'affiliate.auto_approve': enabled }),
+    onSuccess: (_data, enabled) => {
+      toast.success(enabled ? 'Aprovação automática ATIVADA' : 'Aprovação automática DESATIVADA');
+      qc.invalidateQueries({ queryKey: ['admin-settings'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao salvar'),
+  });
+
   const all: Affiliate[] = Array.isArray(data) ? data : [];
   const pendingList  = all.filter((a: any) => a.status === 'PENDING');
   const approvedList = all.filter((a: any) => a.status === 'APPROVED');
@@ -105,6 +123,29 @@ export default function AffiliatesPage() {
         title="Afiliados"
         sub={`${pendingList.length} aguardando análise · ${approvedList.length} ativos · ${all.length} total`}
       />
+
+      {/* Toggle aprovação automática */}
+      <div className={`mb-4 border rounded-[7px] p-4 flex items-center gap-3 ${autoApprove ? 'border-green/40 bg-green/5' : 'border-border bg-bg3/40'}`}>
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={autoApprove}
+            onChange={(e) => setAutoApprove.mutate(e.target.checked)}
+            disabled={setAutoApprove.isPending}
+            className="sr-only peer"
+          />
+          <div className="w-11 h-6 bg-bg3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green" />
+        </label>
+        <div className="flex-1">
+          <div className="text-sm font-semibold text-text">
+            Aprovação automática de afiliados
+            {autoApprove && <span className="ml-2 badge-green text-[10px]">ATIVO</span>}
+          </div>
+          <div className="text-xs text-text3">
+            Quando ativado, novos cadastros via <code>/seja-afiliado</code> entram já como APROVADO sem precisar de aprovação manual.
+          </div>
+        </div>
+      </div>
 
       {/* Promover cliente existente para afiliado — útil quando alguém já comprou
           como customer e depois quer virar afiliado (não pode usar /seja-afiliado pq
