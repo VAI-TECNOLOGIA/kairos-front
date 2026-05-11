@@ -331,12 +331,39 @@ export default function ProductOffersSection() {
 
       {/* Modal: % de co-produção liberada */}
       <Modal open={!!coprodOffer} onClose={() => setCoprodOffer(null)} title={`Co-produção — ${coprodOffer?.name || ''}`}
-        footer={<><button className="btn-ghost" onClick={() => setCoprodOffer(null)}>Cancelar</button><button className="btn-primary" disabled={saveCoprod.isPending || coprodPct < 0 || coprodPct > 20} onClick={() => saveCoprod.mutate()}>{saveCoprod.isPending ? 'Salvando...' : 'Salvar'}</button></>}>
+        footer={
+          coprodOffer ? (() => {
+            const rules = (coprodOffer.splitRules || []) as any[];
+            const platformBps = rules.find(r => r.recipientType === 'PLATFORM')?.basisPoints || 0;
+            const namedBps = rules
+              .filter(r => r.recipientType === 'COPRODUCER' && r.recipientId)
+              .reduce((s: number, r: any) => s + r.basisPoints, 0);
+            const availablePct = (10000 - platformBps - namedBps) / 100;
+            const exceeds = coprodPct > availablePct;
+            return (
+              <>
+                <button className="btn-ghost" onClick={() => setCoprodOffer(null)}>Cancelar</button>
+                <button
+                  className="btn-primary"
+                  disabled={saveCoprod.isPending || coprodPct < 0 || exceeds}
+                  onClick={() => saveCoprod.mutate()}
+                >
+                  {saveCoprod.isPending ? 'Salvando...' : 'Salvar'}
+                </button>
+              </>
+            );
+          })() : null
+        }>
         {coprodOffer && (() => {
-          const platformBps = ((coprodOffer.splitRules || []) as any[]).find((r: any) => r.recipientType === 'PLATFORM')?.basisPoints || 0;
-          const producerBaseBps = 10000 - platformBps;
-          const producerBasePct = producerBaseBps / 100;
-          const yourPct = producerBasePct - coprodPct;
+          const rules = (coprodOffer.splitRules || []) as any[];
+          const platformBps = rules.find(r => r.recipientType === 'PLATFORM')?.basisPoints || 0;
+          const namedCoprods = rules.filter(r => r.recipientType === 'COPRODUCER' && r.recipientId);
+          const namedBps = namedCoprods.reduce((s: number, r: any) => s + r.basisPoints, 0);
+          const availableBps = 10000 - platformBps - namedBps;
+          const availablePct = availableBps / 100;
+          const maxPct = Math.min(20, availablePct);
+          const yourPct = availablePct - coprodPct;
+          const exceeds = coprodPct > availablePct;
           const priceCents = coprodOffer.priceCents || 0;
 
           return (
@@ -345,27 +372,46 @@ export default function ProductOffersSection() {
                 Defina a fatia da oferta destinada a <strong className="text-text">co-produção</strong>. Quem entrar como co-produtor vai dividir essa parte. Sai automaticamente da sua %.
               </p>
 
+              <div className="bg-accent/10 border border-accent/30 rounded-[7px] p-3 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-text3">Disponível pra co-produção</div>
+                  <div className="text-xl font-bold text-accent">{availablePct.toFixed(2)}%</div>
+                </div>
+                <div className="text-right text-[11px] text-text3 leading-snug">
+                  100% − {(platformBps / 100).toFixed(2)}% plataforma
+                  {namedBps > 0 && <> − {(namedBps / 100).toFixed(2)}% co-produtores fixos</>}
+                </div>
+              </div>
+
               <div className="form-group">
-                <label className="label">% liberada para co-produção</label>
+                <label className="label">% liberada para co-produção (pool)</label>
                 <input
-                  type="number" min="0" max="20" step="0.5"
-                  className="input text-lg font-semibold"
+                  type="number" min="0" max={maxPct} step="0.5"
+                  className={`input text-lg font-semibold ${exceeds ? 'border-red' : ''}`}
                   value={coprodPct}
                   onChange={e => setCoprodPct(Number(e.target.value))}
                 />
-                <p className="text-[11px] text-text3 mt-1">0% = sem co-produção. Máximo 20%.</p>
+                <p className="text-[11px] text-text3 mt-1">
+                  0% = sem co-produção. Máximo nesta oferta: <strong className="text-text2">{maxPct.toFixed(2)}%</strong>.
+                </p>
               </div>
 
               <div className="bg-bg3 rounded p-3 text-xs space-y-1">
                 <div className="font-semibold text-text mb-2">Como vai ficar a oferta:</div>
                 <div className="flex justify-between"><span className="text-text2">Plataforma</span><span className="text-text">{(platformBps / 100).toFixed(2)}%</span></div>
+                {namedCoprods.map((r: any, i: number) => (
+                  <div key={i} className="flex justify-between">
+                    <span className="text-text2">Co-produtor fixo</span>
+                    <span className="text-text">{(r.basisPoints / 100).toFixed(2)}%</span>
+                  </div>
+                ))}
                 <div className="flex justify-between">
                   <span className="text-text2">Você (produtor)</span>
                   <strong className={yourPct < 0 ? 'text-red' : 'text-accent'}>{yourPct.toFixed(2)}%</strong>
                 </div>
                 {coprodPct > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-text2">Co-produção</span>
+                    <span className="text-text2">Co-produção (pool)</span>
                     <strong className="text-text">{coprodPct.toFixed(2)}%</strong>
                   </div>
                 )}
@@ -377,9 +423,9 @@ export default function ProductOffersSection() {
                 )}
               </div>
 
-              {yourPct < 0 && (
+              {exceeds && (
                 <div className="bg-red/10 border border-red/30 rounded p-2 text-xs text-red">
-                  A % de co-produção excede a sua parte ({producerBasePct.toFixed(2)}%). Reduza.
+                  Você está pedindo {coprodPct.toFixed(2)}%, mas só tem <strong>{availablePct.toFixed(2)}% disponível</strong>. Reduza pra no máximo {maxPct.toFixed(2)}%.
                 </div>
               )}
             </div>
