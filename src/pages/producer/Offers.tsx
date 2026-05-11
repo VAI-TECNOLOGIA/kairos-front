@@ -303,7 +303,8 @@ export default function OfferManager() {
               .filter((r: any) => r.recipientType === 'COPRODUCER' && r.recipientId)
               .reduce((s: number, r: any) => s + r.basisPoints, 0);
             const availablePct = (10000 - platformBps - namedBps) / 100;
-            const exceeds = coprodPct > availablePct;
+            const maxPct = Math.min(20, availablePct);
+            const exceeds = coprodPct > maxPct;
             return (
               <>
                 <button className="btn-ghost" onClick={() => setCoprodOffer(null)}>Cancelar</button>
@@ -327,7 +328,7 @@ export default function OfferManager() {
           const availablePct = availableBps / 100;
           const maxPct = Math.min(20, availablePct);
           const yourPct = availablePct - coprodPct;
-          const exceeds = coprodPct > availablePct;
+          const exceeds = coprodPct > maxPct;
           const priceCents = coprodOffer.priceCents || 0;
 
           return (
@@ -390,7 +391,10 @@ export default function OfferManager() {
 
               {exceeds && (
                 <div className="bg-red/10 border border-red/30 rounded p-2 text-xs text-red">
-                  Você está pedindo {coprodPct.toFixed(2)}%, mas só tem <strong>{availablePct.toFixed(2)}% disponível</strong>. Reduza pra no máximo {maxPct.toFixed(2)}%.
+                  Você está pedindo <strong>{coprodPct.toFixed(2)}%</strong>, mas o máximo nesta oferta é <strong>{maxPct.toFixed(2)}%</strong>
+                  {maxPct < availablePct
+                    ? <> (limite global de co-produção)</>
+                    : <> ({availablePct.toFixed(2)}% disponível)</>}. Reduza.
                 </div>
               )}
             </div>
