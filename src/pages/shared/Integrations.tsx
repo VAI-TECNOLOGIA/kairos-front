@@ -32,6 +32,8 @@ const PROVIDER_META: Record<Provider, {
   site       : string;
   oauth?     : boolean;        // se true, renderiza botão "Conectar" em vez de form
   oauthPath? : string;         // caminho relativo no backend (ex: /integrations/melhor-envio/authorize)
+  comingSoon?: boolean;        // se true, card mostra overlay "Em breve" e desabilita ações
+  comingSoonReason?: string;   // mensagem secundária explicando o motivo
   fields     : Array<{ key: string; label: string; type: 'text' | 'password' | 'checkbox'; placeholder?: string; hint?: string; required?: boolean }>;
 }> = {
   MELHOR_ENVIO: {
@@ -67,6 +69,8 @@ const PROVIDER_META: Record<Provider, {
     site       : 'https://bling.com.br',
     oauth      : true,
     oauthPath  : '/integrations/bling/authorize',
+    comingSoon : true,
+    comingSoonReason: 'Liberação final dos escopos pelo Bling em andamento. Em breve disponível.',
     fields     : [
       { key: 'accessToken',  label: 'Access Token',  type: 'password', placeholder: 'eyJ0eXAiOiJKV1Qi...', hint: 'Gerado após autorizar o app no Bling (ou cole manualmente do painel developer).' },
       { key: 'refreshToken', label: 'Refresh Token', type: 'password', placeholder: 'eyJ0eXAiOiJKV1Qi...', hint: 'Usado pra renovar o access token automaticamente quando expira.' },
@@ -120,6 +124,9 @@ export default function IntegrationsPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {(['NFE_IO', 'MELHOR_ENVIO', 'BLING'] as Provider[]).map(p => {
+            if (PROVIDER_META[p].comingSoon) {
+              return <ComingSoonCard key={p} provider={p} />;
+            }
             const row = data?.data.find(d => d.provider === p);
             return (
               <IntegrationCard
@@ -149,6 +156,37 @@ export default function IntegrationsPage() {
 // ══════════════════════════════════════════════════════════════════
 // CARD DE UMA INTEGRAÇÃO
 // ══════════════════════════════════════════════════════════════════
+
+function ComingSoonCard({ provider }: { provider: Provider }) {
+  const meta = PROVIDER_META[provider];
+  return (
+    <div className="card relative overflow-hidden">
+      <div className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full bg-amber/15 text-amber border border-amber/30 uppercase tracking-wide">
+        Em breve
+      </div>
+
+      <div className="flex items-start gap-3 opacity-60">
+        <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden grayscale ${meta.name === 'Bling' ? 'bg-bg3' : 'bg-white'}`}>
+          <img src={meta.logo} alt={meta.name} className="w-full h-full object-contain p-1.5" />
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-text">{meta.name}</h3>
+          <p className="text-xs text-text3 mt-0.5 leading-relaxed">{meta.description}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-border flex items-start gap-2">
+        <div className="w-1 self-stretch rounded-full bg-amber/50 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-[11px] font-medium text-text2">Integração temporariamente indisponível</p>
+          {meta.comingSoonReason && (
+            <p className="text-[11px] text-text3 mt-0.5 leading-relaxed">{meta.comingSoonReason}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function IntegrationCard({ provider, row }: { provider: Provider; row: IntegrationRow }) {
   const qc   = useQueryClient();
