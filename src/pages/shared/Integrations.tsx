@@ -67,7 +67,11 @@ const PROVIDER_META: Record<Provider, {
     site       : 'https://bling.com.br',
     oauth      : true,
     oauthPath  : '/integrations/bling/authorize',
-    fields     : [],
+    fields     : [
+      { key: 'accessToken',  label: 'Access Token',  type: 'password', placeholder: 'eyJ0eXAiOiJKV1Qi...', hint: 'Gerado após autorizar o app no Bling (ou cole manualmente do painel developer).' },
+      { key: 'refreshToken', label: 'Refresh Token', type: 'password', placeholder: 'eyJ0eXAiOiJKV1Qi...', hint: 'Usado pra renovar o access token automaticamente.' },
+      { key: 'expiresAt',    label: 'Expira em',     type: 'text',     placeholder: '2026-12-31T23:59:59.000Z', hint: 'ISO timestamp de expiração (opcional — sem isso, o refresh é tentado a cada chamada).' },
+    ],
   },
 };
 
@@ -395,31 +399,12 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
               {test.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plug size={13} />}
               Testar conexão
             </button>
-            {meta.oauth && meta.fields.length === 0 ? (
-              <button
-                onClick={async () => {
-                  if (!confirm('Reconectar ' + meta.name + '? Você será redirecionado pra autorizar de novo e o token atual será substituído.')) return;
-                  try {
-                    const { data } = await api.get(meta.oauthPath!);
-                    if (data?.url) window.location.href = data.url;
-                    else toast.error('Não foi possível iniciar a conexão');
-                  } catch (e: any) {
-                    toast.error(e?.response?.data?.message || 'Erro ao iniciar OAuth');
-                  }
-                }}
-                className="btn-sec btn-sm flex items-center gap-1.5"
-              >
-                <Plug size={13} />
-                Reconectar
-              </button>
-            ) : (
-              <button
-                onClick={() => { setEditing(true); setValues({}); }}
-                className="btn-sec btn-sm"
-              >
-                Editar
-              </button>
-            )}
+            <button
+              onClick={() => { setEditing(true); setValues({}); }}
+              className="btn-sec btn-sm"
+            >
+              Editar
+            </button>
             <button
               onClick={() => {
                 if (confirm('Remover credenciais desta integração?')) remove.mutate();
