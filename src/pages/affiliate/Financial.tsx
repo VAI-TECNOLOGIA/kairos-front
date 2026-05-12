@@ -139,9 +139,9 @@ export default function AffiliateFinancial() {
           </div>
         </div>
         <StatCard
-          label="Comissões pendentes"
-          value={formatBRL(stats?.pendingCents || 0)}
-          sub="aguardando confirmação"
+          label="Em processamento"
+          value={formatBRL((stats?.stuckInProcessing || 0) + (stats?.pendingCents || 0))}
+          sub={(stats?.stuckInProcessing || 0) > 0 ? 'Aguardando liberação financeira' : 'aguardando confirmação'}
           icon={<Clock size={16} />}
         />
         <KairosWithdrawCard

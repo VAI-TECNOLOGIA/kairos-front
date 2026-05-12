@@ -165,9 +165,9 @@ export default function MyFinancial() {
           </div>
         </div>
         <StatCard
-          label="Ganhos pendentes"
-          value={formatBRL(balance?.pendingCents || 0)}
-          sub="splits aguardando confirmação"
+          label="Em processamento"
+          value={formatBRL((balance?.stuckInProcessing || 0) + (balance?.pendingCents || 0))}
+          sub={(balance?.stuckInProcessing || 0) > 0 ? 'Aguardando liberação financeira' : 'splits dentro do prazo de carência'}
         />
         <KairosWithdrawCard
           value={formatBRL(balance?.withdrawnCents || 0)}
