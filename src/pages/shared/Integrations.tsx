@@ -395,12 +395,31 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
               {test.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plug size={13} />}
               Testar conexão
             </button>
-            <button
-              onClick={() => { setEditing(true); setValues({}); }}
-              className="btn-sec btn-sm"
-            >
-              Editar
-            </button>
+            {meta.oauth && meta.fields.length === 0 ? (
+              <button
+                onClick={async () => {
+                  if (!confirm('Reconectar ' + meta.name + '? Você será redirecionado pra autorizar de novo e o token atual será substituído.')) return;
+                  try {
+                    const { data } = await api.get(meta.oauthPath!);
+                    if (data?.url) window.location.href = data.url;
+                    else toast.error('Não foi possível iniciar a conexão');
+                  } catch (e: any) {
+                    toast.error(e?.response?.data?.message || 'Erro ao iniciar OAuth');
+                  }
+                }}
+                className="btn-sec btn-sm flex items-center gap-1.5"
+              >
+                <Plug size={13} />
+                Reconectar
+              </button>
+            ) : (
+              <button
+                onClick={() => { setEditing(true); setValues({}); }}
+                className="btn-sec btn-sm"
+              >
+                Editar
+              </button>
+            )}
             <button
               onClick={() => {
                 if (confirm('Remover credenciais desta integração?')) remove.mutate();
