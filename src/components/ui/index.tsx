@@ -3,6 +3,8 @@ import { cn, formatBRL, bpsToPct, RECIPIENT_COLOR, RECIPIENT_LABEL, dateRelAbs, 
 import { X, MessageCircle } from 'lucide-react';
 import type { SplitRule } from '@/types';
 
+export { KairosWithdrawCard } from './KairosWithdrawCard';
+
 // ── DATE CELL (relativa em cima + absoluta embaixo) ────────────────
 export function DateCell({ date, className }: { date: string | Date | null | undefined; className?: string }) {
   const d = dateRelAbs(date);

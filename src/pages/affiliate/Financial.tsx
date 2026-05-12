@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
-import { PageHeader, StatCard, Modal } from '@/components/ui';
+import { PageHeader, StatCard, Modal, KairosWithdrawCard } from '@/components/ui';
 import { formatBRL, formatDateTime, bankLabel, withdrawalBankDisplay } from '@/lib/utils';
 import { DollarSign, ArrowDownCircle, Clock, Eye, EyeOff, Trash2, AlertCircle, Building2 } from 'lucide-react';
 
@@ -144,11 +144,9 @@ export default function AffiliateFinancial() {
           sub="aguardando confirmação"
           icon={<Clock size={16} />}
         />
-        <StatCard
-          label="Total sacado"
+        <KairosWithdrawCard
           value={formatBRL(withdrawalList.filter((w: any) => w.status === 'PAID').reduce((s: number, w: any) => s + w.amountCents, 0))}
           sub="saques processados"
-          icon={<DollarSign size={16} />}
         />
       </div>
 
