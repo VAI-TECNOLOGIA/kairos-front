@@ -67,6 +67,17 @@ export default function MyProducts() {
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao criar produto'),
   });
 
+  // Toggle isActive (esconder/mostrar produto). Não deleta — preserva histórico de vendas/afiliações.
+  // Quando isActive=false: checkout retorna unavailable, marketplace afiliado/cliente filtram out.
+  const toggleHidden = useMutation({
+    mutationFn: (p: any) => api.patch(`/products/${p.id}`, { isActive: !p.isActive }),
+    onSuccess : (_res, p: any) => {
+      toast.success(p.isActive ? 'Produto oculto' : 'Produto visível novamente');
+      qc.invalidateQueries({ queryKey: ['my-products'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao alterar visibilidade'),
+  });
+
   const update = useMutation({
     mutationFn: (d: FormData) => api.patch(`/products/${editProduct?.id}`, {
       ...d,
@@ -102,7 +113,11 @@ export default function MyProducts() {
       !best || o.priceCents < best.priceCents ? o : best, null);
   };
 
-  const products: any[] = data?.data || [];
+  const allProducts: any[] = data?.data || [];
+  const activeProducts = allProducts.filter(p => p.isActive !== false);
+  const hiddenProducts = allProducts.filter(p => p.isActive === false);
+  const [tab, setTab] = useState<'active' | 'hidden'>('active');
+  const products = tab === 'hidden' ? hiddenProducts : activeProducts;
 
   return (
     <div>
@@ -116,12 +131,43 @@ export default function MyProducts() {
         }
       />
 
-      {isLoading ? <Loading /> : products.length === 0 ? (
+      {/* Tabs Ativos / Ocultos */}
+      {allProducts.length > 0 && (
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setTab('active')}
+            className={`btn-sm ${tab === 'active' ? 'btn-primary' : 'btn-secondary'}`}
+          >
+            <Eye size={13} /> Ativos
+            <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full ${tab === 'active' ? 'bg-white/20' : 'bg-bg3'}`}>
+              {activeProducts.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setTab('hidden')}
+            className={`btn-sm ${tab === 'hidden' ? 'btn-primary' : 'btn-secondary'}`}
+            disabled={hiddenProducts.length === 0}
+          >
+            <EyeOff size={13} /> Ocultos
+            <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full ${tab === 'hidden' ? 'bg-white/20' : 'bg-bg3'}`}>
+              {hiddenProducts.length}
+            </span>
+          </button>
+        </div>
+      )}
+
+      {isLoading ? <Loading /> : allProducts.length === 0 ? (
         <EmptyState
           icon={<Package size={32} />}
           title="Nenhum produto"
           sub="Crie seu primeiro produto."
           action={<button onClick={() => setOpenCreate(true)} className="btn-primary btn-sm">Criar produto</button>}
+        />
+      ) : products.length === 0 ? (
+        <EmptyState
+          icon={<EyeOff size={32} />}
+          title={tab === 'hidden' ? 'Nenhum produto oculto' : 'Nenhum produto ativo'}
+          sub={tab === 'hidden' ? 'Quando você ocultar um produto ele aparece aqui.' : 'Todos os seus produtos estão ocultos. Volte na aba "Ocultos" pra mostrar.'}
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -129,14 +175,35 @@ export default function MyProducts() {
             const offer  = bestOffer(p);
             const recebe = offer ? recebeAte(offer.priceCents) : null;
 
+            const hidden = p.isActive === false;
             return (
               <div
                 key={p.id}
                 onClick={(e) => openEdit(p, e)}
-                className="card p-0 overflow-hidden cursor-pointer hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5 transition-all group relative"
+                className={`card p-0 overflow-hidden cursor-pointer hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5 transition-all group relative ${hidden ? 'opacity-60' : ''}`}
               >
+                {/* Botão Ocultar/Mostrar — canto superior direito, sempre visível */}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); toggleHidden.mutate(p); }}
+                  disabled={toggleHidden.isPending}
+                  title={hidden ? 'Tornar visível' : 'Ocultar produto'}
+                  className="absolute top-2 right-2 z-20 inline-flex items-center justify-center w-7 h-7 rounded-full bg-bg2/90 hover:bg-accent/90 hover:text-white text-text2 border border-border backdrop-blur-sm transition-colors"
+                >
+                  {hidden ? <EyeOff size={13} /> : <Eye size={13} />}
+                </button>
+
+                {/* Badge "Oculto" sobre a imagem quando aplicável */}
+                {hidden && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-bg/40 backdrop-blur-[1px] pointer-events-none">
+                    <span className="inline-flex items-center gap-1.5 bg-bg2/95 border border-border rounded-full px-3 py-1 text-[11px] font-semibold text-text2">
+                      <EyeOff size={12} /> Oculto
+                    </span>
+                  </div>
+                )}
+
                 {/* Indicador "Editar" no hover (entrada direta — click em qualquer lugar abre edit) */}
-                <div className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 bg-accent/90 backdrop-blur-sm rounded-full px-2 py-1 text-[10px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-2 right-11 z-10 inline-flex items-center gap-1 bg-accent/90 backdrop-blur-sm rounded-full px-2 py-1 text-[10px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity">
                   <Pencil size={11} /> Abrir
                 </div>
 

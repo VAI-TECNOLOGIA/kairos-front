@@ -380,6 +380,23 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-bg flex items-center justify-center"><Loading /></div>
   );
 
+  // Produto oculto pelo produtor, em revisão ou sem splits — mostra UI amigável (não 404)
+  if (offerData?.unavailable) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center space-y-4">
+          <div className="w-20 h-20 mx-auto rounded-full bg-bg2 border border-border flex items-center justify-center">
+            <span style={{ fontSize: 40 }}>🛒</span>
+          </div>
+          <h1 className="text-xl font-semibold text-text">Produto indisponível</h1>
+          <p className="text-sm text-text2 leading-relaxed">
+            Este produto não está disponível para compra no momento. Volte mais tarde ou entre em contato com quem indicou o link.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const offer  = offerData?.offer;
   const config = offerData?.config;
 
