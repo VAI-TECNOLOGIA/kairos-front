@@ -69,8 +69,7 @@ const PROVIDER_META: Record<Provider, {
     oauthPath  : '/integrations/bling/authorize',
     fields     : [
       { key: 'accessToken',  label: 'Access Token',  type: 'password', placeholder: 'eyJ0eXAiOiJKV1Qi...', hint: 'Gerado após autorizar o app no Bling (ou cole manualmente do painel developer).' },
-      { key: 'refreshToken', label: 'Refresh Token', type: 'password', placeholder: 'eyJ0eXAiOiJKV1Qi...', hint: 'Usado pra renovar o access token automaticamente.' },
-      { key: 'expiresAt',    label: 'Expira em',     type: 'text',     placeholder: '2026-12-31T23:59:59.000Z', hint: 'ISO timestamp de expiração (opcional — sem isso, o refresh é tentado a cada chamada).' },
+      { key: 'refreshToken', label: 'Refresh Token', type: 'password', placeholder: 'eyJ0eXAiOiJKV1Qi...', hint: 'Usado pra renovar o access token automaticamente quando expira.' },
     ],
   },
 };
