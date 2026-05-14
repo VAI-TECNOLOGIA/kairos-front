@@ -39,5 +39,5 @@ export function useTheme(): { theme: Theme; toggle: () => void; setTheme: (t: Th
 }
 
 export function logoForTheme(theme: Theme): string {
-  return theme === 'light' ? '/kairosLogo2.png' : '/kairosLogo.png';
+  return theme === 'light' ? '/kairosLogo2.png' : '/kairosLogoWhite.png';
 }

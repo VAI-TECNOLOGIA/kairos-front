@@ -1,7 +1,7 @@
 import { ExternalLink, CheckCircle2, AlertTriangle, Info, Zap, Database, RotateCw, FileText } from 'lucide-react';
 import blingLogo from '@/assets/bling.png';
 
-const kairosLogo = '/kairosLogo.png';
+const kairosLogo = '/kairosLogoWhite.png';
 
 /**
  * Página pública (sem login) com o guia da integração Kairos Way ↔ Bling.
@@ -13,7 +13,7 @@ export default function IntegracaoBling() {
       {/* Header */}
       <header className="border-b border-border bg-bg2">
         <div className="max-w-4xl mx-auto px-4 py-6 flex items-center gap-4">
-          <img src={kairosLogo} alt="Kairos Way" className="w-10 h-10 rounded-lg" />
+          <img src={kairosLogo} alt="Kairos Way" className="h-10 object-contain" />
           <div>
             <div className="text-sm text-text3">Manual da integração</div>
             <h1 className="text-xl font-bold">Kairos Way × Bling</h1>
