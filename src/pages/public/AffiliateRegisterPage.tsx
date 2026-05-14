@@ -85,7 +85,7 @@ export default function AffiliateRegisterPage() {
 
         <div className="w-full max-w-sm relative z-10 animate-slide-up">
           <div className="text-center mb-8">
-            <img src="/kairosLogoWhite.png" alt="Kairos Way" className="w-16 h-16 object-contain mx-auto mb-4" />
+            <img src="/kairosLogo.png" alt="Kairos Way" className="w-16 h-16 object-contain mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-text">KAIROS WAY</h1>
             <p className="text-sm text-text2 mt-1">Gateway de Pagamentos</p>
           </div>
@@ -145,7 +145,7 @@ export default function AffiliateRegisterPage() {
       <div className="w-full max-w-sm relative z-10 animate-slide-up">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/kairosLogoWhite.png" alt="Kairos Way" className="w-16 h-16 object-contain mx-auto mb-4" />
+          <img src="/kairosLogo.png" alt="Kairos Way" className="w-16 h-16 object-contain mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-text">KAIROS WAY</h1>
           <p className="text-sm text-text2 mt-1">Quero ser afiliado</p>
         </div>

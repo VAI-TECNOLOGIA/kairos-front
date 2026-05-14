@@ -59,7 +59,7 @@ export default function SecurityPolicy() {
             Voltar ao login
           </Link>
           <div className="flex items-center gap-2">
-            <img src="/kairosLogoWhite.png" alt="Kairos Way" className="h-6 object-contain" />
+            <img src="/kairosLogo.png" alt="Kairos Way" className="w-6 h-6 object-contain" />
             <span className="text-sm font-bold text-text hidden sm:inline">KAIROS WAY</span>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-green/10 text-green border border-green/20">
