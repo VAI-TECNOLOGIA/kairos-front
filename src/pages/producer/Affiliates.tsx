@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { publicOrigin } from '@/lib/share-url';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -213,7 +214,7 @@ export default function ProducerAffiliates() {
                 <thead><tr><th>Produto / Oferta</th><th>Comissão</th><th>Afiliados</th><th>Status</th><th>Link de convite</th><th>Ação</th></tr></thead>
                 <tbody>
                   {(offers || []).map((o: any) => {
-                    const inviteUrl = `${window.location.origin}/afiliar/${o.slug}`;
+                    const inviteUrl = `${publicOrigin()}/afiliar/${o.slug}`;
                     return (
                     <tr key={o.id}>
                       <td><div className="font-medium text-text">{o.product?.name}</div><div className="text-xs text-text3">{o.name}</div></td>

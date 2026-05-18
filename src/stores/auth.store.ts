@@ -48,7 +48,10 @@ export const useAuthStore = create<AuthState>()(
         set({ user, accessToken, refreshToken, sessionStart: Date.now() });
         if (Capacitor.isNativePlatform()) {
           import('@/lib/push-notifications')
-            .then(m => m.setupPushNotifications(accessToken))
+            .then(m => {
+              m.setPushJwtProvider(() => get().accessToken);
+              return m.setupPushNotifications();
+            })
             .catch(err => console.error('[push] setup failed', err));
         }
       },

@@ -28,22 +28,33 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
-    // APNs → Firebase Messaging bridge. The Capacitor PushNotifications plugin
-    // already calls `application.registerForRemoteNotifications()`; we only
-    // need to forward the APNs token to FCM so messaging() returns a usable
-    // FCM token (which the JS side uploads to /notifications/subscribe).
+    // APNs → Firebase Messaging + Capacitor PushNotifications plugin.
+    // CRITICAL: Capacitor's PushNotifications plugin listens to the
+    // NotificationCenter notification `Notification.Name.capacitorDidRegisterForRemoteNotifications`
+    // to emit its 'registration' event to JS. Without this post, the JS side
+    // never receives the device token and /notifications/subscribe is never
+    // called → push notifications silently fail.
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         Messaging.messaging().apnsToken = deviceToken
+        NotificationCenter.default.post(name: Notification.Name.capacitorDidRegisterForRemoteNotifications, object: deviceToken)
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        NotificationCenter.default.post(name: Notification.Name(rawValue: "didFailToRegisterForRemoteNotificationsWithError"), object: error)
+        NotificationCenter.default.post(name: Notification.Name.capacitorDidFailToRegisterForRemoteNotifications, object: error)
     }
 
-    // FCM token rotation (e.g. reinstall, restore from backup). Currently
-    // logged for debugging — when needed, post to NotificationCenter so the
-    // JS side can re-subscribe.
+    // Firebase Cloud Messaging token. Called after APNs token is exchanged
+    // with FCM (post `Messaging.messaging().apnsToken = ...`).
+    // The Capacitor @capacitor/push-notifications plugin emits the raw APNs
+    // hex token in its 'registration' event, but Firebase Admin SDK on the
+    // backend rejects those — we need the FCM registration token (long
+    // base64-ish string). We store it in UserDefaults under the key prefix
+    // that @capacitor/preferences uses ("CapacitorStorage.") so the JS layer
+    // can `Preferences.get({ key: 'fcmToken' })` and forward THAT to the
+    // backend.
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        print("[push] FCM token: \(fcmToken ?? "nil")")
+        guard let token = fcmToken else { return }
+        UserDefaults.standard.set(token, forKey: "CapacitorStorage.fcmToken")
+        print("[push] FCM token saved (prefix=\(token.prefix(16))…)")
     }
 }

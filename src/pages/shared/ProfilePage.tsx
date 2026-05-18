@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { Camera, Save, User, MapPin } from 'lucide-react';
 import { maskDocument, maskPhone, validateDocument } from '@/lib/cpf';
 import SecurityCard from '@/components/SecurityCard';
+import DeleteAccountCard from '@/components/DeleteAccountCard';
 
 interface ProfileForm {
   name     : string;
@@ -257,6 +258,9 @@ export default function ProfilePage() {
 
         {/* Segurança da conta — alterar senha + MFA */}
         <SecurityCard />
+
+        {/* Excluir conta — exigência Apple Guideline 5.1.1(v) */}
+        <DeleteAccountCard />
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { publicOrigin } from '@/lib/share-url';
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -117,7 +118,7 @@ export default function OfferManager() {
   });
 
   const copyLink = async (slug: string) => {
-    await navigator.clipboard.writeText(`${window.location.origin}/checkout/${slug}`);
+    await navigator.clipboard.writeText(`${publicOrigin()}/checkout/${slug}`);
     toast.success("Link copiado!");
   };
 

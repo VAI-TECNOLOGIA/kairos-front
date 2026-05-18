@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { useAuthStore } from '@/stores/auth.store';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { cn } from '@/lib/utils';
@@ -68,7 +69,8 @@ export default function ProducerLayout() {
         <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
       <aside className={cn(
-        "fixed md:static inset-y-0 left-0 z-40 w-60 flex-shrink-0 flex flex-col bg-bg2 border-r border-border overflow-y-auto transform transition-transform md:translate-x-0",
+        "fixed inset-y-0 left-0 z-40 w-60 flex-shrink-0 flex flex-col bg-bg2 border-r border-border overflow-y-auto transform transition-transform",
+        Capacitor.isNativePlatform() ? "" : "md:static md:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
       )}>
         <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
@@ -120,7 +122,7 @@ export default function ProducerLayout() {
             <button
               type="button"
               onClick={() => setSidebarOpen(v => !v)}
-              className="md:hidden p-1.5 rounded-md text-text2 hover:bg-bg3"
+              className={cn("p-1.5 rounded-md text-text2 hover:bg-bg3", Capacitor.isNativePlatform() ? "" : "md:hidden")}
               aria-label="Menu"
             >
               {sidebarOpen ? <X size={18} /> : <Menu size={18} />}

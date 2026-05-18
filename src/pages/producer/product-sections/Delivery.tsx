@@ -1,11 +1,12 @@
 import { useOutletContext } from 'react-router-dom';
+import { publicOrigin } from '@/lib/share-url';
 import { Info, ExternalLink, ShoppingBag } from 'lucide-react';
 
 export { ProductMembersAreaSection } from './MembersArea';
 
 export function ProductFilesSection() {
   const { product } = useOutletContext<{ product: any }>();
-  const purchasesUrl = `${window.location.origin}/cliente/compras`;
+  const purchasesUrl = `${publicOrigin()}/cliente/compras`;
 
   return (
     <div className="space-y-3">

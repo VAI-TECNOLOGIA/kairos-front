@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { publicOrigin } from '@/lib/share-url';
 import { useState } from 'react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -338,7 +339,7 @@ export default function AdminProducts() {
               )}
               <div className="space-y-1">
                 {(selected.offers || []).filter((o: any) => o.slug).map((o: any) => {
-                  const url = `${window.location.origin}/checkout/${o.slug}`;
+                  const url = `${publicOrigin()}/checkout/${o.slug}`;
                   return (
                     <div key={o.id} className="bg-bg3 rounded-[7px] px-3 py-2 flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1">

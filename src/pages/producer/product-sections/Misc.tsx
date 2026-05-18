@@ -1,4 +1,5 @@
 import { useOutletContext, Link, useLocation } from 'react-router-dom';
+import { publicOrigin } from '@/lib/share-url';
 import toast from 'react-hot-toast';
 import { Copy, Construction, ShoppingBag, Activity, Link2, Users, Lock } from 'lucide-react';
 
@@ -101,8 +102,8 @@ export function ProductLinksSection() {
           </div>
         ) : (
           offers.map((o: any) => {
-            const url = `${window.location.origin}/checkout/${o.slug}`;
-            const inviteUrl = `${window.location.origin}/afiliar/${o.slug}`;
+            const url = `${publicOrigin()}/checkout/${o.slug}`;
+            const inviteUrl = `${publicOrigin()}/afiliar/${o.slug}`;
             return (
               <div key={o.id} className={`card p-3 space-y-2 ${!isApproved ? 'opacity-60' : ''}`}>
                 <div className="text-sm font-medium text-text">{o.name}</div>

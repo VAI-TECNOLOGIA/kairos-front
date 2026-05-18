@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { publicOrigin } from '@/lib/share-url';
 import { useOutletContext } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -154,7 +155,7 @@ export default function ProductOffersSection() {
                   </div>
                   <div className="flex items-center gap-2">
                     {canSell ? (
-                      <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/checkout/${o.slug}`); toast.success('Link copiado'); }} className="btn-ghost btn-sm">
+                      <button onClick={() => { navigator.clipboard.writeText(`${publicOrigin()}/checkout/${o.slug}`); toast.success('Link copiado'); }} className="btn-ghost btn-sm">
                         <Copy size={13} /> Link
                       </button>
                     ) : (

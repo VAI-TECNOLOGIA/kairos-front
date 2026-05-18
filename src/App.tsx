@@ -159,6 +159,8 @@ function getDefaultPath(role?: string) {
 
 export default function App() {
   const { user, isAuthenticated } = useAuthStore();
+  const authAccessToken = useAuthStore(s => s.accessToken);
+  const authHydrated = useAuthStore(s => s.hydrated);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -178,6 +180,20 @@ export default function App() {
       handlePromise.then(h => h.remove()).catch(() => {});
     };
   }, []);
+
+  // Push notifications: dispara setup quando a sessão persistida hidratar com JWT,
+  // não apenas no momento do login (auth.store.setAuth). Sem isso, usuários que
+  // reabrem o app já logado nunca registram o FCM token.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    if (!authHydrated || !authAccessToken) return;
+    import('@/lib/push-notifications')
+      .then(m => {
+        m.setPushJwtProvider(() => useAuthStore.getState().accessToken);
+        return m.setupPushNotifications();
+      })
+      .catch(() => {});
+  }, [authHydrated, authAccessToken]);
 
   return (
     <Suspense fallback={<PageLoader />}>

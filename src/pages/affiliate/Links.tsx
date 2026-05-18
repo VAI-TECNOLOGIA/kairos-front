@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { publicOrigin } from '@/lib/share-url';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -79,11 +80,11 @@ export default function AffiliateLinks() {
               {(() => {
                 // Link de checkout (cliente compra)
                 const checkoutLink = e.offerSlug && e.affiliateCode
-                  ? `${window.location.origin}/checkout/${e.offerSlug}?ref=${e.affiliateCode}`
+                  ? `${publicOrigin()}/checkout/${e.offerSlug}?ref=${e.affiliateCode}`
                   : e.link;
                 // Link de indicação de outros afiliados (pirâmide — vira co-produtor se houver venda)
                 const inviteLink = e.offerSlug && e.affiliateCode
-                  ? `${window.location.origin}/afiliar/${e.offerSlug}?upline=${e.affiliateCode}`
+                  ? `${publicOrigin()}/afiliar/${e.offerSlug}?upline=${e.affiliateCode}`
                   : null;
                 return (
                   <div className="space-y-2">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { publicOrigin } from '@/lib/share-url';
 import { useOutletContext } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -113,7 +114,7 @@ export default function ProductAffiliationSection() {
   };
 
   const inviteSlug = firstOffer?.slug;
-  const inviteUrl  = inviteSlug ? `${window.location.origin}/afiliar/${inviteSlug}` : null;
+  const inviteUrl  = inviteSlug ? `${publicOrigin()}/afiliar/${inviteSlug}` : null;
 
   return (
     <div className="space-y-3">
