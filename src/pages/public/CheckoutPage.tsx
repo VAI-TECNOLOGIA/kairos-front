@@ -928,57 +928,85 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Endereço — obrigatório para emissão de nota fiscal */}
-              <div className="bg-bg3 rounded-xl p-4 space-y-3 border border-border">
-                <p className="text-xs font-medium text-text2 uppercase tracking-wide">
-                  Endereço de cobrança
-                  <span className="ml-1.5 text-[10px] text-text3 normal-case">(necessário para emitir nota fiscal)</span>
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
-                  <div className="col-span-2">
-                    <label className="block text-xs text-text3 mb-1">CEP</label>
-                    <input {...register('zipCode', { required: 'Obrigatório' })}
-                      className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
-                      placeholder="00000-000" maxLength={9} />
+              {/*
+                ENDEREÇO — política de exigência:
+                - PHYSICAL: SEMPRE obrigatório (logística + frete + NFe)
+                - DIGITAL + BOLETO: obrigatório (Pagar.me Boleto exige pagador completo p/ CIP)
+                - DIGITAL + PIX: oculto (PIX não usa endereço; NFS-e digital aceita sem na maioria dos municípios)
+                - DIGITAL + CARTÃO: visível mas opcional (Pagar.me tem fallback; CEP melhora AVS/aprovação)
+              */}
+              {(() => {
+                // Fail-safe: só simplifica se backend EXPLICITAMENTE diz DIGITAL.
+                // productType undefined (backend antigo) → trata como PHYSICAL (sempre exige).
+                const isDigital  = offerData?.offer?.productType === 'DIGITAL';
+                const isBoleto   = method === 'BOLETO';
+                const addressMode: 'required' | 'optional' | 'hidden' =
+                  !isDigital || isBoleto ? 'required'
+                  : method === 'CREDIT_CARD' ? 'optional'
+                  : 'hidden';
+
+                if (addressMode === 'hidden') return null;
+
+                const isReq = addressMode === 'required';
+                const reqRule = isReq ? { required: 'Obrigatório' } : {};
+                const label = isReq ? 'Endereço de cobrança' : 'Endereço (opcional)';
+                const helper = isReq
+                  ? (isBoleto ? 'Necessário para emissão do boleto.' : 'Necessário para envio e emissão de NF.')
+                  : 'Preenchimento opcional — ajuda na aprovação do cartão.';
+
+                return (
+                  <div className="bg-bg3 rounded-xl p-4 space-y-3 border border-border">
+                    <p className="text-xs font-medium text-text2 uppercase tracking-wide">
+                      {label}
+                      <span className="ml-1.5 text-[10px] text-text3 normal-case">({helper})</span>
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="col-span-2">
+                        <label className="block text-xs text-text3 mb-1">CEP {!isReq && <span className="text-text3/60">(opcional)</span>}</label>
+                        <input {...register('zipCode', reqRule)}
+                          className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
+                          placeholder="00000-000" maxLength={9} />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-xs text-text3 mb-1">Estado {!isReq && <span className="text-text3/60">(opcional)</span>}</label>
+                        <input {...register('state', reqRule)}
+                          className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
+                          placeholder="SP" maxLength={2} style={{ textTransform: 'uppercase' }} />
+                      </div>
+                      <div className="col-span-4">
+                        <label className="block text-xs text-text3 mb-1">Cidade {!isReq && <span className="text-text3/60">(opcional)</span>}</label>
+                        <input {...register('city', reqRule)}
+                          className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
+                          placeholder="São Paulo" />
+                      </div>
+                      <div className="col-span-3">
+                        <label className="block text-xs text-text3 mb-1">Rua / Logradouro {!isReq && <span className="text-text3/60">(opcional)</span>}</label>
+                        <input {...register('street', reqRule)}
+                          className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
+                          placeholder="Rua Exemplo" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-text3 mb-1">Número {!isReq && <span className="text-text3/60">(opcional)</span>}</label>
+                        <input {...register('number', reqRule)}
+                          className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
+                          placeholder="123" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-xs text-text3 mb-1">Bairro {!isReq && <span className="text-text3/60">(opcional)</span>}</label>
+                        <input {...register('neighborhood', reqRule)}
+                          className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
+                          placeholder="Centro" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-xs text-text3 mb-1">Complemento <span className="text-text3/60">(opcional)</span></label>
+                        <input {...register('complement')}
+                          className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
+                          placeholder="Apto 42" />
+                      </div>
+                    </div>
                   </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs text-text3 mb-1">Estado</label>
-                    <input {...register('state', { required: 'Obrigatório' })}
-                      className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
-                      placeholder="SP" maxLength={2} style={{ textTransform: 'uppercase' }} />
-                  </div>
-                  <div className="col-span-4">
-                    <label className="block text-xs text-text3 mb-1">Cidade</label>
-                    <input {...register('city', { required: 'Obrigatório' })}
-                      className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
-                      placeholder="São Paulo" />
-                  </div>
-                  <div className="col-span-3">
-                    <label className="block text-xs text-text3 mb-1">Rua / Logradouro</label>
-                    <input {...register('street', { required: 'Obrigatório' })}
-                      className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
-                      placeholder="Rua Exemplo" />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-text3 mb-1">Número</label>
-                    <input {...register('number', { required: 'Obrigatório' })}
-                      className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
-                      placeholder="123" />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs text-text3 mb-1">Bairro</label>
-                    <input {...register('neighborhood', { required: 'Obrigatório' })}
-                      className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
-                      placeholder="Centro" />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs text-text3 mb-1">Complemento <span className="text-text3/60">(opcional)</span></label>
-                    <input {...register('complement')}
-                      className="w-full bg-bg2 border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text3 outline-none focus:border-accent transition-all"
-                      placeholder="Apto 42" />
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Dados do cartão */}
               {method === 'CREDIT_CARD' && (
