@@ -265,7 +265,8 @@ export default function MyFinancial() {
 
           {/* Valor */}
           <div className="form-group">
-            <label className="label">Valor (mínimo R$ 50,00)</label>
+            {/* <label className="label">Valor (mínimo R$ 50,00)</label> */} {/* produção — voltar quando testes acabarem */}
+            <label className="label">Valor (mínimo R$ 1,00)</label> {/* TEMP testes */}
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text3 text-sm">R$</span>
               <input
@@ -273,13 +274,14 @@ export default function MyFinancial() {
                   required: 'Obrigatório',
                   validate: v => {
                     const n = parseFloat(v.replace(',', '.'));
-                    if (isNaN(n) || n < 50) return 'Valor mínimo para saque é R$ 50,00';
+                    // if (isNaN(n) || n < 50) return 'Valor mínimo para saque é R$ 50,00'; // produção — voltar quando testes acabarem
+                    if (isNaN(n) || n < 1) return 'Valor mínimo para saque é R$ 1,00'; // TEMP testes
                     if (Math.round(n * 100) > available) return `Valor excede o saldo disponível (${formatBRL(available)})`;
                     return true;
                   }
                 })}
                 className={`input pl-9 ${errors.amountReais ? 'border-red focus:border-red' : amountNum > 0 && aboveMin && aboveAvailable ? 'border-green/50' : ''}`}
-                placeholder="50,00"
+                placeholder="1,00"
                 inputMode="decimal"
               />
             </div>
