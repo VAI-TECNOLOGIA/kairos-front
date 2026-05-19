@@ -51,7 +51,8 @@ export default function AffiliateFinancial() {
   const amountReais    = watch('amountReais');
   const amountNum      = parseFloat((amountReais || '0').replace(',', '.')) || 0;
   const amountCents    = Math.round(amountNum * 100);
-  const aboveMin       = amountCents >= 100;
+  // const aboveMin    = amountCents >= 5000; // produção — voltar quando testes acabarem
+  const aboveMin       = amountCents >= 100; // TEMP testes
   const aboveAvailable = amountCents <= available;
   const canSubmit      = aboveMin && aboveAvailable && !hasPending && !!bankData;
 
@@ -103,11 +104,13 @@ export default function AffiliateFinancial() {
           <button
             onClick={() => {
               if (hasPending) { toast.error('Você já tem um saque pendente. Aguarde o processamento.'); return; }
-              if (available < 100) { toast.error('Saldo insuficiente. Mínimo para saque: R$ 1,00'); return; }
+              // if (available < 5000) { toast.error('Saldo insuficiente. Mínimo para saque: R$ 50,00'); return; } // produção — voltar quando testes acabarem
+              if (available < 100) { toast.error('Saldo insuficiente. Mínimo para saque: R$ 1,00'); return; } // TEMP testes
               if (!bankData) { toast.error('Cadastre seus dados bancários em "Verificação" antes de solicitar saque.'); return; }
               setOpenSaque(true);
             }}
-            className={`btn-primary btn-sm ${(hasPending || available < 100) ? 'opacity-60 cursor-not-allowed' : ''}`}
+            // className={`btn-primary btn-sm ${(hasPending || available < 5000) ? 'opacity-60 cursor-not-allowed' : ''}`} // produção
+            className={`btn-primary btn-sm ${(hasPending || available < 100) ? 'opacity-60 cursor-not-allowed' : ''}`} // TEMP testes
           >
             <ArrowDownCircle size={14} /> Solicitar saque
           </button>
@@ -134,6 +137,11 @@ export default function AffiliateFinancial() {
           <div className="text-2xl font-bold text-text">
             {showBal ? formatBRL(available) : '••••••'}
           </div>
+          {/* produção — voltar quando testes acabarem:
+          <div className={`text-[10px] mt-0.5 ${available >= 5000 ? 'text-green' : 'text-text3'}`}>
+            {available >= 5000 ? 'Disponível para saque' : 'Mínimo R$ 50,00 para sacar'}
+          </div>
+          */}
           <div className={`text-[10px] mt-0.5 ${available >= 100 ? 'text-green' : 'text-text3'}`}>
             {available >= 100 ? 'Disponível para saque' : 'Mínimo R$ 1,00 para sacar'}
           </div>
