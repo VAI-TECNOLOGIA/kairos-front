@@ -69,8 +69,6 @@ const PROVIDER_META: Record<Provider, {
     site       : 'https://bling.com.br',
     oauth      : true,
     oauthPath  : '/integrations/bling/authorize',
-    comingSoon : true,
-    comingSoonReason: 'Liberação final dos escopos pelo Bling em andamento. Em breve disponível.',
     fields     : [
       { key: 'accessToken',  label: 'Access Token',  type: 'password', placeholder: 'eyJ0eXAiOiJKV1Qi...', hint: 'Gerado após autorizar o app no Bling (ou cole manualmente do painel developer).' },
       { key: 'refreshToken', label: 'Refresh Token', type: 'password', placeholder: 'eyJ0eXAiOiJKV1Qi...', hint: 'Usado pra renovar o access token automaticamente quando expira.' },
