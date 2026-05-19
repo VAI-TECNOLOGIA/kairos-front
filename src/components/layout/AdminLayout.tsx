@@ -11,7 +11,7 @@ import {
   RefreshCw, DollarSign, BarChart3, Shield, Calculator,
   Settings, LogOut, Activity, FlaskConical, UserCircle, SlidersHorizontal, Tv2,
   ChevronDown, Megaphone, Briefcase, Lock, Percent, MessageSquareHeart, Plug, Clock,
-  Menu, X, ShieldCheck, Wallet, CalendarRange, AlertTriangle, Wrench,
+  Menu, X, ShieldCheck, Wallet, CalendarRange, AlertTriangle, Wrench, Zap,
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { BadgeCount } from '@/components/ui';
@@ -51,6 +51,7 @@ const buildNav = (counts: { producers: number; pendingProducts: number; pendingK
     { to: 'financeiro',   icon: DollarSign,    label: 'Financeiro' },
     { to: 'recebimentos', icon: CalendarRange, label: 'Recebimentos' },
     { to: 'receitas',     icon: BarChart3,     label: 'Receitas e Taxas' },
+    { to: 'antecipacao',  icon: Zap,           label: 'Antecipação' },
   ]},
   { group: 'Relatórios', icon: BarChart3, items: [
     { to: 'relatorios',     icon: BarChart3,     label: 'Geral' },

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader, StatCard, Modal, KairosWithdrawCard } from '@/components/ui';
 import { formatBRL, formatDateTime, bankLabel, withdrawalBankDisplay } from '@/lib/utils';
-import { DollarSign, ArrowDownCircle, Eye, EyeOff, Trash2, AlertCircle, Building2 } from 'lucide-react';
+import { DollarSign, ArrowDownCircle, Eye, EyeOff, Trash2, AlertCircle, Building2, Zap } from 'lucide-react';
 
 interface WithdrawForm {
   amountReais: string;
@@ -183,6 +183,9 @@ export default function MyFinancial() {
         />
       </div>
 
+      {/* Antecipação automática */}
+      <AnticipationCard />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Histórico de splits */}
         <div className="card">
@@ -338,6 +341,80 @@ export default function MyFinancial() {
           Tem certeza que deseja cancelar este pedido de saque? O valor voltará a ficar disponível no seu saldo.
         </p>
       </Modal>
+    </div>
+  );
+}
+
+function AnticipationCard() {
+  const qc = useQueryClient();
+  const { data, isLoading } = useQuery<{
+    hasRecipient    : boolean;
+    enabled         : boolean;
+    type            : string | null;
+    volumePercentage: number;
+    delay           : number;
+    updatedAt       : string | null;
+  }>({
+    queryKey: ['my-anticipation'],
+    queryFn : () => api.get('/financial/anticipation').then(r => r.data),
+  });
+
+  const toggle = useMutation({
+    mutationFn: (enabled: boolean) => api.put('/financial/anticipation', {
+      enabled,
+      type            : 'full',
+      volumePercentage: 100,
+      delay           : 0,
+    }),
+    onSuccess: (_, enabled) => {
+      qc.invalidateQueries({ queryKey: ['my-anticipation'] });
+      qc.invalidateQueries({ queryKey: ['my-balance'] });
+      toast.success(enabled ? 'Antecipação ativada!' : 'Antecipação desativada');
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao atualizar antecipação'),
+  });
+
+  if (isLoading || !data) return null;
+
+  return (
+    <div className="card mb-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className={`flex items-center justify-center w-9 h-9 rounded-lg ${data.enabled ? 'bg-green/15 text-green' : 'bg-text3/15 text-text3'}`}>
+            <Zap size={18} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="section-title">Antecipação automática</span>
+              <span className={data.enabled ? 'badge-green' : 'badge-amber'}>
+                {data.enabled ? 'Ativada' : 'Desativada'}
+              </span>
+            </div>
+            <p className="text-xs text-text3 mt-1 max-w-xl">
+              Quando ativada, os recebíveis de cartão (normalmente D+30) viram saldo disponível
+              <strong> imediatamente após a venda</strong>. Pagar.me cobra uma taxa de antecipação
+              em cima desse valor — vale a pena se você precisa do cash mais rápido pra reinvestir.
+            </p>
+            {data.enabled && (
+              <p className="text-[10px] text-text3 mt-1">
+                Configuração: {data.type === 'full' ? '100% antecipável' : 'parcelado'} · volume {data.volumePercentage}% · delay {data.delay} dia(s)
+              </p>
+            )}
+            {!data.hasRecipient && (
+              <p className="text-[10px] text-amber mt-1">
+                ⚠ Você precisa completar a Verificação (cadastro do recebedor Pagar.me) antes de ativar.
+              </p>
+            )}
+          </div>
+        </div>
+        <button
+          className={`btn-sm ${data.enabled ? 'btn-ghost' : 'btn-primary'}`}
+          disabled={!data.hasRecipient || toggle.isPending}
+          onClick={() => toggle.mutate(!data.enabled)}
+        >
+          {toggle.isPending ? 'Salvando…' : data.enabled ? 'Desativar' : 'Ativar antecipação'}
+        </button>
+      </div>
     </div>
   );
 }
