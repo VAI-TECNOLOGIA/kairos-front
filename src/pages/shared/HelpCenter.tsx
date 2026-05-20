@@ -442,8 +442,12 @@ export default function HelpCenter() {
                 <p className="text-xs">Bling cria <strong>NF-e</strong> (modelo 55) automaticamente após o pedido — usa a primeira "Venda de mercadoria" cadastrada nas naturezas de operação. Vinculada ao pedido + conta a receber.</p>
               </div>
               <div className="bg-accent/5 border border-accent/30 rounded-lg p-3">
-                <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Monitor size={13} /> Produto DIGITAL</div>
-                <p className="text-xs"><strong>NFe.io</strong> emite a <strong>NFS-e</strong> (nota de serviço — não é responsabilidade do Bling). Mantenha NFe.io configurado pra produtos digitais.</p>
+                <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Monitor size={13} /> Produto DIGITAL + Bling ativo</div>
+                <p className="text-xs">Bling cria <strong>NFS-e</strong> (nota de serviço) — exige código de serviço LC 116 cadastrado no painel Bling. Se Bling NFS-e falhar (município não suportado ou config incompleta), Kairos cai automaticamente pro NFe.io como fallback.</p>
+              </div>
+              <div className="bg-bg3/40 border border-border rounded-lg p-3 sm:col-span-2">
+                <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Monitor size={13} /> Produto DIGITAL sem Bling</div>
+                <p className="text-xs"><strong>NFe.io</strong> emite a NFS-e direto (continua igual antes). Mantenha NFe.io configurado pra ter cobertura caso desative o Bling.</p>
               </div>
             </div>
             <p className="text-xs text-text3 pt-1">
