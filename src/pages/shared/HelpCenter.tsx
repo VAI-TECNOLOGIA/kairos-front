@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui';
-import { ChevronDown, ChevronUp, ExternalLink, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
+import {
+  ChevronDown, ChevronUp, ExternalLink, AlertTriangle, CheckCircle2, Info,
+  ListChecks, Settings, Undo2, FileText, Eye, Wrench, Unplug, Clock,
+  Package, Monitor, Wallet, Users, Activity,
+} from 'lucide-react';
 import melhorEnvioLogo from '@/assets/melhorenvio.png';
 import nfeLogo         from '@/assets/nfe.png';
 import utmifyLogo      from '@/assets/utmify.png';
@@ -350,15 +354,10 @@ export default function HelpCenter() {
             </div>
           </div>
 
-          <div className="flex items-start gap-2 text-xs text-text2 bg-green/5 border border-green/30 rounded-lg p-3 mt-2">
-            <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5 text-green" />
-            <div>
-              <strong>App aprovado pelo Bling — funciona em produção.</strong> Pedidos, contas a receber e NF-e (produto físico) são sincronizados em ~5 segundos após a venda APPROVED. Não há período de "espera" — basta conectar e usar.
-            </div>
-          </div>
-
           {/* ─── COMO CONECTAR ─── */}
-          <h5 className="text-sm font-bold text-text mt-4 mb-2">📋 Como conectar (3 passos)</h5>
+          <h5 className="text-sm font-bold text-text mt-4 mb-2 flex items-center gap-2">
+            <ListChecks size={14} /> Como conectar (3 passos)
+          </h5>
 
           <Step n={1} title="Tenha uma conta ativa no Bling">
             <p>
@@ -391,7 +390,9 @@ export default function HelpCenter() {
           </Step>
 
           {/* ─── O QUE ACONTECE NA PRÁTICA ─── */}
-          <h5 className="text-sm font-bold text-text mt-6 mb-2">⚙️ O que acontece automaticamente em cada venda</h5>
+          <h5 className="text-sm font-bold text-text mt-6 mb-2 flex items-center gap-2">
+            <Settings size={14} /> O que acontece automaticamente em cada venda
+          </h5>
 
           <div className="bg-bg3/40 border border-border rounded-lg p-4 space-y-3 text-sm">
             <div className="font-semibold text-text">Quando o cliente paga e o pedido vira <span className="text-green">APPROVED</span> no Kairos:</div>
@@ -409,12 +410,15 @@ export default function HelpCenter() {
                 <strong>Dá baixa automática</strong> na conta (o pagamento já foi confirmado pelo Kairos)
               </li>
             </ol>
-            <p className="text-xs text-text3 mt-2">
-              ⏱️ <strong>Tempo:</strong> ~5 segundos após APPROVED. Se o Bling estiver instável, retenta até 4 vezes (30s → 1min → 2min → 4min).
+            <p className="text-xs text-text3 mt-2 flex items-start gap-1.5">
+              <Clock size={12} className="flex-shrink-0 mt-0.5" />
+              <span><strong>Tempo:</strong> ~5 segundos após APPROVED. Se o Bling estiver instável, retenta até 4 vezes (30s → 1min → 2min → 4min).</span>
             </p>
           </div>
 
-          <h5 className="text-sm font-bold text-text mt-6 mb-2">↩️ E quando há reembolso ou chargeback?</h5>
+          <h5 className="text-sm font-bold text-text mt-6 mb-2 flex items-center gap-2">
+            <Undo2 size={14} /> E quando há reembolso ou chargeback?
+          </h5>
 
           <div className="bg-bg3/40 border border-border rounded-lg p-4 space-y-2 text-sm text-text2">
             <p>
@@ -427,16 +431,18 @@ export default function HelpCenter() {
             </ul>
           </div>
 
-          <h5 className="text-sm font-bold text-text mt-6 mb-2">📄 Emissão de nota fiscal: como o Kairos decide</h5>
+          <h5 className="text-sm font-bold text-text mt-6 mb-2 flex items-center gap-2">
+            <FileText size={14} /> Emissão de nota fiscal: como o Kairos decide
+          </h5>
 
           <div className="bg-bg3/40 border border-border rounded-lg p-4 space-y-3 text-sm text-text2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="bg-green/5 border border-green/30 rounded-lg p-3">
-                <div className="font-semibold text-text mb-1">📦 Produto FÍSICO + Bling ativo</div>
+                <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Package size={13} /> Produto FÍSICO + Bling ativo</div>
                 <p className="text-xs">Bling cria <strong>NF-e</strong> (modelo 55) automaticamente após o pedido — usa a primeira "Venda de mercadoria" cadastrada nas naturezas de operação. Vinculada ao pedido + conta a receber.</p>
               </div>
               <div className="bg-accent/5 border border-accent/30 rounded-lg p-3">
-                <div className="font-semibold text-text mb-1">💻 Produto DIGITAL</div>
+                <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Monitor size={13} /> Produto DIGITAL</div>
                 <p className="text-xs"><strong>NFe.io</strong> emite a <strong>NFS-e</strong> (nota de serviço — não é responsabilidade do Bling). Mantenha NFe.io configurado pra produtos digitais.</p>
               </div>
             </div>
@@ -449,29 +455,33 @@ export default function HelpCenter() {
           </div>
 
           {/* ─── O QUE VOCÊ VAI VER ─── */}
-          <h5 className="text-sm font-bold text-text mt-6 mb-2">👀 O que aparece no seu Bling após uma venda</h5>
+          <h5 className="text-sm font-bold text-text mt-6 mb-2 flex items-center gap-2">
+            <Eye size={14} /> O que aparece no seu Bling após uma venda
+          </h5>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div className="bg-bg3/40 border border-border rounded-lg p-3">
-              <div className="font-semibold text-text mb-1">📦 Vendas → Pedidos de venda</div>
+              <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Package size={13} /> Vendas → Pedidos de venda</div>
               <p className="text-xs text-text2">Cada venda aprovada aparece com o nome do produto, valor e referência ao código do Kairos.</p>
             </div>
             <div className="bg-bg3/40 border border-border rounded-lg p-3">
-              <div className="font-semibold text-text mb-1">💰 Financeiro → Contas a receber</div>
+              <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Wallet size={13} /> Financeiro → Contas a receber</div>
               <p className="text-xs text-text2">Conta a receber vinculada ao pedido, já com baixa marcada (saldo zerado).</p>
             </div>
             <div className="bg-bg3/40 border border-border rounded-lg p-3">
-              <div className="font-semibold text-text mb-1">👥 Cadastros → Clientes</div>
+              <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Users size={13} /> Cadastros → Clientes</div>
               <p className="text-xs text-text2">Contato do comprador (nome, CPF/CNPJ, email, telefone) — sem duplicar se ele comprar de novo.</p>
             </div>
             <div className="bg-bg3/40 border border-border rounded-lg p-3">
-              <div className="font-semibold text-text mb-1">🔄 Eventos do app</div>
+              <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Activity size={13} /> Eventos do app</div>
               <p className="text-xs text-text2">Bling registra cada chamada do Kairos pra auditoria — visível no painel do app.</p>
             </div>
           </div>
 
           {/* ─── TROUBLESHOOTING ─── */}
-          <h5 className="text-sm font-bold text-text mt-6 mb-2">🔧 Problemas comuns</h5>
+          <h5 className="text-sm font-bold text-text mt-6 mb-2 flex items-center gap-2">
+            <Wrench size={14} /> Problemas comuns
+          </h5>
 
           <details className="bg-bg3/40 border border-border rounded-lg p-3 text-sm group">
             <summary className="cursor-pointer font-semibold text-text">A venda foi aprovada mas não apareceu no Bling</summary>
@@ -534,7 +544,9 @@ export default function HelpCenter() {
           </details>
 
           {/* ─── DESCONECTAR ─── */}
-          <h5 className="text-sm font-bold text-text mt-6 mb-2">🔌 Desconectar</h5>
+          <h5 className="text-sm font-bold text-text mt-6 mb-2 flex items-center gap-2">
+            <Unplug size={14} /> Desconectar
+          </h5>
 
           <div className="bg-bg3/40 border border-border rounded-lg p-3 text-sm text-text2">
             No card Bling em <strong>Integrações</strong>, clique <strong>Remover</strong>. O token é revogado e o Kairos para de sincronizar pro Bling. Vendas anteriores que já foram sincronizadas <strong>permanecem no seu Bling</strong> — só as próximas deixam de espelhar. Pra reativar, é só clicar Conectar Bling de novo.
