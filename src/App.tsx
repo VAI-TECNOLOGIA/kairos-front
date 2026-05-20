@@ -243,7 +243,7 @@ export default function App() {
           <Route path="ambiente-de-teste"  element={<TestEnvironmentPage />} />
           <Route path="vai"                element={<AdminVai />} />
           <Route path="bling-resync"       element={<AdminBlingResync />} />
-          <Route path="antecipacao"        element={<AdminAnticipation />} />
+          {/* <Route path="antecipacao"        element={<AdminAnticipation />} /> */}
           <Route path="perfil"             element={<ProfilePage />} />
           <Route path="integracoes"        element={<IntegrationsPage />} />
           <Route path="configurar-dashboard" element={<DashboardSettings />} />

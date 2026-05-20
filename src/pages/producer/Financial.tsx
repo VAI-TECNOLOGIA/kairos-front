@@ -183,8 +183,9 @@ export default function MyFinancial() {
         />
       </div>
 
-      {/* Antecipação automática */}
+      {/* Antecipação automática — desabilitado temporariamente, voltar quando o fluxo Pagar.me estiver estável
       <AnticipationCard />
+      */}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Histórico de splits */}

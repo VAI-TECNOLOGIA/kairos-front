@@ -51,7 +51,7 @@ const buildNav = (counts: { producers: number; pendingProducts: number; pendingK
     { to: 'financeiro',   icon: DollarSign,    label: 'Financeiro' },
     { to: 'recebimentos', icon: CalendarRange, label: 'Recebimentos' },
     { to: 'receitas',     icon: BarChart3,     label: 'Receitas e Taxas' },
-    { to: 'antecipacao',  icon: Zap,           label: 'Antecipação' },
+    // { to: 'antecipacao',  icon: Zap,           label: 'Antecipação' }, // desabilitado temporariamente
   ]},
   { group: 'Relatórios', icon: BarChart3, items: [
     { to: 'relatorios',     icon: BarChart3,     label: 'Geral' },
