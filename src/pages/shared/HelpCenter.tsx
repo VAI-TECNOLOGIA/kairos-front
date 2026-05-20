@@ -350,10 +350,10 @@ export default function HelpCenter() {
             </div>
           </div>
 
-          <div className="flex items-start gap-2 text-xs text-text2 bg-amber/5 border border-amber/30 rounded-lg p-3 mt-2">
-            <AlertTriangle size={14} className="flex-shrink-0 mt-0.5 text-amber" />
+          <div className="flex items-start gap-2 text-xs text-text2 bg-green/5 border border-green/30 rounded-lg p-3 mt-2">
+            <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5 text-green" />
             <div>
-              <strong>App em revisão pelo Bling (1-3 dias úteis):</strong> durante esse período você pode <strong>conectar normalmente</strong>, mas a sincronização de pedidos/contas a receber só vai começar a salvar dados no seu Bling após o Bling aprovar nossa integração. Enquanto isso, o Kairos guarda as vendas internamente e sincroniza tudo automaticamente assim que liberar — sem perda. Se você fizer uma venda e ela não aparecer no Bling em até 5 minutos depois da aprovação, fale com o suporte.
+              <strong>App aprovado pelo Bling — funciona em produção.</strong> Pedidos, contas a receber e NF-e (produto físico) são sincronizados em ~5 segundos após a venda APPROVED. Não há período de "espera" — basta conectar e usar.
             </div>
           </div>
 
@@ -427,21 +427,25 @@ export default function HelpCenter() {
             </ul>
           </div>
 
-          <h5 className="text-sm font-bold text-text mt-6 mb-2">📄 NF-e: Bling vs NFe.io</h5>
+          <h5 className="text-sm font-bold text-text mt-6 mb-2">📄 Emissão de nota fiscal: como o Kairos decide</h5>
 
-          <div className="bg-amber/5 border border-amber/30 rounded-lg p-4 space-y-2 text-sm text-text2">
-            <div className="flex items-start gap-2">
-              <Info size={14} className="flex-shrink-0 mt-0.5 text-amber" />
-              <div>
-                <p className="font-semibold text-text">Hoje a emissão de NF-e continua pelo NFe.io.</p>
-                <p className="mt-1">
-                  Mesmo com Bling conectado, a NF-e continua sendo emitida pelo NFe.io (se você o tiver configurado). Não há duplicação. O Bling cuida só do espelhamento financeiro nesse cenário.
-                </p>
-                <p className="mt-1 text-xs">
-                  Em uma próxima versão, vamos liberar a opção de migrar a emissão de NF-e pro Bling — útil pra quem prefere ter NF-e + financeiro no mesmo ERP.
-                </p>
+          <div className="bg-bg3/40 border border-border rounded-lg p-4 space-y-3 text-sm text-text2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-green/5 border border-green/30 rounded-lg p-3">
+                <div className="font-semibold text-text mb-1">📦 Produto FÍSICO + Bling ativo</div>
+                <p className="text-xs">Bling cria <strong>NF-e</strong> (modelo 55) automaticamente após o pedido — usa a primeira "Venda de mercadoria" cadastrada nas naturezas de operação. Vinculada ao pedido + conta a receber.</p>
+              </div>
+              <div className="bg-accent/5 border border-accent/30 rounded-lg p-3">
+                <div className="font-semibold text-text mb-1">💻 Produto DIGITAL</div>
+                <p className="text-xs"><strong>NFe.io</strong> emite a <strong>NFS-e</strong> (nota de serviço — não é responsabilidade do Bling). Mantenha NFe.io configurado pra produtos digitais.</p>
               </div>
             </div>
+            <p className="text-xs text-text3 pt-1">
+              <strong>Pré-requisitos pra Bling emitir NF-e válida:</strong> certificado digital A1 + tributação configurada + naturezas de operação ativas (incluindo uma de "Venda") + dados do emitente completos no painel Bling. Sem isso, Bling cria a nota como rascunho mas o envio à SEFAZ falha — você consegue terminar manualmente no painel.
+            </p>
+            <p className="text-xs text-text3">
+              <strong>Sem Bling conectado:</strong> NFe.io emite NFS-e pra qualquer tipo de produto (continua igual antes).
+            </p>
           </div>
 
           {/* ─── O QUE VOCÊ VAI VER ─── */}
@@ -502,9 +506,30 @@ export default function HelpCenter() {
           </details>
 
           <details className="bg-bg3/40 border border-border rounded-lg p-3 text-sm group mt-2">
-            <summary className="cursor-pointer font-semibold text-text">Tela do Bling diz "aplicativo não verificado"</summary>
+            <summary className="cursor-pointer font-semibold text-text">NF-e fica "rascunho" no Bling sem enviar pra SEFAZ</summary>
             <div className="mt-2 text-text2 space-y-2">
-              <p>Se aparecer um aviso amarelo "Este aplicativo ainda não foi aprovado por nossa equipe técnica", é porque o Kairos está em homologação no Bling. <strong>É seguro autorizar</strong> — quando o Bling concluir a revisão (1-3 dias úteis), o aviso some. Sua integração funciona normalmente nesse período.</p>
+              <p>O Kairos criou a NF-e no seu Bling com sucesso (você vê em <strong>Vendas → Notas fiscais</strong>), mas ela ficou em "Em digitação" / "Rascunho" e não foi autorizada pela Receita. Causas típicas:</p>
+              <ul className="list-disc ml-5 space-y-1">
+                <li><strong>Certificado digital A1</strong> não cadastrado (Preferências → Empresa → Certificado)</li>
+                <li><strong>Tributação padrão</strong> não configurada (Preferências → Tributação)</li>
+                <li><strong>Inscrição Estadual</strong> sem cadastro ou inválida</li>
+                <li><strong>CFOP / Natureza de operação</strong> não corresponde ao tipo de venda</li>
+              </ul>
+              <p>Esses dados são fiscais — você precisa configurar uma única vez no painel Bling (ou pedir pro seu contador). Depois disso, todas as NF-e do Kairos vão direto autorizadas.</p>
+            </div>
+          </details>
+
+          <details className="bg-bg3/40 border border-border rounded-lg p-3 text-sm group mt-2">
+            <summary className="cursor-pointer font-semibold text-text">"Nenhuma natureza de operação ativa" no log do Kairos</summary>
+            <div className="mt-2 text-text2 space-y-2">
+              <p>Significa que sua conta Bling não tem nenhuma Natureza de Operação cadastrada — o Kairos precisa de uma do tipo "Venda" pra criar a NF-e. Como resolver:</p>
+              <ol className="list-decimal ml-5 space-y-1">
+                <li>No Bling: <strong>Preferências → Naturezas de operação</strong></li>
+                <li>Clique <strong>Incluir natureza</strong></li>
+                <li>Preencha regime tributário, faixa de faturamento, ramo, atividades (Bling sugere conforme o ramo)</li>
+                <li>Salve. Bling cria uma natureza "Venda de mercadoria" ativa</li>
+                <li>Próxima venda no Kairos já gera NF-e automaticamente</li>
+              </ol>
             </div>
           </details>
 
