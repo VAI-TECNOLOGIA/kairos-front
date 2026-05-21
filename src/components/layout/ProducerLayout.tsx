@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import KycBanner from '@/components/KycBanner';
+import { SpecialMessageDialog } from '@/components/SpecialMessageDialog';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme, logoForTheme } from '@/hooks/useTheme';
 
@@ -156,6 +157,7 @@ export default function ProducerLayout() {
           <Outlet />
         </main>
       </div>
+      <SpecialMessageDialog />
     </div>
   );
 }

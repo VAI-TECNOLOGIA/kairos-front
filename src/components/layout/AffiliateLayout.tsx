@@ -15,6 +15,7 @@ import {
 import NotificationBell from '@/components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme, logoForTheme } from '@/hooks/useTheme';
+import { SpecialMessageDialog } from '@/components/SpecialMessageDialog';
 
 const nav = [
   { group: 'Início', items: [
@@ -354,6 +355,7 @@ export default function AffiliateLayout() {
       )}
             </div>
 
+      <SpecialMessageDialog />
     </div>
   );
 }
