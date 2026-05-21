@@ -81,6 +81,16 @@ export default function AffiliateFinancial() {
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao cancelar'),
   });
 
+  const markReceived = useMutation({
+    mutationFn: (id: string) => api.post(`/financial/withdrawals/${id}/mark-received`),
+    onSuccess: () => {
+      toast.success('Recebimento confirmado!');
+      qc.invalidateQueries({ queryKey: ['affiliate-stats'] });
+      qc.invalidateQueries({ queryKey: ['affiliate-withdrawals'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao confirmar'),
+  });
+
   const statusVariant = (s: string) => {
     if (s === 'PAID')       return 'badge-green';
     if (s === 'PROCESSING') return 'badge-blue';
@@ -223,6 +233,20 @@ export default function AffiliateFinancial() {
                         title="Cancelar pedido"
                       >
                         <Trash2 size={13} />
+                      </button>
+                    )}
+                    {w.status === 'PROCESSING' && (
+                      <button
+                        onClick={() => {
+                          if (confirm('Confirmar que você já recebeu este valor na sua conta bancária? Use só se o dinheiro de fato caiu — não dá pra desfazer.')) {
+                            markReceived.mutate(w.id);
+                          }
+                        }}
+                        disabled={markReceived.isPending}
+                        className="text-xs text-green hover:underline transition-colors"
+                        title="Já recebi o pagamento"
+                      >
+                        Já recebi
                       </button>
                     )}
                   </div>
