@@ -443,7 +443,7 @@ export default function HelpCenter() {
               </div>
               <div className="bg-accent/5 border border-accent/30 rounded-lg p-3">
                 <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Monitor size={13} /> Produto DIGITAL + Bling ativo</div>
-                <p className="text-xs">Bling cria <strong>NFS-e</strong> (nota de serviço) — exige código de serviço LC 116 cadastrado no painel Bling. Se Bling NFS-e falhar (município não suportado ou config incompleta), Kairos cai automaticamente pro NFe.io como fallback.</p>
+                <p className="text-xs">Bling cria <strong>NFS-e</strong> (nota de serviço) — exige no painel Bling: <strong>Inscrição Municipal</strong> + <strong>cidade de prestação</strong> cadastrada + <strong>código LC 116</strong> vinculado a um conjunto de tributações (ISS/INSS/IR). Se Bling NFS-e falhar, Kairos cai automaticamente pro NFe.io como fallback.</p>
               </div>
               <div className="bg-bg3/40 border border-border rounded-lg p-3 sm:col-span-2">
                 <div className="font-semibold text-text mb-1 flex items-center gap-1.5"><Monitor size={13} /> Produto DIGITAL sem Bling</div>
@@ -530,6 +530,20 @@ export default function HelpCenter() {
                 <li><strong>CFOP / Natureza de operação</strong> não corresponde ao tipo de venda</li>
               </ul>
               <p>Esses dados são fiscais — você precisa configurar uma única vez no painel Bling (ou pedir pro seu contador). Depois disso, todas as NF-e do Kairos vão direto autorizadas.</p>
+            </div>
+          </details>
+
+          <details className="bg-bg3/40 border border-border rounded-lg p-3 text-sm group mt-2">
+            <summary className="cursor-pointer font-semibold text-text">NFS-e (produto digital) não está sendo emitida</summary>
+            <div className="mt-2 text-text2 space-y-2">
+              <p>A NFS-e via Bling exige <strong>configuração fiscal municipal completa</strong> no seu Bling — diferente da NF-e (federal), cada município tem regras próprias. Erros comuns que aparecem no Kairos:</p>
+              <ul className="list-disc ml-5 space-y-1">
+                <li><strong>"municipioPrestacao não foi preenchida corretamente"</strong> — cadastre a cidade de prestação do serviço em <strong>Preferências → NFS-e → Município/Prefeitura</strong></li>
+                <li><strong>"código da lista de serviço não está vinculado a um conjunto de tributações"</strong> — vá em <strong>Preferências → Tributação → Códigos de Serviço (LC 116)</strong>, adicione o código relativo ao seu serviço (ex: 1.07 pra treinamento/cursos) e vincule um conjunto de tributações ISS/INSS</li>
+                <li><strong>"Inscrição Municipal inválida"</strong> — preencha a Inscrição Municipal em <strong>Cadastros → Empresa → Dados fiscais</strong></li>
+                <li><strong>Plano Bling sem NFS-e</strong> — nem todo plano inclui NFS-e; confirme com o Bling no seu painel</li>
+              </ul>
+              <p>Enquanto NFS-e do Bling não estiver configurada, o Kairos usa NFe.io como fallback automaticamente — basta deixar NFe.io ativo no card de integrações.</p>
             </div>
           </details>
 
