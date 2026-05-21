@@ -347,14 +347,7 @@ export default function HelpCenter() {
           open={open === 'bling'}
           onToggle={() => setOpen(open === 'bling' ? null : 'bling')}
         >
-          <div className="flex items-start gap-2 text-xs text-text2 bg-yellow-500/10 border border-yellow-500/40 rounded-lg p-3">
-            <AlertTriangle size={14} className="flex-shrink-0 mt-0.5 text-yellow-500" />
-            <div>
-              <strong>Versão beta de teste.</strong> A integração Bling está em fase de testes — pode apresentar instabilidades ou erros de emissão de NF-e/NFS-e dependendo da configuração da sua conta. Use com atenção e reporte qualquer problema pro suporte.
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2 text-xs text-text2 bg-green/5 border border-green/20 rounded-lg p-3 mt-2">
+          <div className="flex items-start gap-2 text-xs text-text2 bg-green/5 border border-green/20 rounded-lg p-3">
             <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5 text-green" />
             <div>
               <strong>Tempo de configuração:</strong> ~2 minutos. Não precisa criar nenhum aplicativo no Bling — só clicar <strong>Conectar Bling</strong>, autorizar com sua conta e pronto.

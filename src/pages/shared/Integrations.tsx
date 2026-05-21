@@ -257,8 +257,13 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
             <img src={meta.logo} alt={meta.name} className="w-full h-full object-contain p-1.5" />
           </div>
           <div>
-            <h3 className="font-semibold text-text flex items-center gap-2">
+            <h3 className="font-semibold text-text flex items-center gap-2 flex-wrap">
               {meta.name}
+              {meta.name === 'Bling' && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-yellow-500/15 text-yellow-600 border border-yellow-500/40">
+                  Versão beta de teste
+                </span>
+              )}
               {row.configured && row.isActive && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green/15 text-green border border-green/30">
                   <CheckCircle2 size={10} /> Ativo
