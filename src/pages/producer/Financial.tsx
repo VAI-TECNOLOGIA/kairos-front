@@ -41,7 +41,7 @@ export default function MyFinancial() {
   const wdList: any[] = withdrawals?.data || [];
 
   // Verifica se tem saque PENDING
-  const hasPending = wdList.some((w: any) => w.status === 'PENDING');
+  const hasPending = wdList.some((w: any) => w.status === 'PENDING' || w.status === 'PROCESSING');
   const cooldownReady = wdStatus?.ready ?? true;
 
   const { data: producerMe } = useQuery({
@@ -104,6 +104,22 @@ export default function MyFinancial() {
     if (s === 'PROCESSING') return 'badge-blue';
     if (s === 'FAILED')     return 'badge-red';
     return 'badge-amber';
+  };
+
+  // Calcula quando o botão "Já recebi" libera (espelha a regra do backend):
+  //   aprovação 8h-15h (BRT) → 1h; fora disso → 6h.
+  // Aprovação = metadata.pagarmeWithdrawal.createdAt (set quando admin clica Processar),
+  // fallback pra createdAt do withdrawal.
+  const receivedReleaseInfo = (w: any) => {
+    if (w.status !== 'PROCESSING') return { canMark: false, waitMin: 0 };
+    const approvedIso = w.metadata?.pagarmeWithdrawal?.createdAt || w.createdAt;
+    const approvedAt  = new Date(approvedIso);
+    const brtHour     = (approvedAt.getUTCHours() - 3 + 24) % 24;
+    const requiredHs  = (brtHour >= 8 && brtHour < 16) ? 1 : 6;
+    const elapsedMs   = Date.now() - approvedAt.getTime();
+    const requiredMs  = requiredHs * 60 * 60 * 1_000;
+    const remainingMin = Math.max(0, Math.ceil((requiredMs - elapsedMs) / 60_000));
+    return { canMark: elapsedMs >= requiredMs, waitMin: remainingMin };
   };
 
   const statusLabel = (s: string) => {
@@ -244,20 +260,33 @@ export default function MyFinancial() {
                         <Trash2 size={13} />
                       </button>
                     )}
-                    {w.status === 'PROCESSING' && (
-                      <button
-                        onClick={() => {
-                          if (confirm('Confirmar que você já recebeu este valor na sua conta bancária? Use só se o dinheiro de fato caiu — não dá pra desfazer.')) {
-                            markReceived.mutate(w.id);
-                          }
-                        }}
-                        disabled={markReceived.isPending}
-                        className="text-xs text-green hover:underline transition-colors"
-                        title="Já recebi o pagamento"
-                      >
-                        Já recebi
-                      </button>
-                    )}
+                    {w.status === 'PROCESSING' && (() => {
+                      const r = receivedReleaseInfo(w);
+                      if (r.canMark) {
+                        return (
+                          <button
+                            onClick={() => {
+                              if (confirm('Confirmar que você já recebeu este valor na sua conta bancária? Use só se o dinheiro de fato caiu — não dá pra desfazer.')) {
+                                markReceived.mutate(w.id);
+                              }
+                            }}
+                            disabled={markReceived.isPending}
+                            className="text-xs text-green hover:underline transition-colors"
+                            title="Já recebi o pagamento"
+                          >
+                            Já recebi
+                          </button>
+                        );
+                      }
+                      const h = Math.floor(r.waitMin / 60);
+                      const m = r.waitMin % 60;
+                      const txt = h > 0 ? `${h}h${m ? ` ${m}min` : ''}` : `${m}min`;
+                      return (
+                        <span className="text-[10px] text-text3" title="Confirmação liberada após período de carência da TED">
+                          libera em {txt}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
               ))}
