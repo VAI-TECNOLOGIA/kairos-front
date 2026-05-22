@@ -54,7 +54,18 @@ export default function AffiliateFinancial() {
   // const aboveMin    = amountCents >= 5000; // produção — voltar quando testes acabarem
   const aboveMin       = amountCents >= 100; // TEMP testes
   const aboveAvailable = amountCents <= available;
-  const canSubmit      = aboveMin && aboveAvailable && !hasPending && !!bankData;
+
+  // Preview da taxa de saque
+  const { data: preview } = useQuery<{ amountCents: number; feeCents: number; netCents: number; blocked: boolean }>({
+    queryKey: ['withdraw-preview', amountCents],
+    queryFn : () => api.get(`/financial/withdraw/preview?amountCents=${amountCents}`).then(r => r.data),
+    enabled : amountCents > 0,
+  });
+  const feeCents  = preview?.feeCents ?? 0;
+  const netCents  = preview?.netCents ?? amountCents;
+  const feeBlocks = !!preview?.blocked;
+
+  const canSubmit      = aboveMin && aboveAvailable && !hasPending && !!bankData && !feeBlocks;
 
   const withdraw = useMutation({
     mutationFn: (d: WithdrawForm) => api.post('/financial/withdraw', {
@@ -331,10 +342,33 @@ export default function AffiliateFinancial() {
             </div>
             {errors.amountReais ? (
               <span className="text-xs text-red flex items-center gap-1 mt-1">⚠ {errors.amountReais.message}</span>
-            ) : amountNum > 0 && aboveMin && aboveAvailable ? (
-              <span className="text-xs text-green mt-1 block">✓ {formatBRL(amountCents)} serão transferidos para sua conta bancária cadastrada</span>
             ) : null}
           </div>
+
+          {amountNum > 0 && aboveMin && aboveAvailable && !errors.amountReais && (
+            <div className={`rounded-[7px] p-3 border ${feeBlocks ? 'border-red/30 bg-red/5' : 'border-border bg-bg3/40'}`}>
+              <div className="flex items-center justify-between text-xs text-text2">
+                <span>Valor solicitado</span>
+                <span className="font-medium text-text">{formatBRL(amountCents)}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-text2 mt-1">
+                <span>Taxa de saque (Kairos)</span>
+                <span className="font-medium text-red">− {formatBRL(feeCents)}</span>
+              </div>
+              <div className="h-px bg-border my-2" />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-text">Você recebe na conta</span>
+                <span className={`font-bold ${feeBlocks ? 'text-red' : 'text-green'}`}>{formatBRL(netCents)}</span>
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-text3 mt-2">
+                <span>Debitado do seu saldo</span>
+                <span>{formatBRL(amountCents)}</span>
+              </div>
+              {feeBlocks && (
+                <p className="text-[11px] text-red mt-2">⚠ A taxa excede o valor solicitado. Aumente o valor do saque.</p>
+              )}
+            </div>
+          )}
 
           {bankData ? (
             <div className="flex items-start gap-3 p-3 rounded-[8px] border border-border bg-bg3">
