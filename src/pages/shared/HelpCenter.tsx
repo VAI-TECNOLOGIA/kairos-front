@@ -450,11 +450,50 @@ export default function HelpCenter() {
                 <p className="text-xs"><strong>NFe.io</strong> emite a NFS-e direto (continua igual antes). Mantenha NFe.io configurado pra ter cobertura caso desative o Bling.</p>
               </div>
             </div>
-            <p className="text-xs text-text3 pt-1">
-              <strong>Pré-requisitos pra Bling emitir NF-e válida:</strong> certificado digital A1 + tributação configurada + naturezas de operação ativas (incluindo uma de "Venda") + dados do emitente completos no painel Bling. Sem isso, Bling cria a nota como rascunho mas o envio à SEFAZ falha — você consegue terminar manualmente no painel.
-            </p>
             <p className="text-xs text-text3">
               <strong>Sem Bling conectado:</strong> NFe.io emite NFS-e pra qualquer tipo de produto (continua igual antes).
+            </p>
+          </div>
+
+          {/* ─── PRÉ-REQUISITOS FISCAIS NO PAINEL BLING ─── */}
+          <h5 className="text-sm font-bold text-text mt-6 mb-2 flex items-center gap-2">
+            <ListChecks size={14} /> Antes da primeira venda física: configure seu Bling
+          </h5>
+
+          <div className="bg-amber/5 border border-amber/30 rounded-lg p-4 text-sm">
+            <p className="text-text2 mb-3">
+              A integração Kairos↔Bling <strong>sincroniza pedidos, contatos, produtos e notas automaticamente</strong>. Porém, pra Bling enviar a NF-e à SEFAZ e receber autorização, é o <strong>seu Bling</strong> que precisa estar com cadastro fiscal pronto. Isso é responsabilidade do produtor (ou do contador) e se faz <strong>uma única vez</strong>:
+            </p>
+
+            <ol className="list-decimal ml-5 space-y-3 text-text2">
+              <li>
+                <strong>Dados da empresa completos</strong>
+                <div className="text-xs text-text3 mt-1">Painel Bling → ícone do usuário (topo) → <strong>Empresa</strong>. Preencha: CEP, UF, Cidade, Bairro, Endereço, Número, Inscrição Estadual (ou marque "Isento" se Simples Nacional MEI), regime tributário correto.</div>
+              </li>
+              <li>
+                <strong>Certificado digital A1 (.pfx)</strong>
+                <div className="text-xs text-text3 mt-1">Painel Bling → <strong>Preferências → Notas fiscais → Configurações de NF-e → Certificado digital</strong>. Sem isso a SEFAZ rejeita 100% das notas. Renova a cada 1 ano.</div>
+              </li>
+              <li>
+                <strong>Tributação padrão</strong>
+                <div className="text-xs text-text3 mt-1">Painel Bling → <strong>Preferências → Notas fiscais → Tributação</strong>. Configure CSOSN (Simples) ou CST (Lucro Real/Presumido), alíquotas ICMS por estado e CFOP padrão de venda. <strong>Seu contador é quem define</strong> esses valores corretos.</div>
+              </li>
+              <li>
+                <strong>Naturezas de operação</strong>
+                <div className="text-xs text-text3 mt-1">Painel Bling → <strong>Preferências → Notas fiscais → Naturezas de operação</strong>. Bling sugere 18 ao informar regime/segmento. Garanta que tenha uma chamada <strong>"Venda de mercadoria"</strong> ativa — o Kairos usa essa por padrão.</div>
+              </li>
+              <li>
+                <strong>NCM em cada produto</strong>
+                <div className="text-xs text-text3 mt-1">Quando o Kairos sincroniza uma venda nova, ele cria o produto no seu Bling automaticamente (vinculado por código <code className="bg-bg3 px-1 rounded text-[11px]">KW-…</code> ou pelo seu SKU). Você só precisa entrar em <strong>Cadastros → Produtos</strong> uma vez por produto e adicionar o <strong>NCM</strong> (8 dígitos), CFOP e Origem da mercadoria. A partir daí, todas as vendas daquele produto saem com NF autorizada.</div>
+              </li>
+              <li>
+                <strong>Endereço completo do cliente</strong>
+                <div className="text-xs text-text3 mt-1">Em venda real isso já vem do checkout do Kairos (o cliente preenche CEP, rua, número, etc para receber a mercadoria). Você não precisa fazer nada.</div>
+              </li>
+            </ol>
+
+            <p className="text-xs text-text3 mt-3 pt-3 border-t border-border/40">
+              <strong>Já usa Bling pra emitir NF-e hoje?</strong> Então os itens 1-4 já estão prontos. Só o NCM por produto (item 5) é novidade — vai aparecer quando o Kairos sincronizar a primeira venda de cada produto.
             </p>
           </div>
 
@@ -522,14 +561,19 @@ export default function HelpCenter() {
           <details className="bg-bg3/40 border border-border rounded-lg p-3 text-sm group mt-2">
             <summary className="cursor-pointer font-semibold text-text">NF-e fica "rascunho" no Bling sem enviar pra SEFAZ</summary>
             <div className="mt-2 text-text2 space-y-2">
-              <p>O Kairos criou a NF-e no seu Bling com sucesso (você vê em <strong>Vendas → Notas fiscais</strong>), mas ela ficou em "Em digitação" / "Rascunho" e não foi autorizada pela Receita. Causas típicas:</p>
+              <p>O Kairos criou a NF-e no seu Bling com sucesso (você vê em <strong>Vendas → Notas fiscais</strong> com banner amarelo "Erro no envio de NF-e"), mas ela ficou em rascunho. <strong>Clique na nota</strong> dentro do Bling — ele vai listar exatamente quais campos faltam. As causas mais comuns:</p>
               <ul className="list-disc ml-5 space-y-1">
-                <li><strong>Certificado digital A1</strong> não cadastrado (Preferências → Empresa → Certificado)</li>
-                <li><strong>Tributação padrão</strong> não configurada (Preferências → Tributação)</li>
-                <li><strong>Inscrição Estadual</strong> sem cadastro ou inválida</li>
-                <li><strong>CFOP / Natureza de operação</strong> não corresponde ao tipo de venda</li>
+                <li><strong>Dados da empresa incompletos</strong> — endereço (CEP, número, cidade, bairro) e Inscrição Estadual. Corrija em ícone do usuário (topo) → <strong>Empresa</strong>.</li>
+                <li><strong>Certificado digital A1</strong> não cadastrado — <strong>Preferências → Notas fiscais → Configurações de NF-e → Certificado digital</strong></li>
+                <li><strong>Tributação padrão</strong> não configurada — <strong>Preferências → Notas fiscais → Tributação</strong></li>
+                <li><strong>Inscrição Estadual</strong> inválida ou "Isento" não compatível com regime tributário escolhido</li>
+                <li><strong>NCM e Unidade do produto vazios</strong> — abre o produto em <strong>Cadastros → Produtos</strong> e preenche NCM (8 dígitos), unidade (UN/KG/L), Origem da mercadoria</li>
+                <li><strong>CSOSN</strong> ou <strong>CST</strong> incompatível com o tipo de cliente (consumidor final / contribuinte)</li>
+                <li><strong>Natureza de operação</strong> não tem CFOP/tributação cadastrada</li>
               </ul>
-              <p>Esses dados são fiscais — você precisa configurar uma única vez no painel Bling (ou pedir pro seu contador). Depois disso, todas as NF-e do Kairos vão direto autorizadas.</p>
+              <p className="text-xs text-text3 bg-bg3/40 rounded p-2 mt-2">
+                💡 Esses dados são <strong>fiscais</strong> — configure uma única vez no painel Bling (ou pede pro seu contador). Depois, todas as NF-e do Kairos vão direto autorizadas pela SEFAZ. Veja a seção <strong>"Antes da primeira venda física: configure seu Bling"</strong> acima pra o passo a passo completo.
+              </p>
             </div>
           </details>
 

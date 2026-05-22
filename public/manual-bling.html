@@ -250,6 +250,51 @@
       </ul>
     </section>
 
+    <section class="card">
+      <h3>Pra emitir NF-e autorizada pela SEFAZ — configure seu Bling</h3>
+      <p>
+        A integração Kairos↔Bling sincroniza pedidos, contatos, produtos e cria a NF-e automaticamente.
+        Mas é o <strong>seu Bling</strong> que envia a nota pra SEFAZ e recebe autorização — pra isso, o cadastro
+        fiscal do seu Bling precisa estar pronto. Esse cadastro é feito <strong>uma única vez</strong> (depois disso
+        todas as vendas do Kairos saem com NF autorizada automaticamente).
+      </p>
+      <ol>
+        <li>
+          <strong>Dados da empresa completos</strong> — ícone do usuário (topo do Bling) → <em>Empresa</em>.
+          Preencha CEP, UF, Cidade, Bairro, Endereço, Número, Inscrição Estadual (ou marque "Isento" se MEI) e
+          regime tributário correto.
+        </li>
+        <li>
+          <strong>Certificado digital A1 (.pfx)</strong> — <em>Preferências → Notas fiscais → Configurações de NF-e → Certificado digital</em>.
+          Sem isso a SEFAZ rejeita 100% das notas. Renova a cada 1 ano.
+        </li>
+        <li>
+          <strong>Tributação padrão</strong> — <em>Preferências → Notas fiscais → Tributação</em>.
+          Configure CSOSN (Simples) ou CST (Lucro Real/Presumido), alíquotas ICMS por estado e CFOP padrão.
+          <strong>Seu contador é quem define</strong> esses valores corretos.
+        </li>
+        <li>
+          <strong>Naturezas de operação</strong> — <em>Preferências → Notas fiscais → Naturezas de operação</em>.
+          Bling sugere 18 automaticamente ao informar regime/segmento. Garanta que tenha uma <strong>"Venda de mercadoria"</strong>
+          ativa — o Kairos usa essa por padrão.
+        </li>
+        <li>
+          <strong>NCM em cada produto</strong> — quando o Kairos sincroniza uma venda nova, ele cria o produto no seu Bling
+          automaticamente (com código <code>KW-…</code> ou seu SKU). Você só precisa entrar em
+          <em>Cadastros → Produtos</em> uma vez por produto e adicionar o <strong>NCM (8 dígitos)</strong>, CFOP e
+          Origem da mercadoria. A partir daí, todas as vendas daquele produto saem com NF autorizada.
+        </li>
+        <li>
+          <strong>Endereço do cliente</strong> — em venda real isso já vem do checkout do Kairos
+          (o cliente preenche CEP, rua, número etc para receber a mercadoria). Você não precisa fazer nada.
+        </li>
+      </ol>
+      <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 1rem;">
+        <strong>Já emite NF-e pelo Bling hoje?</strong> Então itens 1–4 já estão prontos. Só item 5 (NCM por produto) pode
+        precisar — aparecerá só na primeira venda de cada produto novo.
+      </p>
+    </section>
+
     <section>
       <h3>Perguntas frequentes</h3>
 
