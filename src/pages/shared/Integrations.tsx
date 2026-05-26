@@ -248,6 +248,14 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
     },
   });
 
+  const resyncBling = useMutation({
+    mutationFn: () => api.post('/integrations/bling/resync-pending').then(r => r.data),
+    onSuccess: (data: any) => {
+      toast.success(data.message || `${data.enqueued} pedido(s) na fila`);
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao sincronizar'),
+  });
+
   return (
     <div className="card space-y-4">
       {/* Header */}
@@ -460,6 +468,17 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
                 className="btn-sec btn-sm"
               >
                 Editar
+              </button>
+            )}
+            {provider === 'BLING' && (
+              <button
+                onClick={() => resyncBling.mutate()}
+                disabled={resyncBling.isPending}
+                className="btn-sec btn-sm flex items-center gap-1.5"
+                title="Reenvia pedidos APPROVED dos últimos 90 dias que ainda não foram pro Bling"
+              >
+                {resyncBling.isPending ? <Loader2 size={13} className="animate-spin" /> : <Plug size={13} />}
+                Sincronizar pendentes
               </button>
             )}
             <button
