@@ -43,10 +43,10 @@ export default function MySales() {
             <>
               <div className="text-text3 mb-2">
                 Você tem o <strong>Bling</strong> conectado. Suas notas fiscais (NF-e) ficam disponíveis no painel
-                Bling em <strong>Faturamento → Notas Fiscais</strong>, com PDF, XML e DANFE para download.
+                Bling em <strong>Faturamento → Notas Fiscais de Saída</strong>, com PDF, XML e DANFE para download.
               </div>
               <a
-                href="https://www.bling.com.br/notasfiscais.eletronica.php"
+                href="https://www.bling.com.br/b/notas.fiscais.php#list"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-primary py-1.5 px-3 text-xs inline-flex items-center gap-1.5"
