@@ -21,6 +21,9 @@ interface FormData {
   salesPageUrl     : string;
   supportEmail     : string;
   supportPhone     : string;
+  sku              : string;
+  weightGrams      : string;
+  ncm              : string;
 }
 
 export default function ProductInfoSection() {
@@ -30,7 +33,7 @@ export default function ProductInfoSection() {
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(product?.imageUrl || null);
 
-  const { register, handleSubmit, reset, formState: { isDirty } } = useForm<FormData>({
+  const { register, handleSubmit, reset, formState: { isDirty, errors } } = useForm<FormData>({
     defaultValues: {
       name             : product?.name || '',
       description      : product?.description || '',
@@ -40,6 +43,9 @@ export default function ProductInfoSection() {
       salesPageUrl     : product?.salesPageUrl || '',
       supportEmail     : product?.supportEmail || '',
       supportPhone     : product?.supportPhone || '',
+      sku              : product?.sku || '',
+      weightGrams      : product?.weightGrams != null ? String(product.weightGrams) : '',
+      ncm              : product?.ncm || '',
     },
   });
 
@@ -54,6 +60,9 @@ export default function ProductInfoSection() {
         salesPageUrl     : product.salesPageUrl || '',
         supportEmail     : product.supportEmail || '',
         supportPhone     : product.supportPhone || '',
+        sku              : product.sku || '',
+        weightGrams      : product.weightGrams != null ? String(product.weightGrams) : '',
+        ncm              : product.ncm || '',
       });
       setImageUrl(product.imageUrl || null);
       setImagePreview(product.imageUrl || null);
@@ -70,6 +79,9 @@ export default function ProductInfoSection() {
       nameOnInvoice: data.nameOnInvoice || null,
       description : data.description || null,
       refundDays  : Number(data.refundDays),
+      sku         : data.sku || null,
+      weightGrams : data.weightGrams ? Number(data.weightGrams) : null,
+      ncm         : data.ncm || null,
     }),
     onSuccess: () => {
       toast.success('Informações salvas!');
@@ -186,6 +198,30 @@ export default function ProductInfoSection() {
           </div>
         </div>
       </div>
+
+      {product?.type === 'PHYSICAL' && (
+        <div className="card p-4 space-y-3">
+          <div className="text-xs font-semibold text-text2 uppercase tracking-wide">Dados fiscais (emissão de NF-e)</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="label">SKU</label>
+              <input {...register('sku')} className="input" placeholder="Código interno" />
+              <p className="text-[10px] text-text3 mt-1">Código interno do produto (opcional).</p>
+            </div>
+            <div>
+              <label className="label">Peso (g)</label>
+              <input type="number" min={0} {...register('weightGrams')} className="input" placeholder="Ex: 250" />
+              <p className="text-[10px] text-text3 mt-1">Peso unitário em gramas.</p>
+            </div>
+            <div>
+              <label className="label">NCM</label>
+              <input {...register('ncm', { pattern: { value: /^\d{8}$/, message: 'NCM precisa ter 8 dígitos numéricos' } })} className="input" placeholder="8 dígitos, ex: 21069030" maxLength={8} />
+              {errors.ncm && <span className="text-[10px] text-red">{errors.ncm.message as string}</span>}
+              <p className="text-[10px] text-text3 mt-1">Código fiscal do produto (sem ponto/traço). Obrigatório pra Bling emitir NF-e.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <button type="submit" disabled={save.isPending || (!isDirty && imageUrl === product?.imageUrl)} className="btn-primary w-full justify-center py-3">
         {save.isPending ? 'Salvando...' : 'Salvar alterações'}

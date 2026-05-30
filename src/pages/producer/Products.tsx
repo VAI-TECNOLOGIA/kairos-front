@@ -22,6 +22,9 @@ const schema = z.object({
   category   : z.string().optional(),
   imageUrl   : z.string().optional(),
   digitalUrl : z.string().url('URL inválida').optional().or(z.literal('')),
+  sku        : z.string().optional().or(z.literal('')),
+  weightGrams: z.coerce.number().int().positive().optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
+  ncm        : z.string().regex(/^\d{8}$/, 'NCM deve ter 8 dígitos numéricos (sem ponto/traço)').optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -382,6 +385,28 @@ export default function MyProducts() {
             <input {...register('category')} className="input" placeholder="Ex: Cursos, Saúde..." />
           </div>
           <ImageUpload value={imageUrl} onChange={setImageUrl} folder="products" label="Imagem de capa" />
+
+          {productType === 'PHYSICAL' && (
+            <div className="border-t border-border pt-4 mt-4 space-y-3">
+              <div className="text-xs font-semibold text-text2 uppercase tracking-wide">Dados fiscais (emissão de NF-e)</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="form-group">
+                  <label className="label">SKU</label>
+                  <input {...register('sku')} className="input" placeholder="Código interno" />
+                </div>
+                <div className="form-group">
+                  <label className="label">Peso (g)</label>
+                  <input type="number" {...register('weightGrams')} className="input" placeholder="Ex: 250" />
+                </div>
+                <div className="form-group">
+                  <label className="label">NCM</label>
+                  <input {...register('ncm')} className="input" placeholder="8 dígitos, ex: 21069030" maxLength={8} />
+                  {errors.ncm && <span className="text-xs text-red">{errors.ncm.message}</span>}
+                </div>
+              </div>
+              <p className="text-[11px] text-text3">NCM e SKU são usados pra emitir nota fiscal automaticamente via Bling. Sem NCM, o Bling rejeita a NF-e na hora de enviar pra SEFAZ.</p>
+            </div>
+          )}
         </div>
       </Modal>
 
@@ -464,6 +489,28 @@ export default function MyProducts() {
               </div>
             )}
             <ImageUpload value={editImageUrl} onChange={setEditImageUrl} folder="products" label="Imagem de capa" />
+
+            {editProductType === 'PHYSICAL' && (
+              <div className="border-t border-border pt-4 mt-4 space-y-3">
+                <div className="text-xs font-semibold text-text2 uppercase tracking-wide">Dados fiscais (emissão de NF-e)</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="form-group">
+                    <label className="label">SKU</label>
+                    <input {...re('sku')} className="input" placeholder="Código interno" />
+                  </div>
+                  <div className="form-group">
+                    <label className="label">Peso (g)</label>
+                    <input type="number" {...re('weightGrams')} className="input" placeholder="Ex: 250" />
+                  </div>
+                  <div className="form-group">
+                    <label className="label">NCM</label>
+                    <input {...re('ncm')} className="input" placeholder="8 dígitos, ex: 21069030" maxLength={8} />
+                    {ee.ncm && <span className="text-xs text-red">{ee.ncm.message}</span>}
+                  </div>
+                </div>
+                <p className="text-[11px] text-text3">NCM e SKU são usados pra emitir nota fiscal automaticamente via Bling. Sem NCM, o Bling rejeita a NF-e na hora de enviar pra SEFAZ.</p>
+              </div>
+            )}
           </div>
         )}
 
