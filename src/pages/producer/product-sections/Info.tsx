@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { Image as ImageIcon, Upload } from 'lucide-react';
+import { NcmHelper } from '@/components/ui/NcmHelper';
 
 const CATEGORIES = ['saude', 'educacao', 'entretenimento', 'apps_software', 'moda_beleza', 'casa_construcao', 'outros'];
 const CATEGORY_LABEL: Record<string, string> = {
@@ -33,7 +34,7 @@ export default function ProductInfoSection() {
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(product?.imageUrl || null);
 
-  const { register, handleSubmit, reset, formState: { isDirty, errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, setValue, formState: { isDirty, errors } } = useForm<FormData>({
     defaultValues: {
       name             : product?.name || '',
       description      : product?.description || '',
@@ -217,6 +218,7 @@ export default function ProductInfoSection() {
               <label className="label">NCM</label>
               <input {...register('ncm', { pattern: { value: /^\d{8}$/, message: 'NCM precisa ter 8 dígitos numéricos' } })} className="input" placeholder="8 dígitos, ex: 21069030" maxLength={8} />
               {errors.ncm && <span className="text-[10px] text-red">{errors.ncm.message as string}</span>}
+              <NcmHelper onPick={(v) => setValue('ncm', v, { shouldValidate: true, shouldDirty: true })} />
               <p className="text-[10px] text-text3 mt-1">Código fiscal do produto (sem ponto/traço). Obrigatório pra Bling emitir NF-e.</p>
             </div>
           </div>

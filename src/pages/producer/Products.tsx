@@ -12,6 +12,7 @@ import { formatBRL, formatDate, productStatusVariant, PRODUCT_TYPE_LABEL } from 
 import type { Product } from '@/types';
 import { Package, Plus, ExternalLink, Image as ImageIcon, Tag, Pencil, MessageSquareHeart, Eye, EyeOff } from 'lucide-react';
 import { RichTextEditor, sanitizeHtml } from '@/components/RichTextEditor';
+import { NcmHelper } from '@/components/ui/NcmHelper';
 import { ICON_MAP, ICON_OPTIONS, COLOR_OPTIONS, DEFAULT_SUCCESS_ICON, DEFAULT_SUCCESS_COLOR } from '@/lib/successConfig';
 import { usePlatformFee, feeMultiplier } from '@/hooks/usePlatformFee';
 
@@ -49,7 +50,7 @@ export default function MyProducts() {
     queryFn : () => api.get('/products').then(r => r.data),
   });
 
-  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
@@ -402,6 +403,7 @@ export default function MyProducts() {
                   <label className="label">NCM</label>
                   <input {...register('ncm')} className="input" placeholder="8 dígitos, ex: 21069030" maxLength={8} />
                   {errors.ncm && <span className="text-xs text-red">{errors.ncm.message}</span>}
+                  <NcmHelper onPick={(v) => setValue('ncm', v, { shouldValidate: true })} />
                 </div>
               </div>
               <p className="text-[11px] text-text3">NCM e SKU são usados pra emitir nota fiscal automaticamente via Bling. Sem NCM, o Bling rejeita a NF-e na hora de enviar pra SEFAZ.</p>
@@ -506,6 +508,7 @@ export default function MyProducts() {
                     <label className="label">NCM</label>
                     <input {...re('ncm')} className="input" placeholder="8 dígitos, ex: 21069030" maxLength={8} />
                     {ee.ncm && <span className="text-xs text-red">{ee.ncm.message}</span>}
+                    <NcmHelper onPick={(v) => sv('ncm', v, { shouldValidate: true })} />
                   </div>
                 </div>
                 <p className="text-[11px] text-text3">NCM e SKU são usados pra emitir nota fiscal automaticamente via Bling. Sem NCM, o Bling rejeita a NF-e na hora de enviar pra SEFAZ.</p>
