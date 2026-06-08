@@ -12,6 +12,7 @@ interface Product {
   type        : string;
   imageUrl    : string | null;
   isActive    : boolean;
+  metadata?   : Record<string, any> | null;
   offers?     : any[];
 }
 

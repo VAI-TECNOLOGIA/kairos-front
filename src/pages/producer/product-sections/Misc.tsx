@@ -1,7 +1,10 @@
 import { useOutletContext, Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { publicOrigin } from '@/lib/share-url';
+import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Copy, Construction, ShoppingBag, Activity, Link2, Users, Lock } from 'lucide-react';
+import { Copy, Construction, ShoppingBag, Activity, Link2, Users, Lock, MapPin, Save } from 'lucide-react';
 
 function useIsAffiliateArea() {
   return useLocation().pathname.startsWith('/afiliado/');
@@ -28,15 +31,86 @@ function PlaceholderSection({ icon: Icon, title, description, ctaText, ctaTo }: 
 }
 
 export function ProductCheckoutSection() {
+  const { product } = useOutletContext<{ product: any }>();
+  const qc = useQueryClient();
   const isAffiliateArea = useIsAffiliateArea();
+
+  // requireAddress mora em product.metadata.requireAddress; default true
+  const initial = (product?.metadata as any)?.requireAddress !== false;
+  const [requireAddress, setRequireAddress] = useState(initial);
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => { setRequireAddress(initial); setDirty(false); }, [product?.id, initial]);
+
+  const save = useMutation({
+    mutationFn: () => api.patch(`/products/${product.id}`, { requireAddress }),
+    onSuccess : () => {
+      toast.success('Configuração salva!');
+      qc.invalidateQueries({ queryKey: ['producer-product', product.id] });
+      setDirty(false);
+    },
+    onError: () => toast.error('Erro ao salvar'),
+  });
+
+  // PHYSICAL sempre exige endereço pra envio — toggle fica desabilitado
+  const isPhysical = product?.type === 'PHYSICAL';
+
   return (
-    <PlaceholderSection
-      icon={ShoppingBag}
-      title="Personalizar checkout"
-      description="Customize cores, banner, ordem de campos e ofertas extras no checkout deste produto."
-      ctaText={isAffiliateArea ? undefined : "Ir para configurações globais de checkout"}
-      ctaTo={isAffiliateArea ? undefined : "/produtor/checkout"}
-    />
+    <div className="space-y-3">
+      <h2 className="text-base font-semibold text-text">Personalizar checkout</h2>
+
+      {/* ── Coleta de endereço ──────────────────────────────────── */}
+      <div className="card p-4 space-y-3">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-2.5 min-w-0">
+            <MapPin size={16} className="text-text2 flex-shrink-0 mt-0.5" strokeWidth={1.5} />
+            <div className="min-w-0">
+              <h3 className="font-semibold text-text text-sm">Solicitar endereço no checkout</h3>
+              <p className="text-xs text-text3 mt-0.5 leading-relaxed">
+                {isPhysical
+                  ? 'Produtos físicos exigem endereço para envio — não dá pra desligar.'
+                  : 'Quando desligado, o cliente não precisa preencher endereço para pagar com Pix ou Cartão.'}
+                <br />
+                <span className="text-text3/80">Boleto sempre exige endereço (regra do Pagar.me).</span>
+              </p>
+            </div>
+          </div>
+          <label className={`relative inline-flex items-center flex-shrink-0 mt-1 ${isAffiliateArea || isPhysical ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={isPhysical ? true : requireAddress}
+              disabled={isAffiliateArea || isPhysical}
+              onChange={e => { setRequireAddress(e.target.checked); setDirty(true); }}
+            />
+            <div className="w-11 h-6 bg-bg3 border border-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent/30 peer-checked:border-accent/60" />
+          </label>
+        </div>
+
+        {!isAffiliateArea && !isPhysical && (
+          <div className="flex justify-end pt-1">
+            <button
+              type="button"
+              onClick={() => save.mutate()}
+              disabled={!dirty || save.isPending}
+              className="btn-primary btn-sm flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Save size={13} />
+              {save.isPending ? 'Salvando...' : 'Salvar'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Restante (placeholder) ──────────────────────────────── */}
+      <div className="card p-8 text-center text-text3">
+        <ShoppingBag size={32} className="mx-auto mb-3 opacity-40" />
+        <p className="text-sm mb-2">Mais personalizações (cores, banner, order bump, upsell) em breve.</p>
+        <div className="inline-flex items-center gap-1.5 text-[10px] text-amber bg-amber/10 px-2 py-1 rounded mt-2">
+          <Construction size={11} /> Em breve
+        </div>
+      </div>
+    </div>
   );
 }
 
