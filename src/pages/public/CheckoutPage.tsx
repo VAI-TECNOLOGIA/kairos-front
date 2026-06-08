@@ -940,8 +940,14 @@ export default function CheckoutPage() {
                 // productType undefined (backend antigo) → trata como PHYSICAL (sempre exige).
                 const isDigital  = offerData?.offer?.productType === 'DIGITAL';
                 const isBoleto   = method === 'BOLETO';
+                // Produtor pode optar por não coletar endereço (toggle em /producer/checkout).
+                // Só vale pra DIGITAL + (PIX | CARTÃO): PHYSICAL exige (envio) e BOLETO exige (Pagar.me).
+                const producerAllowsHide = offerData?.offer?.requireAddress === false;
+                const canHide = producerAllowsHide && isDigital && !isBoleto;
+
                 const addressMode: 'required' | 'optional' | 'hidden' =
-                  !isDigital || isBoleto ? 'required'
+                  canHide ? 'hidden'
+                  : (!isDigital || isBoleto) ? 'required'
                   : method === 'CREDIT_CARD' ? 'optional'
                   : 'hidden';
 

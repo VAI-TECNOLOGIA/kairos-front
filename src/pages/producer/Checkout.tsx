@@ -8,15 +8,16 @@ import {
 } from '@/lib/successConfig';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { Eye, EyeOff, Save, Info, RotateCcw } from 'lucide-react';
+import { Eye, EyeOff, Save, Info, RotateCcw, MapPin } from 'lucide-react';
 
 export default function CheckoutConfig() {
   const qc = useQueryClient();
-  const [msg,     setMsg]     = useState('');
-  const [icon,    setIcon]    = useState(DEFAULT_SUCCESS_ICON);
-  const [color,   setColor]   = useState(DEFAULT_SUCCESS_COLOR);
-  const [preview, setPreview] = useState(false);
-  const [dirty,   setDirty]   = useState(false);
+  const [msg,            setMsg]            = useState('');
+  const [icon,           setIcon]           = useState(DEFAULT_SUCCESS_ICON);
+  const [color,          setColor]          = useState(DEFAULT_SUCCESS_COLOR);
+  const [requireAddress, setRequireAddress] = useState(true);
+  const [preview,        setPreview]        = useState(false);
+  const [dirty,          setDirty]          = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['producer-checkout-config'],
@@ -28,17 +29,19 @@ export default function CheckoutConfig() {
     setMsg(data.html   ?? '');
     setIcon(data.icon  ?? DEFAULT_SUCCESS_ICON);
     setColor(data.color ?? DEFAULT_SUCCESS_COLOR);
+    setRequireAddress(data.requireAddress !== false);
     setDirty(false);
   }, [data]);
 
   const save = useMutation({
-    mutationFn: () => api.patch('/producers/checkout-config', { html: msg, icon, color }),
+    mutationFn: () => api.patch('/producers/checkout-config', { html: msg, icon, color, requireAddress }),
     onSuccess : () => { toast.success('Configuração salva!'); qc.invalidateQueries({ queryKey: ['producer-checkout-config'] }); setDirty(false); },
     onError   : () => toast.error('Erro ao salvar'),
   });
 
   const reset = () => {
     setMsg(''); setIcon(DEFAULT_SUCCESS_ICON); setColor(DEFAULT_SUCCESS_COLOR);
+    setRequireAddress(true);
     setPreview(false); setDirty(true);
   };
 
@@ -154,6 +157,32 @@ export default function CheckoutConfig() {
                   {ICON_OPTIONS.flatMap(g => g.items).find(i => i.id === icon)?.label} · {COLOR_OPTIONS.find(c => c.hex === color)?.label}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* ── Coleta de endereço ─────────────────────────────────── */}
+          <div className="card space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <MapPin size={16} className="text-text2 flex-shrink-0 mt-0.5" strokeWidth={1.5} />
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-text text-sm">Solicitar endereço no checkout</h3>
+                  <p className="text-xs text-text3 mt-0.5 leading-relaxed">
+                    Quando desligado, o cliente não precisa preencher endereço para pagar com Pix ou Cartão em produtos digitais.
+                    <br />
+                    <span className="text-text3/80">Boleto e produtos físicos sempre exigem endereço (não dá pra desligar).</span>
+                  </p>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-1">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={requireAddress}
+                  onChange={e => { setRequireAddress(e.target.checked); setDirty(true); }}
+                />
+                <div className="w-11 h-6 bg-bg3 border border-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent/30 peer-checked:border-accent/60" />
+              </label>
             </div>
           </div>
 
