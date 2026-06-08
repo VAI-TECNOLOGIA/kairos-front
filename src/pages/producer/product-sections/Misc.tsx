@@ -102,14 +102,14 @@ export function ProductCheckoutSection() {
         )}
       </div>
 
-      {/* ── Restante (placeholder) ──────────────────────────────── */}
-      <div className="card p-8 text-center text-text3">
-        <ShoppingBag size={32} className="mx-auto mb-3 opacity-40" />
-        <p className="text-sm mb-2">Mais personalizações (cores, banner, order bump, upsell) em breve.</p>
-        <div className="inline-flex items-center gap-1.5 text-[10px] text-amber bg-amber/10 px-2 py-1 rounded mt-2">
-          <Construction size={11} /> Em breve
+      {/* ── Link pra personalização global (ícone/cor/mensagem) ──── */}
+      {!isAffiliateArea && (
+        <div className="card p-8 text-center text-text3">
+          <ShoppingBag size={32} className="mx-auto mb-3 opacity-40" />
+          <p className="text-sm mb-2">Customize cores, ícone e mensagem de pós-venda do checkout (vale pra todos os seus produtos).</p>
+          <Link to="/produtor/checkout" className="text-accent text-xs hover:underline">Ir para configurações de checkout →</Link>
         </div>
-      </div>
+      )}
     </div>
   );
 }
