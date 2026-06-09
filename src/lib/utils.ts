@@ -47,6 +47,13 @@ export function bpsToPct(bps: number): string {
   return (bps / 100).toFixed(2);
 }
 
+/** Lê um campo de porcentagem aceitando vírgula decimal ("51,5" → 51.5). Vazio/inválido → NaN. */
+export function parsePercent(v: unknown): number {
+  if (typeof v === 'number') return v;
+  const s = String(v ?? '').trim().replace(',', '.');
+  return s === '' ? NaN : Number(s);
+}
+
 /** Trunca texto */
 export function truncate(str: string, maxLen = 40): string {
   return str.length > maxLen ? str.slice(0, maxLen) + '…' : str;

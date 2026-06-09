@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { DateCell, WhatsAppLink } from '@/components/ui';
-import { cn } from '@/lib/utils';
+import { cn, parsePercent } from '@/lib/utils';
 import { Copy, Users, Info, Lock, UserMinus } from 'lucide-react';
 
 type Tab = 'config' | 'affiliates';
@@ -31,7 +31,7 @@ export default function ProductAffiliationSection() {
   const firstOffer    = offers[0];
   const currentConfig = firstOffer?.affiliateConfig;
 
-  const { register, handleSubmit, reset, watch } = useForm<ConfigForm>({
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<ConfigForm>({
     defaultValues: {
       commissionPct          : currentConfig?.commissionBps ? currentConfig.commissionBps / 100 : 0,
       coproducerCommissionPct: currentConfig?.coproducerCommissionBps ? currentConfig.coproducerCommissionBps / 100 : 0,
@@ -163,15 +163,24 @@ export default function ProductAffiliationSection() {
                     <label className="label">Comissão do afiliado *</label>
                     <div className="relative">
                       <input
-                        {...register('commissionPct', { valueAsNumber: true, min: 0, max: 50 })}
-                        type="number"
-                        step="0.5"
+                        {...register('commissionPct', {
+                          setValueAs: parsePercent,
+                          validate: v =>
+                            (Number.isFinite(v) && v >= 0 && v <= 100) ||
+                            'A comissão do afiliado deve ser um valor entre 0% e 100%.',
+                        })}
+                        type="text"
+                        inputMode="decimal"
                         className="input pr-10"
                         placeholder="0"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text3 text-sm">%</span>
                     </div>
-                    <p className="text-[10px] text-text3 mt-1">Comissão para o afiliado direto. Use 0 para desabilitar.</p>
+                    {errors.commissionPct ? (
+                      <p className="text-[10px] text-red mt-1">{errors.commissionPct.message}</p>
+                    ) : (
+                      <p className="text-[10px] text-text3 mt-1">Comissão para o afiliado direto, de 0% a 100% (aceita vírgula, ex.: 51,5). Use 0 para desabilitar.</p>
+                    )}
                   </div>
                   <div>
                     <label className="label">% Co-produtor (afiliado upline)</label>

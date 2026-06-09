@@ -4,7 +4,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { PageHeader, Modal } from '@/components/ui';
-import { formatDateTime } from '@/lib/utils';
+import { formatDateTime, parsePercent } from '@/lib/utils';
 import { CheckCircle, Info, Settings, Copy, Link2, Users, Ban } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
@@ -13,7 +13,7 @@ export default function ProducerAffiliates() {
   const [tab, setTab] = useState<'approved' | 'offers'>('approved');
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
   const [enrollmentsOffer, setEnrollmentsOffer] = useState<any | null>(null);
-  const { register: regOffer, handleSubmit: handleOffer, reset: resetOffer, setValue } = useForm();
+  const { register: regOffer, handleSubmit: handleOffer, reset: resetOffer, setValue, formState: { errors: offerErrors } } = useForm();
 
   const { data: enrollments, isLoading: enrollmentsLoading } = useQuery({
     queryKey: ['offer-enrollments', enrollmentsOffer?.id],
@@ -55,7 +55,7 @@ export default function ProducerAffiliates() {
   const saveOfferConfig = useMutation({
     mutationFn: (d: any) => api.post(`/affiliates/offers/${selectedOffer.id}/config`, {
       enabled: true,
-      commissionBps: Math.round(Number(d.commissionPct) * 100),
+      commissionBps: Math.round(parsePercent(d.commissionPct) * 100),
       cookieDays: Number(d.cookieDays) || 30,
       description: d.description,
     }),
@@ -192,7 +192,21 @@ export default function ProducerAffiliates() {
               <form onSubmit={handleOffer(d => saveOfferConfig.mutate(d))} className="space-y-4">
                 <div>
                   <label className="label">Comissão (%)</label>
-                  <input type="number" step="0.5" min="1" max="50" className="input" placeholder="Ex: 10" {...regOffer('commissionPct', { required: true })} />
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    className="input"
+                    placeholder="Ex: 10 (aceita vírgula)"
+                    {...regOffer('commissionPct', {
+                      setValueAs: parsePercent,
+                      validate: v =>
+                        (Number.isFinite(v) && v >= 0 && v <= 100) ||
+                        'A comissão do afiliado deve ser um valor entre 0% e 100%.',
+                    })}
+                  />
+                  {offerErrors.commissionPct && (
+                    <p className="text-[10px] text-red mt-1">{(offerErrors.commissionPct.message as string) || 'A comissão do afiliado deve ser um valor entre 0% e 100%.'}</p>
+                  )}
                 </div>
                 <div>
                   <label className="label">Cookie (dias)</label>
