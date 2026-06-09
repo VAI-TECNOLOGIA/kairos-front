@@ -14,6 +14,7 @@ import KycBanner from '@/components/KycBanner';
 import { SpecialMessageDialog } from '@/components/SpecialMessageDialog';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme, logoForTheme } from '@/hooks/useTheme';
+import TierBadge from '@/components/TierBadge';
 
 const nav = [
   { group: 'Início', items: [
@@ -81,6 +82,9 @@ export default function ProducerLayout() {
             <div className="text-[10px] text-text3">Painel Produtor</div>
           </div>
         </div>
+
+        {/* Barra de progressão de nível (Bronze/Prata/Ouro) — antes só existia no painel afiliado */}
+        <TierBadge />
 
         <nav className="flex-1 px-3 py-4">
           {nav.map((section) => (
