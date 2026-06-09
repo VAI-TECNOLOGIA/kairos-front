@@ -7,7 +7,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType : 'autoUpdate',
+      injectRegister: false,                  // registramos manualmente em src/registerSW.ts (auto-reload silencioso)
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       // PWA: permite testar SW em dev (npm run dev), além do build
       devOptions: {
