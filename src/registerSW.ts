@@ -23,13 +23,21 @@ const POLL_INTERVAL_MS = 60_000; // checa /sw.js a cada 60s
 const updateSW = registerSW({
   immediate: true,
   onRegisteredSW(swUrl, registration) {
-    // Polling adicional: além da checagem automática do browser, força
-    // registration.update() periódico pra pegar atualização sem precisar reload.
-    if (registration) {
-      setInterval(() => {
-        registration.update().catch(() => {});
-      }, POLL_INTERVAL_MS);
-    }
+    if (!registration) return;
+    const checkForUpdate = () => registration.update().catch(() => {});
+
+    // Poll periódico — MAS o navegador estrangula timers em aba de fundo,
+    // então sozinho ele atrasa a atualização (causa de usuário ver versão antiga).
+    setInterval(checkForUpdate, POLL_INTERVAL_MS);
+
+    // Gatilhos imediatos que cobrem o timer estrangulado: quando o usuário
+    // volta o foco, reabre/torna a aba visível, ou reconecta à internet,
+    // checamos atualização NA HORA — garante que ninguém fica preso na versão antiga.
+    window.addEventListener('focus', checkForUpdate);
+    window.addEventListener('online', checkForUpdate);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') checkForUpdate();
+    });
   },
   onNeedRefresh() {
     // Nova versão disponível → recarrega silencioso sem perguntar.
