@@ -6,7 +6,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
 import App from './App';
 import './styles/globals.css';
-import './registerSW';                                                 // auto-update silencioso do PWA Service Worker
+import './registerSW';                                                 // PWA: detecta nova versão e dispara o banner de update
+import UpdatePrompt from '@/components/UpdatePrompt';
 import { injectQueryClient, useAuthStore } from '@/stores/auth.store';
 
 export const queryClient = new QueryClient({
@@ -57,6 +58,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <App />
+        <UpdatePrompt />
         <Toaster
           position="top-right"
           toastOptions={{

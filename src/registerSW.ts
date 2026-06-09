@@ -40,8 +40,24 @@ const updateSW = registerSW({
     });
   },
   onNeedRefresh() {
-    // Nova versão disponível → recarrega silencioso sem perguntar.
-    // `true` = chama skipWaiting e ativa o novo SW imediatamente.
-    updateSW(true);
+    // Nova versão detectada → avisa a UI (banner "Atualizar agora").
+    // Não recarrega no susto: o usuário decide quando, e o botão limpa o cache.
+    window.dispatchEvent(new CustomEvent('pwa:need-refresh'));
   },
 });
+
+/**
+ * Chamado pelo botão "Atualizar agora" do banner: limpa TODOS os caches do
+ * PWA e ativa a nova versão com reload — garante carregamento 100% limpo.
+ */
+export async function applyUpdateAndReload(): Promise<void> {
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {
+    /* se a limpeza falhar, segue pro reload mesmo assim */
+  }
+  await updateSW(true); // skipWaiting + ativa o SW novo + recarrega
+}
