@@ -37,6 +37,7 @@ const inputFocus = 'focus:!border-white/20 focus:!ring-0';
 
 export default function AffiliateRegisterPage() {
   const [success,  setSuccess]  = useState(false);
+  const [approved, setApproved] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [loading,  setLoading]  = useState(false);
   const [docValue, setDocValue] = useState('');
@@ -49,11 +50,12 @@ export default function AffiliateRegisterPage() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      await api.post('/affiliates/register', {
+      const res = await api.post('/affiliates/register', {
         ...data,
         document: cleanDoc(data.document),
         phone   : data.phone?.replace(/\D/g, '') || undefined,
       });
+      setApproved(!!res?.data?.approved);
       setSuccess(true);
     } catch (e: any) {
       toast.error(e?.response?.data?.message || 'Erro ao cadastrar');
@@ -94,12 +96,16 @@ export default function AffiliateRegisterPage() {
             <div className="w-14 h-14 bg-green/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <CheckCircle size={28} className="text-green" />
             </div>
-            <h2 className="text-lg font-bold text-text mb-2">Cadastro enviado!</h2>
+            <h2 className="text-lg font-bold text-text mb-2">
+              {approved ? 'Cadastro aprovado!' : 'Cadastro enviado!'}
+            </h2>
             <p className="text-sm text-text2 mb-6">
-              Seu cadastro está em análise. Você receberá acesso assim que um produtor aprovar sua solicitação.
+              {approved
+                ? 'Sua conta foi criada e já está ativa. Faça login pra começar a divulgar.'
+                : 'Seu cadastro está em análise. Você receberá acesso assim que um produtor aprovar sua solicitação.'}
             </p>
             <Link to="/login" className="btn-primary w-full justify-center">
-              Voltar para o login
+              {approved ? 'Ir pro login' : 'Voltar para o login'}
             </Link>
           </div>
         </div>
