@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import api from '@/lib/api';
 import { PageHeader, Loading, EmptyState, DateCell, WhatsAppLink } from '@/components/ui';
 import type { Affiliate } from '@/types';
-import { Link2, CheckCircle, XCircle, Clock, Users, Trash2, Search, UserPlus, ChevronDown } from 'lucide-react';
+import { Link2, CheckCircle, XCircle, Clock, Users, Trash2, Search, UserPlus, ChevronDown, Eye, EyeOff } from 'lucide-react';
 
 type LookupUser = {
   id: string;
@@ -106,6 +106,17 @@ export default function AffiliatesPage() {
       qc.invalidateQueries({ queryKey: ['admin-affiliates'] });
     },
     onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro ao excluir'),
+  });
+
+  // Toggle isActive — esconde/mostra afiliado sem deletar histórico.
+  // Quando isActive=false: links do afiliado param de creditar comissão e ele some do marketplace.
+  const toggleActive = useMutation({
+    mutationFn: (a: any) => api.post(`/affiliates/${a.id}/toggle-active`),
+    onSuccess : (_res, a: any) => {
+      toast.success(a.isActive ? 'Afiliado ocultado' : 'Afiliado reativado');
+      qc.invalidateQueries({ queryKey: ['admin-affiliates'] });
+    },
+    onError   : (e: any) => toast.error(e?.response?.data?.message || 'Erro ao alterar status'),
   });
 
   const askDelete = (a: any) => {
@@ -351,14 +362,24 @@ export default function AffiliatesPage() {
                         <td><span className={a.isActive ? 'badge-green' : 'badge-gray'}>{a.isActive ? 'Ativo' : 'Inativo'}</span></td>
                         <td><DateCell date={a.approvedAt} /></td>
                         <td>
-                          <button
-                            className="btn-ghost btn-sm border border-red/40 text-red hover:bg-red/10"
-                            onClick={() => askDelete(a)}
-                            disabled={remove.isPending}
-                            title="Excluir permanentemente"
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          <div className="flex gap-1">
+                            <button
+                              className="btn-ghost btn-sm border border-border hover:bg-bg3"
+                              onClick={() => toggleActive.mutate(a)}
+                              disabled={toggleActive.isPending}
+                              title={a.isActive ? 'Ocultar afiliado (não pode mais divulgar)' : 'Reativar afiliado'}
+                            >
+                              {a.isActive ? <EyeOff size={12} /> : <Eye size={12} />}
+                            </button>
+                            <button
+                              className="btn-ghost btn-sm border border-red/40 text-red hover:bg-red/10"
+                              onClick={() => askDelete(a)}
+                              disabled={remove.isPending}
+                              title="Excluir permanentemente"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
