@@ -13,6 +13,8 @@ interface Product {
   imageUrl    : string | null;
   isActive    : boolean;
   metadata?   : Record<string, any> | null;
+  suspendedReason?: string | null;
+  suspendedAt?: string | null;
   offers?     : any[];
 }
 
@@ -66,15 +68,17 @@ export default function ProductEdit() {
 
   const counts = { offers: product.offers?.length ?? 0 };
   const statusBadge =
-    product.status === 'APPROVED' ? 'bg-green/15 text-green' :
-    product.status === 'PENDING'  ? 'bg-amber/15 text-amber' :
-    product.status === 'REVIEW'   ? 'bg-accent/15 text-accent' :
-    product.status === 'REJECTED' ? 'bg-red/15 text-red'   :
+    product.status === 'APPROVED'  ? 'bg-green/15 text-green' :
+    product.status === 'PENDING'   ? 'bg-amber/15 text-amber' :
+    product.status === 'REVIEW'    ? 'bg-accent/15 text-accent' :
+    product.status === 'REJECTED'  ? 'bg-red/15 text-red'   :
+    product.status === 'SUSPENDED' ? 'bg-red/20 text-red'   :
     'bg-bg3 text-text3';
-  const statusLabel = product.status === 'APPROVED' ? 'Ativo' :
-                      product.status === 'PENDING'  ? 'Em análise' :
-                      product.status === 'REVIEW'   ? 'Em revisão' :
-                      product.status === 'REJECTED' ? 'Recusado'   : product.status;
+  const statusLabel = product.status === 'APPROVED'  ? 'Ativo' :
+                      product.status === 'PENDING'   ? 'Em análise' :
+                      product.status === 'REVIEW'    ? 'Em revisão' :
+                      product.status === 'REJECTED'  ? 'Recusado'   :
+                      product.status === 'SUSPENDED' ? 'Suspenso'   : product.status;
 
   return (
     <div>
@@ -103,6 +107,26 @@ export default function ProductEdit() {
           <div className="text-[11px] text-text3 mt-1">* As atualizações podem levar até 1 minuto para serem aplicadas no checkout</div>
         </div>
       </div>
+
+      {/* Banner de suspensão */}
+      {product.status === 'SUSPENDED' && (
+        <div className="card bg-red/5 border-red/30 p-4 mb-4 flex items-start gap-3">
+          <div className="w-8 h-8 rounded-full bg-red/15 flex items-center justify-center flex-shrink-0">
+            <span className="text-red text-base">⚠</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold text-red">Produto suspenso pela plataforma</div>
+            {product.suspendedReason && (
+              <div className="text-xs text-text2 mt-1 leading-relaxed whitespace-pre-wrap">
+                <span className="text-text3">Motivo: </span>{product.suspendedReason}
+              </div>
+            )}
+            <div className="text-[11px] text-text3 mt-2">
+              Enquanto suspenso, o produto não aparece no marketplace e o checkout fica indisponível. Entre em contato com o suporte para resolver.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Layout 2 colunas */}
       <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4">

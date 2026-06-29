@@ -5,16 +5,17 @@ import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { PageHeader, Modal, Loading, EmptyState, DateCell, WhatsAppLink } from '@/components/ui';
 import { formatBRL, productStatusVariant, PRODUCT_TYPE_LABEL, dateRelAbs } from '@/lib/utils';
-import { Package, Image as ImageIcon, CheckCircle, XCircle, ExternalLink, RotateCcw, Info, Tag as TagIcon, User as UserIcon, Link as LinkIcon, DollarSign } from 'lucide-react';
+import { Package, Image as ImageIcon, CheckCircle, XCircle, ExternalLink, RotateCcw, Info, Tag as TagIcon, User as UserIcon, Link as LinkIcon, DollarSign, Ban, Play } from 'lucide-react';
 
 const PLATFORM_FEE = 0.05; // 5%
 
-const STATUS_TABS = ['Todos', 'Pendentes', 'Em revisão', 'Aprovados', 'Rejeitados'];
+const STATUS_TABS = ['Todos', 'Pendentes', 'Em revisão', 'Aprovados', 'Rejeitados', 'Suspensos'];
 const STATUS_MAP: Record<string, string | undefined> = {
   'Pendentes' : 'PENDING',
   'Em revisão': 'REVIEW',
   'Aprovados' : 'APPROVED',
   'Rejeitados': 'REJECTED',
+  'Suspensos' : 'SUSPENDED',
 };
 
 type ProductTab = 'info' | 'offers' | 'producer' | 'links' | 'billing';
@@ -59,6 +60,27 @@ export default function AdminProducts() {
       api.post(`/products/${id}/request-changes`, { reason }),
     onSuccess: () => {
       toast.success('Solicitação enviada ao produtor.');
+      qc.invalidateQueries({ queryKey: ['admin-products'] });
+      setSelected(null);
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
+  });
+
+  const suspend = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      api.post(`/products/${id}/suspend`, { reason }),
+    onSuccess: () => {
+      toast.success('Produto suspenso.');
+      qc.invalidateQueries({ queryKey: ['admin-products'] });
+      setSelected(null);
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro'),
+  });
+
+  const unsuspend = useMutation({
+    mutationFn: (id: string) => api.post(`/products/${id}/unsuspend`),
+    onSuccess: () => {
+      toast.success('Produto reativado.');
       qc.invalidateQueries({ queryKey: ['admin-products'] });
       setSelected(null);
     },
@@ -213,6 +235,29 @@ export default function AdminProducts() {
                   </button>
                 </>
               )}
+              {selected.status === 'APPROVED' && (
+                <button
+                  className="btn-danger btn-sm"
+                  onClick={() => {
+                    const reason = prompt('Motivo da suspensão (mínimo 5 caracteres):');
+                    if (reason && reason.length >= 5) suspend.mutate({ id: selected.id, reason });
+                  }}
+                  disabled={suspend.isPending}
+                  title="Suspende o produto — some do marketplace e da vitrine de afiliados"
+                >
+                  <Ban size={14} /> Suspender
+                </button>
+              )}
+              {selected.status === 'SUSPENDED' && (
+                <button
+                  className="btn-success btn-sm"
+                  onClick={() => unsuspend.mutate(selected.id)}
+                  disabled={unsuspend.isPending}
+                  title="Reativa o produto — volta pro status APPROVED"
+                >
+                  <Play size={14} /> Reativar
+                </button>
+              )}
             </div>
           }
         >
@@ -267,6 +312,12 @@ export default function AdminProducts() {
                   <div className="sm:col-span-2 bg-amber/10 border border-amber/20 rounded p-2 text-xs">
                     <div className="text-[10px] text-amber uppercase font-semibold">Motivo da revisão/rejeição</div>
                     <div className="text-text">{selected.rejectedReason}</div>
+                  </div>
+                )}
+                {selected.suspendedReason && (
+                  <div className="sm:col-span-2 bg-red/10 border border-red/20 rounded p-2 text-xs">
+                    <div className="text-[10px] text-red uppercase font-semibold">Motivo da suspensão</div>
+                    <div className="text-text">{selected.suspendedReason}</div>
                   </div>
                 )}
               </dl>

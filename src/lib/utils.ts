@@ -90,6 +90,7 @@ export function productStatusVariant(status: string): string {
     REVIEW:    'badge-blue',
     REJECTED:  'badge-red',
     INACTIVE:  'badge-gray',
+    SUSPENDED: 'badge-red',
   };
   return map[status] || 'badge-gray';
 }
