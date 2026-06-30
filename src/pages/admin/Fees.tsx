@@ -659,13 +659,39 @@ function CustomFeesSection({ platform: _platform }: { platform: Record<PlatformM
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao salvar'),
   });
 
+  // Override per-method (usado pra setar SÓ a taxa de saque sem afetar PIX/cartão/boleto).
+  // Backend mescla com customFees existente — passando WITHDRAWAL atualiza só essa key.
+  const saveWithdrawalFee = useMutation({
+    mutationFn: (vars: { userId: string; currentFees: any; bps: number | null; cents: number | null }) => {
+      const next = { ...(vars.currentFees || {}) };
+      if (vars.bps === null && vars.cents === null) {
+        delete next.WITHDRAWAL;                                        // remove override
+      } else {
+        next.WITHDRAWAL = {
+          ...(vars.bps   !== null ? { bps: vars.bps }     : {}),
+          ...(vars.cents !== null ? { cents: vars.cents } : {}),
+        };
+      }
+      const customFees = Object.keys(next).length ? next : null;
+      return api.put(`/admin/fees/users/${vars.userId}`, { customFees });
+    },
+    onSuccess: (res: any) => {
+      toast.success(res?.data?.message || 'Taxa de saque atualizada');
+      qc.invalidateQueries({ queryKey: ['admin-fees-users'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Erro ao salvar taxa de saque'),
+  });
+
   return (
     <div className="card space-y-4">
       <div className="flex items-center gap-2.5">
         <Users size={16} className="text-accent flex-shrink-0" />
         <div>
           <h3 className="font-semibold text-text">Taxas Personalizadas por Usuário</h3>
-          <p className="text-xs text-text3 mt-0.5">% única que substitui a taxa geral da plataforma para todos os métodos.</p>
+          <p className="text-xs text-text3 mt-0.5">
+            <strong>% geral</strong>: substitui a taxa geral pra TODOS os métodos (PIX/Cartão/Boleto/Saque).{' '}
+            <strong>Taxa de saque</strong>: aplica SÓ no saque (R$ fixo + % opcional), mantém os outros métodos na geral.
+          </p>
         </div>
       </div>
 
@@ -720,14 +746,15 @@ function CustomFeesSection({ platform: _platform }: { platform: Record<PlatformM
             <tr>
               <th>Usuário</th>
               <th>Tipo</th>
-              <th>% da plataforma</th>
+              <th>% geral da plataforma</th>
+              <th>Taxa de saque (R$ + %)</th>
               <th className="w-40 text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
             {(usersData?.data ?? []).length === 0 ? (
               <tr>
-                <td colSpan={4} className="text-center text-text3 py-6">
+                <td colSpan={5} className="text-center text-text3 py-6">
                   {onlyCustom ? 'Nenhum usuário com taxa personalizada' : 'Nenhum usuário encontrado'}
                 </td>
               </tr>
@@ -737,6 +764,7 @@ function CustomFeesSection({ platform: _platform }: { platform: Record<PlatformM
                   key={`${u.role}:${u.userId}`}
                   row={u}
                   onSave={(bps) => saveOverride.mutate({ userId: u.userId, bps })}
+                  onSaveWithdrawal={(bps, cents) => saveWithdrawalFee.mutate({ userId: u.userId, currentFees: u.customFees, bps, cents })}
                 />
               ))
             )}
@@ -747,9 +775,10 @@ function CustomFeesSection({ platform: _platform }: { platform: Record<PlatformM
   );
 }
 
-function PlatformBpsRow({ row, onSave }: {
-  row   : CustomFeeRowData;
-  onSave: (bps: number | null) => void;
+function PlatformBpsRow({ row, onSave, onSaveWithdrawal }: {
+  row             : CustomFeeRowData;
+  onSave          : (bps: number | null) => void;
+  onSaveWithdrawal: (bps: number | null, cents: number | null) => void;
 }) {
   const initialPct = row.customPlatformBps != null ? row.customPlatformBps / 100 : '';
   const [pct, setPct] = useState<string>(String(initialPct));
@@ -759,6 +788,23 @@ function PlatformBpsRow({ row, onSave }: {
   const numericPct = pct.trim() === '' ? null : Number(pct);
   const validBps   = numericPct === null ? null : Math.round(numericPct * 100);
   const invalid    = numericPct !== null && (isNaN(numericPct) || numericPct < 0 || numericPct > 50);
+
+  // Taxa de saque personalizada (sobrescreve só WITHDRAWAL, mantém PIX/Cartão/Boleto na geral)
+  const wd = (row.customFees as any)?.WITHDRAWAL || null;
+  const initialWdBps   = wd?.bps   != null ? (wd.bps / 100).toString() : '';
+  const initialWdCents = wd?.cents != null ? (wd.cents / 100).toFixed(2) : '';
+  const [wdPct,   setWdPct]   = useState<string>(initialWdBps);
+  const [wdReais, setWdReais] = useState<string>(initialWdCents);
+  useEffect(() => { setWdPct(initialWdBps); setWdReais(initialWdCents); }, [wd?.bps, wd?.cents]);
+
+  const wdDirty = wdPct !== initialWdBps || wdReais !== initialWdCents;
+  const wdPctNum   = wdPct.trim()   === '' ? null : Number(wdPct);
+  const wdReaisNum = wdReais.trim() === '' ? null : Number(wdReais);
+  const wdBpsToSave   = wdPctNum   === null ? null : Math.round(wdPctNum * 100);
+  const wdCentsToSave = wdReaisNum === null ? null : Math.round(wdReaisNum * 100);
+  const wdInvalid =
+    (wdPctNum   !== null && (isNaN(wdPctNum)   || wdPctNum   < 0 || wdPctNum   > 50))
+ || (wdReaisNum !== null && (isNaN(wdReaisNum) || wdReaisNum < 0 || wdReaisNum > 100));
 
   return (
     <tr>
@@ -791,23 +837,77 @@ function PlatformBpsRow({ row, onSave }: {
         </div>
       </td>
       <td>
-        <div className="flex gap-2 justify-end">
-          {row.customPlatformBps != null && (
+        <div className="flex items-center gap-1.5">
+          <span className="text-text3 text-xs">R$</span>
+          <input
+            type="number"
+            step="0.50"
+            min="0"
+            max="100"
+            value={wdReais}
+            onChange={e => setWdReais(e.target.value)}
+            placeholder="0,00"
+            className="input h-8 w-20"
+            title="Taxa fixa em R$ (ex: 3 = R$ 3,00 por saque)"
+          />
+          <span className="text-text3 text-xs">+</span>
+          <input
+            type="number"
+            step="0.5"
+            min="0"
+            max="50"
+            value={wdPct}
+            onChange={e => setWdPct(e.target.value)}
+            placeholder="0"
+            className="input h-8 w-16"
+            title="% sobre o valor sacado"
+          />
+          <span className="text-text3 text-xs">%</span>
+          {wd && !wdDirty && (
+            <span className="text-[11px] text-accent ml-1">custom</span>
+          )}
+          {wdInvalid && <span className="text-[11px] text-red ml-1">inválido</span>}
+        </div>
+      </td>
+      <td>
+        <div className="flex gap-2 justify-end flex-wrap">
+          {wdDirty && (
             <button
-              onClick={() => { if (confirm('Remover override deste usuário?')) onSave(null); }}
+              onClick={() => onSaveWithdrawal(wdBpsToSave, wdCentsToSave)}
+              disabled={wdInvalid}
+              className="btn-primary btn-sm flex items-center gap-1.5"
+              title="Salvar taxa de saque personalizada"
+            >
+              <Save size={13} /> Saque
+            </button>
+          )}
+          {wd && !wdDirty && (
+            <button
+              onClick={() => { if (confirm('Remover taxa de saque personalizada (volta a usar a geral)?')) onSaveWithdrawal(null, null); }}
               className="btn-ghost btn-sm text-text3 hover:text-red-400"
-              title="Remover override (volta a usar a taxa geral)"
+              title="Remover taxa de saque custom"
             >
               <X size={14} />
             </button>
           )}
-          <button
-            onClick={() => onSave(validBps)}
-            disabled={!dirty || invalid}
-            className="btn-primary btn-sm flex items-center gap-1.5"
-          >
-            <Save size={13} /> Salvar
-          </button>
+          {row.customPlatformBps != null && !dirty && (
+            <button
+              onClick={() => { if (confirm('Remover override deste usuário?')) onSave(null); }}
+              className="btn-ghost btn-sm text-text3 hover:text-red-400"
+              title="Remover override % geral (volta a usar a taxa geral)"
+            >
+              <X size={14} />
+            </button>
+          )}
+          {dirty && (
+            <button
+              onClick={() => onSave(validBps)}
+              disabled={invalid}
+              className="btn-primary btn-sm flex items-center gap-1.5"
+            >
+              <Save size={13} /> Geral
+            </button>
+          )}
         </div>
       </td>
     </tr>
