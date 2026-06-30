@@ -1,0 +1,53 @@
+User-agent: *
+
+# Áreas privadas — fora do índice (Google dorking protection)
+Disallow: /admin
+Disallow: /admin/
+Disallow: /produtor
+Disallow: /produtor/
+Disallow: /afiliado
+Disallow: /afiliado/
+Disallow: /cliente
+Disallow: /cliente/
+Disallow: /api
+Disallow: /api/
+Disallow: /auth
+Disallow: /auth/
+Disallow: /esqueci-senha
+Disallow: /redefinir-senha
+Disallow: /verificar
+Disallow: /mfa
+Disallow: /impersonate
+Disallow: /tv
+
+# Áreas públicas — permitidas
+Allow: /
+Allow: /login
+Allow: /registrar
+Allow: /seja-afiliado
+Allow: /checkout/
+Allow: /marketplace
+Allow: /afiliacao/
+Allow: /manual-bling.html
+
+# Crawlers agressivos / scrapers — bloqueio total
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
