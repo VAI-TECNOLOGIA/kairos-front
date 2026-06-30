@@ -6,6 +6,7 @@ import {
   PushNotificationSchema,
 } from '@capacitor/push-notifications';
 import { Preferences } from '@capacitor/preferences';
+import { navigateSafely } from './safeRedirect';
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? '';
 
@@ -129,7 +130,7 @@ export async function setupPushNotifications(): Promise<void> {
     await PushNotifications.addListener('pushNotificationActionPerformed', (action: ActionPerformed) => {
       const url = action.notification.data?.url;
       if (url && typeof url === 'string') {
-        window.location.href = url;
+        navigateSafely(url);                              // valida host antes (defesa contra notificação maliciosa)
       }
     });
 

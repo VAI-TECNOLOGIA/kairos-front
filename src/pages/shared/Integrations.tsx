@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui';
 import api from '@/lib/api';
+import { navigateSafely } from '@/lib/safeRedirect';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, CheckCircle2, XCircle, Loader2, Trash2, Save, Plug, HelpCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -305,7 +306,7 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
             onClick={async () => {
               try {
                 const { data } = await api.get(meta.oauthPath!);
-                if (data?.url) window.location.href = data.url;
+                if (data?.url) navigateSafely(data.url);
                 else toast.error('Não foi possível iniciar a conexão');
               } catch (e: any) {
                 toast.error(e?.response?.data?.message || 'Erro ao iniciar OAuth');
@@ -382,7 +383,7 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
                 onClick={async () => {
                   try {
                     const { data } = await api.get(meta.oauthPath!);
-                    if (data?.url) window.location.href = data.url;
+                    if (data?.url) navigateSafely(data.url);
                     else toast.error('Não foi possível iniciar a conexão');
                   } catch (e: any) {
                     toast.error(e?.response?.data?.message || 'Erro ao iniciar OAuth');
@@ -451,7 +452,7 @@ function IntegrationCard({ provider, row }: { provider: Provider; row: Integrati
                 onClick={async () => {
                   try {
                     const { data } = await api.get(meta.oauthPath!);
-                    if (data?.url) window.location.href = data.url;
+                    if (data?.url) navigateSafely(data.url);
                     else toast.error('Não foi possível iniciar a conexão');
                   } catch (e: any) {
                     toast.error(e?.response?.data?.message || 'Erro ao iniciar OAuth');

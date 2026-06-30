@@ -16,6 +16,7 @@ import NotificationBell from '@/components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme, logoForTheme } from '@/hooks/useTheme';
 import { SpecialMessageDialog } from '@/components/SpecialMessageDialog';
+import { sanitizeHtml } from '@/components/RichTextEditor';
 
 const nav = [
   { group: 'Início', items: [
@@ -319,7 +320,7 @@ export default function AffiliateLayout() {
             {promotedHtml ? (
               <div
                 className="rich-content text-sm leading-relaxed text-text2 mb-6 [&_strong]:text-text"
-                dangerouslySetInnerHTML={{ __html: promotedHtml }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(promotedHtml) }}
               />
             ) : (
               <>
