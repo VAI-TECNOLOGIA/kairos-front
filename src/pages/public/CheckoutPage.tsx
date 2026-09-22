@@ -147,13 +147,12 @@ export default function CheckoutPage() {
   const { isAuthenticated, user, setAuth } = useAuthStore();
   const { fire }       = useTracking(slug);
 
-  // ── Etapa: identificação ou pagamento
-  const [step, setStep] = useState<'identify' | 'payment'>(
-    isAuthenticated() ? 'payment' : 'identify'
-  );
+  // ── Etapa: pagamento (padrão) ou login opcional
+  // Guest checkout: compra direto sem obrigar cadastro. Login é opcional.
+  const [step, setStep] = useState<'identify' | 'payment'>('payment');
 
-  // ── Estado da etapa de identificação
-  const [idTab,      setIdTab]      = useState<'register' | 'login'>('register');
+  // ── Estado da etapa de identificação (login opcional de quem já tem conta)
+  const [idTab,      setIdTab]      = useState<'register' | 'login'>('login');
   const [idLoading,  setIdLoading]  = useState(false);
   const [showIdPass, setShowIdPass] = useState(false);
   const [idName,     setIdName]     = useState('');
@@ -197,8 +196,8 @@ export default function CheckoutPage() {
     offerLoadedRef.current = true;
     setTimeout(() => {
       fire('ViewContent');
-      // If user is already authenticated, they skip identify → fire InitiateCheckout now
-      if (isAuthenticated()) fire('InitiateCheckout');
+      // Checkout abre direto no pagamento (guest ou logado) → InitiateCheckout sempre
+      fire('InitiateCheckout');
     }, 500);
   }
 
@@ -307,6 +306,14 @@ export default function CheckoutPage() {
   // ── Mutation de pagamento ─────────────────────────────────────
   const payMutation = useMutation({
     mutationFn: async (formData: any) => {
+      // Dados do comprador: do login (se autenticado) ou digitados (convidado)
+      const buyerName  = isAuthenticated() ? (user?.name  || '') : (formData.customerName  || '').trim();
+      const buyerEmail = isAuthenticated() ? (user?.email || '') : (formData.customerEmail || '').trim();
+      // Validar identificação do convidado
+      if (!isAuthenticated()) {
+        if (buyerName.length < 3)       throw new Error('Informe seu nome completo');
+        if (!buyerEmail.includes('@'))  throw new Error('E-mail inválido');
+      }
       // Bloquear se CPF digitado é inválido (campo preenchido mas com erro)
       if (docError) throw new Error(docError);
       // Validar telefone obrigatório
@@ -328,8 +335,8 @@ export default function CheckoutPage() {
         });
       }
       const payload: any = {
-        customerEmail : user?.email || '',
-        customerName  : user?.name  || '',
+        customerEmail : buyerEmail,
+        customerName  : buyerName,
         customerDoc   : docValue  ? docValue.replace(/\D/g, '')   : undefined,
         customerPhone : phoneValue ? phoneValue.replace(/\D/g, '') : undefined,
         method        : formData.method,
@@ -733,9 +740,18 @@ export default function CheckoutPage() {
         {/* ── ETAPA 1: IDENTIFICAÇÃO ───────────────────────────────── */}
         {step === 'identify' && (
           <div className="bg-bg2 border border-border rounded-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-border">
-              <h2 className="text-sm font-semibold text-text">Identifique-se para continuar</h2>
-              <p className="text-xs text-text3 mt-0.5">Crie uma conta ou entre para vincular o pedido ao seu perfil</p>
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-text">Acesse sua conta</h2>
+                <p className="text-xs text-text3 mt-0.5">Opcional — para vincular o pedido ao seu perfil</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStep('payment')}
+                className="text-xs text-text3 hover:text-accent transition-colors flex-shrink-0"
+              >
+                Continuar sem conta
+              </button>
             </div>
 
             <div className="p-6">
@@ -838,32 +854,65 @@ export default function CheckoutPage() {
           <div className="bg-bg2 border border-border rounded-2xl overflow-hidden">
 
             {/* Chip do usuário autenticado */}
-            <div className="px-5 py-3 bg-accent/5 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center text-accent text-xs font-bold flex-shrink-0">
-                  {user?.name?.slice(0, 2).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-text leading-none">{user?.name}</p>
-                  <p className="text-xs text-text3 mt-0.5">{user?.email}</p>
+            {isAuthenticated() && (
+              <div className="px-5 py-3 bg-accent/5 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center text-accent text-xs font-bold flex-shrink-0">
+                    {user?.name?.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-text leading-none">{user?.name}</p>
+                    <p className="text-xs text-text3 mt-0.5">{user?.email}</p>
+                  </div>
                 </div>
               </div>
+            )}
+
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-text">Seus dados</h2>
               {!isAuthenticated() && (
                 <button
                   type="button"
-                  onClick={() => setStep('identify')}
+                  onClick={() => { setIdTab('login'); setStep('identify'); }}
                   className="text-xs text-text3 hover:text-accent transition-colors flex-shrink-0"
                 >
-                  Trocar conta
+                  Já tenho conta? Entrar
                 </button>
               )}
             </div>
 
-            <div className="px-6 py-4 border-b border-border">
-              <h2 className="text-sm font-semibold text-text">Informações de pagamento</h2>
-            </div>
-
             <form onSubmit={handleSubmit(d => payMutation.mutate(d))} className="p-6 space-y-5">
+
+              {/* Nome + E-mail (convidado — sem obrigar cadastro) */}
+              {!isAuthenticated() && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-text2 mb-1.5 tracking-wide uppercase">
+                      Nome completo <span className="text-red">*</span>
+                    </label>
+                    <input
+                      {...register('customerName', { required: 'Obrigatório', minLength: { value: 3, message: 'Nome muito curto' } })}
+                      className="w-full bg-bg3 border border-border rounded-xl px-4 py-2.5 text-sm text-text placeholder:text-text3 outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all"
+                      placeholder="Seu nome completo"
+                      autoComplete="name"
+                    />
+                    {errors.customerName && <p className="text-xs text-red mt-1">{String(errors.customerName.message)}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-text2 mb-1.5 tracking-wide uppercase">
+                      E-mail <span className="text-red">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      {...register('customerEmail', { required: 'Obrigatório', pattern: { value: /.+@.+\..+/, message: 'E-mail inválido' } })}
+                      className="w-full bg-bg3 border border-border rounded-xl px-4 py-2.5 text-sm text-text placeholder:text-text3 outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all"
+                      placeholder="seu@email.com"
+                      autoComplete="email"
+                    />
+                    {errors.customerEmail && <p className="text-xs text-red mt-1">{String(errors.customerEmail.message)}</p>}
+                  </div>
+                </div>
+              )}
 
               {/* Telefone + CPF */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
