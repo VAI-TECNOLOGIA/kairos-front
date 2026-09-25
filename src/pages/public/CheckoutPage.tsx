@@ -254,6 +254,54 @@ export default function CheckoutPage() {
   const cardExpMonth = watch('cardExpMonth') || '';
   const cardExpYear  = watch('cardExpYear')  || '';
 
+  // ── Pré-preenchimento via URL (dados vindos da página anterior / funil)
+  // Ex.: /checkout/slug?nome=Maria&email=maria@x.com&telefone=11987654321&cpf=39053344705
+  //                    &cep=01001000&estado=SP&cidade=São Paulo&rua=...&numero=10&bairro=...
+  // Aceita nomes em PT e EN. Sem parâmetros, o checkout funciona normal.
+  useEffect(() => {
+    const pick = (...keys: string[]) => {
+      for (const k of keys) {
+        const v = searchParams.get(k);
+        if (v != null && v.trim() !== '') return v.trim();
+      }
+      return '';
+    };
+    const nome   = pick('nome', 'name', 'customerName');
+    const email  = pick('email', 'e-mail', 'customerEmail');
+    const tel    = pick('telefone', 'phone', 'whatsapp', 'celular', 'customerPhone');
+    const doc    = pick('cpf', 'cnpj', 'doc', 'documento', 'customerDoc');
+    const cep    = pick('cep', 'zipcode', 'zipCode');
+    const uf     = pick('estado', 'uf', 'state');
+    const cidade = pick('cidade', 'city');
+    const rua    = pick('rua', 'logradouro', 'endereco', 'street');
+    const numero = pick('numero', 'número', 'number');
+    const bairro = pick('bairro', 'neighborhood');
+    const compl  = pick('complemento', 'complement');
+
+    if (nome)  setValue('customerName',  nome);
+    if (email) setValue('customerEmail', email);
+    if (tel) {
+      const masked = maskPhone(tel);
+      setPhoneValue(masked);
+      setValue('customerPhone', masked);
+    }
+    if (doc) {
+      const masked = maskDocument(doc);
+      setDocValue(masked);
+      setValue('customerDoc', masked);
+      setDocError(validateDocument(masked) || '');
+    }
+    if (cep)    setValue('zipCode', cep);
+    if (uf)     setValue('state', uf.toUpperCase().slice(0, 2));
+    if (cidade) setValue('city', cidade);
+    if (rua)    setValue('street', rua);
+    if (numero) setValue('number', numero);
+    if (bairro) setValue('neighborhood', bairro);
+    if (compl)  setValue('complement', compl);
+    // roda uma vez ao montar; searchParams já disponível na 1ª renderização
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Handler: identificação ────────────────────────────────────
   async function handleIdentify(e: React.FormEvent) {
     e.preventDefault();
